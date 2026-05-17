@@ -6,8 +6,8 @@
 ---
 
 ## Stats
-- **Sources**: 42 | **Entities**: 13 | **Concepts**: 11 | **Comparisons**: 2 | **Analyses**: 7
-- **Last updated**: 2026-05-17 (query 分析：RL 微调 VLA + 生成模型全景对比，扩展既有 Comparison 页并新建 VLA RL 微调方法对比页)
+- **Sources**: 42 | **Entities**: 13 | **Concepts**: 12 | **Comparisons**: 2 | **Analyses**: 8
+- **Last updated**: 2026-05-17 (新建 Concept：AWR；更新 RECAP Concept 页：补充条件 I 作用 + vs PPO/Actor-Critic + CFGRL 前驱)
 
 ---
 
@@ -150,12 +150,13 @@
 
 ## Concepts by Category
 
-### Reinforcement Learning (3)
+### Reinforcement Learning (4)
 | Page | Summary | Sources |
 |------|---------|---------|
 | [[wiki/concepts/rl/Offline 强化学习]] | 静态数据集下的约束优化 RL 范式 | 来源 6, 7 |
-| [[wiki/concepts/rl/RECAP]] | 离线 Advantage-conditioned 策略优化，π₀.₆ 核心方法，RLinf 内置支持 | 来源 7, 10 |
+| [[wiki/concepts/rl/RECAP]] | 离线 Advantage-conditioned 策略优化，π₀.₆ 核心方法；补充：条件 I 作用、vs PPO/Actor-Critic、CFGRL 前驱推导 | 来源 7, 10 |
 | [[wiki/concepts/rl/DPPO]] | 用 PPO 在线 RL 微调扩散策略的事实基线 | 来源 4, 8 |
+| [[wiki/concepts/rl/AWR]] | Advantage-Weighted Regression：KL 正则化 RL 的加权 BC 实现，过滤式模仿学习，Flow Matching 不兼容，RECAP 的直接前驱 | 来源 6, 7 |
 
 ### Imitation Learning (2)
 | Page | Summary | Sources |
@@ -209,6 +210,7 @@
 | [[wiki/analyses/ReinFlow π_rl 完整数学推导]] | $\pi_{rl}$ 噪声注入 Markov 化、封闭形式 log-prob 推导、Markov Process PG 定理 4.1 完整证明 | 2026-04-24 |
 | [[wiki/analyses/UMI ee6d 位姿变换推理]] | Camera-at-$t_0$ 参考原点下 ee6d 完整 SE(3) 变换链：采集→帧无关性→推理还原→延迟匹配 | 2026-04-25 |
 | [[wiki/analyses/π₀.₇ 训练逻辑全景解析]] | VLA / World Model / High-Level Policy 三模型训练目标、推理时 Prompt 组装与 CFG 完整解析 | 2026-04-29 |
+| [[wiki/analyses/π₀.₆ 与 RECAP 训练原理全景解析]] | π₀.₆ 架构（Gemma 3 4B + 860M flow expert + KI）、RECAP 完整数学推导（贝叶斯反向消除 + delta 二值化 + flow log-likelihood 下界）、三阶段管线与定向失败模式消除 | 2026-05-17 |
 
 ---
 
@@ -247,6 +249,9 @@
 **来自 VLA-OPD（来源 37）**：
 - **On-Policy Distillation（机器人策略后训练）**：在策略自生成轨迹上做教师蒸馏；仅来源 37
 - **Entropy Explosion / Entropy Collapse（VLA 训练动态）**：Forward-KL 导致熵爆炸、Hard-CE 导致熵崩溃；仅来源 37
+
+**来自 π₀.₆ RECAP（来源 7）补充**：
+- **CFGRL（Frans et al. 2025）**：Classifier-Free Guidance RL，RECAP 的理论前驱；提出用伯努利指示符 $I$ 替代连续权重 $\exp(A/\beta)$ 的"鲜为人知的结果" $(\star\star)$；原始论文尚未入库，仅来源 7 引用。详细说明已整合进 [[wiki/concepts/rl/RECAP]] "CFGRL：RECAP 的理论前驱"节。
 
 **来自 Flow / RL 论文族**：
 - ~~**Rectified Flow / Shortcut Models**：仅来源 4（ReinFlow）~~ ✅ **已入 Analysis 页**：[[wiki/analyses/ReinFlow π_rl 完整数学推导]]

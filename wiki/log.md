@@ -567,3 +567,28 @@
 
 **更新 wiki source 页（5 个）**: sources 字段 HF 链接 → PDF 路径，补充 raw 文件 wiki-link
 **更新 index.md**: Lab Automation 节 Original Source 列更新为本地 PDF 路径
+
+
+## [2026-05-17] query | RECAP 强化学习训练原理详解
+- 读取 [[wiki/concepts/rl/RECAP]] 与 [[wiki/sources/vla-rl/2026-04-19 π0.6 RECAP]]，综合给出 RECAP 训练原理的详细分析
+- 覆盖：贝叶斯后验视角 → AWR 等价 → 二值化简化 → Prefix token 注入 → 三阶段管线 → 与 DPPO/FQL/ReinFlow 对比
+- 未新建页面（既有 Concept 页已涵盖核心内容）
+
+
+## [2026-05-17] update | 新建 Analysis 页：π₀.₆ 与 RECAP 训练原理全景解析
+- 基于原论文 (arXiv:2511.14759, 全文 + Appendix C/D/E/F) 创建独立分析页
+- 覆盖：π₀.₅→π₀.₆→π₀.₆* 架构升级、RECAP 严谨数学推导（贝叶斯反向消除 + Delta 二值化 + flow matching 对数似然下界 Eq.4/9）、价值函数设计（B=201 分布式 + 670M backbone + MC-CE loss）、三阶段管线（Algorithm 1）、推理时 β=1 直采 vs β>1 CFG、RECAP vs AWR vs PPO 工程差异、12 节深度解析
+- 强化数学严谨性：CFGRL 那条"鲜为人知的结果"完整推导、advantage 阈值 ε_ℓ 的设定规则、N-step vs MC advantage 在 pre-train/post-train 的切换
+- 更新 index.md: Analyses 节 +1 行，Stats 7→8
+
+
+## [2026-05-17] update | 新建 AWR Concept 页；更新 RECAP Concept 页（Q&A 沉淀）
+- **新建** [[wiki/concepts/rl/AWR]]：AWR 完整概念页，含 KL 正则化 RL 闭式推导（Step 1-4）、过滤式模仿学习本质、局限性对比表、π₀.₆ 实验数据
+  - 阈值检查：AWR 出现于来源 6（Flow Q-Learning）+ 来源 7（π₀.₆），满足 ≥2 来源建页条件
+- **更新** [[wiki/concepts/rl/RECAP]]：
+  - 补充"条件 I 的核心作用"章节：RL 改写为条件监督学习的机制、信号传递路径三方对比（PPO vs AWR vs RECAP）
+  - 补充"CFGRL：RECAP 的理论前驱"：$(\star\star)$ 公式来源、贝叶斯翻转路径、$\beta=1$ 退化结论
+  - 补充"两种策略改进哲学"：策略优化 vs 条件建模的根本区别
+  - 扩展比较表：新增 vs Actor-Critic / PPO / AWR 四维对比
+- **更新** wiki/index.md：RL Concepts 4→12 条，AWR 新增行；CFGRL 加入 Knowledge Gaps
+- 触发来源：用户关于 AWR / CFGRL / RECAP vs 传统 RL 的三轮 Q&A 对话
