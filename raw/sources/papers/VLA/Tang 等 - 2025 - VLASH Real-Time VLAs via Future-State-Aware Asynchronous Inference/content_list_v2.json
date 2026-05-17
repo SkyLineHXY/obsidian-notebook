@@ -1,0 +1,4718 @@
+[
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "VLASH: Real-Time VLAs via Future-State-Aware Asynchronous Inference "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                120,
+                130,
+                875,
+                151
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Jiaming Tang1,∗ Yufei Sun1,3,∗ Yilong Zhao4 Shang Yang1 Yujun Lin2 "
+                    }
+                ]
+            },
+            "bbox": [
+                181,
+                178,
+                815,
+                199
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Zhuoyang Zhang1 James Hou1,6 Yao Lu2 Zhijian Liu2,5 Song Han1,2 "
+                    }
+                ]
+            },
+            "bbox": [
+                187,
+                199,
+                805,
+                217
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "1MIT 2NVIDIA 3Tsinghua University 4UC Berkeley 5UCSD 6Caltech "
+                    }
+                ]
+            },
+            "bbox": [
+                174,
+                222,
+                821,
+                242
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "https://github.com/mit-han-lab/vlash "
+                    }
+                ]
+            },
+            "bbox": [
+                315,
+                252,
+                674,
+                267
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/a8edcaed505f56c55dfd6e57ca8be3e05b86d9e8e8906b8eed947feea795e8a1.jpg"
+                },
+                "image_caption": [],
+                "image_footnote": []
+            },
+            "bbox": [
+                94,
+                301,
+                228,
+                406
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/67fb9b74e7fee9a9dcabd76bdf0abceb53b54814e54c6857e377022de7423a5b.jpg"
+                },
+                "image_caption": [],
+                "image_footnote": []
+            },
+            "bbox": [
+                230,
+                301,
+                362,
+                406
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/d86aa31b89a7f3d568f20a9e85000c59f1c767bf90f10a7014803815d9442032.jpg"
+                },
+                "image_caption": [],
+                "image_footnote": []
+            },
+            "bbox": [
+                364,
+                301,
+                496,
+                406
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/333949e7e52202cb714c980bb51829761e5556cb0aee97f5870577358d7089f8.jpg"
+                },
+                "image_caption": [],
+                "image_footnote": []
+            },
+            "bbox": [
+                500,
+                301,
+                630,
+                406
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/cdda26b2b5a89d48b6182c18ff43d4520e844d81fd6154e9b6d2b7d86b7949c1.jpg"
+                },
+                "image_caption": [],
+                "image_footnote": []
+            },
+            "bbox": [
+                633,
+                301,
+                766,
+                406
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/cb792de0c380c31aab93e41a76487cdaed99c166bf3fdb01627a6a3be6e6432e.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 1. VLASH enables VLA to play ping-pong rallies with humans. Snapshots showing "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[16] with VLASH successfully tracking and striking a fast-moving ping-pong ball during a rally. The robot initiates its reaction by the third frame, demonstrating low-latency perception-to-action response. The task requires both fast reaction and smooth continuous motion, which are enabled by our asynchronous inference with future-state-awareness. Under synchronous inference, the robot fails to achieve this dynamic interaction. "
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                767,
+                301,
+                900,
+                406
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "Abstract "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                248,
+                503,
+                325,
+                520
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Vision-Language-Action models (VLAs) are becoming increasingly capable across diverse robotic tasks. However, their real-world deployment remains slow and inefficient: demonstration videos are often sped up by "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "5 . I O \\times"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to appear smooth, with noticeable action stalls and delayed reactions to environmental changes. Asynchronous inference offers a promising solution to achieve continuous and low-latency control by enabling robots to execute actions and perform inference simultaneously. However, because the robot and environment continue to evolve during inference, a temporal misalignment arises between the prediction and execution intervals. This leads to significant action instability, while existing methods either degrade accuracy or introduce runtime overhead to mitigate it. We propose VLASH, a general asynchronous inference framework for VLAs that delivers smooth, accurate, and fast reaction control without additional overhead or architectural changes. VLASH estimates the future execution-time state by rolling the robot state forward with the previously generated action chunk, thereby bridging the gap between prediction and execution. Experiments show that VLASH achieves up to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "2 . 0 3 \\times"
+                    },
+                    {
+                        "type": "text",
+                        "content": "speedup and reduces reaction latency by up to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "1 7 . 4 \\times"
+                    },
+                    {
+                        "type": "text",
+                        "content": "compared to syn-"
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                537,
+                483,
+                869
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "chronous inference while fully preserving the original accuracy. Moreover, it empowers VLAs to handle fast-reaction, high-precision tasks such as playing ping-pong and playing whack-a-mole, where traditional synchronous inference fails. "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                506,
+                906,
+                580
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "1. Introduction "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                513,
+                598,
+                643,
+                614
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Recent advances in Vision-Language-Action models (VLAs) such as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[16], Gemini [1, 34] and Gr00t [26] have demonstrated remarkable capabilities in solving complex robotic tasks. In real-world deployment, these models are typically executed under a synchronous inference paradigm: the robot first performs model inference to generate an action chunk [41], then sequentially executes the actions before initiating the next inference cycle. This sequential pipeline introduces action stalls and delayed reactions to environmental changes, since the model remains idle during action execution and cannot update its perception in real time [4]. As a result, many VLA demonstration videos are sped up by several times to mask the discontinuous and slow motion. "
+                    }
+                ]
+            },
+            "bbox": [
+                509,
+                626,
+                906,
+                835
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To prevent this stop-and-go behavior, researchers have proposed asynchronous inference [4, 24, 29, 31]. In a nutshell, asynchronous inference allows the robot to execute the current action chunk while simultaneously performing "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                839,
+                908,
+                902
+            ]
+        },
+        {
+            "type": "page_aside_text",
+            "content": {
+                "page_aside_text_content": [
+                    {
+                        "type": "text",
+                        "content": "arXiv:2512.01031v1 [cs.RO] 30 Nov 2025 "
+                    }
+                ]
+            },
+            "bbox": [
+                22,
+                273,
+                57,
+                722
+            ]
+        },
+        {
+            "type": "page_footnote",
+            "content": {
+                "page_footnote_content": [
+                    {
+                        "type": "text",
+                        "content": "∗ indicates equal contributions. "
+                    }
+                ]
+            },
+            "bbox": [
+                114,
+                887,
+                281,
+                898
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "1 "
+                    }
+                ]
+            },
+            "bbox": [
+                493,
+                924,
+                503,
+                935
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/a665f75c22cf04ce23e5834bb13bd94c166528d28d8d587acddcd899f0009537.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 2. Prediction-execution misalignment in asynchronous inference. Due to inference delay "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Delta"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", the model predicts actions for the prediction interval "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "[ t , t + K )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "but they execute during the execution interval "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "[ t + \\Delta , t + \\Delta + K )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". "
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                93,
+                87,
+                478,
+                224
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "inference for the next one. Because the execution duration of an action chunk is typically longer than the model inference time, the robot can immediately switch to the next chunk once the inference completes, avoiding idle period between chunks [4, 24, 29, 31]. This design eliminates action stalls and allows the robot to perform smooth, continuous motion. Moreover, since inference is performed continuously, the robot can maintain real-time perception and thus react to environmental changes more promptly and accurately [4, 24]. In summary, asynchronous inference provides a promising way to achieve smooth, accurate, and fast reaction control As)for VLAs. "
+                    }
+                ]
+            },
+            "bbox": [
+                88,
+                321,
+                482,
+                501
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "However, asynchronous inference faces a fundamental challenge that makes it unstable and inaccurate in practice. Since both the robot and the environment continue to evolve during inference, a temporal misalignment arises between the prediction interval starting when inference begins and the execution interval starting when inference finishes [4, 29]. As a result, the newly generated action misaligns with the robot’s execution-time state and environment, leading to severe instability and degraded control accuracy. For example, naive asynchronous inference reduces reaction latency but exhibits unstable and laggy control performance [4]. RTC [4] mitigates this by freezing the actions guaranteed to execute and inpainting the rest, but it introduces additional runtime overhead and complicates the deployment. In addition, current implementations [24, 29, 31] often require multi-threaded redesign of the inference framework to support asynchronous inference efficiently. Together, these create a significant barrier for the adoption of asynchronous inference for VLAs. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                505,
+                482,
+                792
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To address these challenges, we propose VLASH, a general asynchronous inference framework for VLAs that achieves smooth, accurate, and fast reaction control without additional overhead or architectural changes. In a nutshell, VLASH makes the model future-state-aware by accurately estimating the execution-time robot state using the previously issued action chunk, effectively bridging the gap be-"
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                795,
+                482,
+                902
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "tween prediction and execution. VLASH integrates seamlessly into existing fine-tuning pipelines and introduces no additional cost or latency. With a clean and lightweight implementation, VLASH provides a full-stack asynchronous inference framework from fine-tuning to inference at deployment, making asynchronous control practical and easy to adopt for real-time VLA systems. "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                90,
+                903,
+                196
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We build and evaluate VLASH across various VLA models, including "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[16] and SmolVLA [31]. On simulation benchmarks [25], VLASH achieves up to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "3 0 . 5 \\%"
+                    },
+                    {
+                        "type": "text",
+                        "content": "accuracy improvement compared to naive asynchronous inference and consistently outperforms all baselines. On real-world benchmarks [31], VLASH achieves up to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "2 . 0 3 \\times"
+                    },
+                    {
+                        "type": "text",
+                        "content": "speedup and reduces reaction latency by up to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "1 7 . 4 \\times"
+                    },
+                    {
+                        "type": "text",
+                        "content": "compared to synchronous inference while fully preserving the original accuracy. Beyond quantitative gains, VLASH demonstrates that large VLA models can handle fast-reaction, high-precision tasks such as playing ping-pong and playing whack-a-mole, which were previously infeasible under synchronous inference. We hope these results will inspire future research toward extending VLAs to more dynamic and physically interactive robotics. "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                198,
+                906,
+                422
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "2. Related Work "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                511,
+                434,
+                653,
+                450
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Vision-Language-Action Models (VLAs). Recent advances in Vision-Language-Action models have demonstrated remarkable capabilities in robotic manipulation by leveraging large-scale pretraining on diverse and internetscale vision-language data. Models such as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[16], RT-2 [43], and Gr00t [26], etc. [3, 19] combine visual encoders with large language models to enable generalist robotic policies that can follow natural language instructions and generalize across tasks and embodiments. These models are typically deployed under synchronous inference, where the robot waits for model inference to complete before executing actions, resulting in action stall and slow reaction to environmental changes [4, 29]. Our work addresses this limitation by enabling efficient asynchronous inference for VLAs. "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                460,
+                906,
+                672
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Asynchronous VLA Inference. Asynchronous inference offers a promising way to eliminate action stalls and improve reaction speed of VLAs, but existing approaches still face significant barriers to adoption in VLA community. SmolVLA [31] implements naive asynchronous inference by directly switching to new action chunks, but this causes severe prediction-execution misalignment and unstable control. Real-time Chunking (RTC) [4] mitigates this by freezing actions guaranteed to execute and inpainting the remaining actions, but this introduces additional runtime overhead for the inpainting process and complicates deployment. A concurrent work A2C2 [29] adds an additonal correction heads to the model to mitigate the prediction-execution misalignment, but this also introduces runtime overhead and "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                689,
+                908,
+                900
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "2 "
+                    }
+                ]
+            },
+            "bbox": [
+                493,
+                924,
+                504,
+                935
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/815ae1b80c432b57044335f707bd6f1b798b69fe5808f8d66cfa9f5de5ae6d61.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(a) Synchronous Inference "
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                94,
+                106,
+                357,
+                266
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/3b463237db013befb64b1db3230038d38bd3cbdd029c9fe1506be12869687ecb.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(b) Naive Async Inference "
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                375,
+                119,
+                599,
+                266
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/79b97725c00d043abc2993324a588011d7295c748b40b68c343282f3984d9e2d.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(c) VLASH (Ours) "
+                    },
+                    {
+                        "type": "text",
+                        "content": "Figure 3. Comparison between VLASH and existing methods. (a) Synchronous inference: the robot stalls during inference, introducing slow reactions. (b) Naive async: the model predicts based on stale state "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "s _ { 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "while execution begins at future state "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "s _ { 3 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", causing misalignment and discontinuity. (c) VLASH rolls forward the robot state "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( s _ { 3 } = s _ { 1 } + a _ { 1 } + a _ { 2 } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ") and condition on the execution-time state, achieving fast reaction and smooth actions. "
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                620,
+                119,
+                906,
+                267
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "requires architecture changes to the model. In contrast, our method achieves asynchronous inference through futurestate-awareness without additional overhead. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                363,
+                482,
+                407
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3. Background "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                89,
+                425,
+                218,
+                441
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Action chunking policy. We consider an action chunking policy "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { \\theta } ( A _ { t } \\mid o _ { t } , s _ { t } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[16, 31, 42], where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "o _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the environment observation (e.g., image, multi-view visual input), "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "s _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the robot state (e.g., joint positions, gripper state), and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "t"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the controller timestep. At each timestep "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "t"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", the policy generates a chunk of future actions "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                450,
+                483,
+                541
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "A _ {t} = \\left[ a _ {t}, a _ {t + 1}, \\dots , a _ {t + H - 1} \\right],",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/368a27e52b39948bc68707ed8018f41a2c4c813ef1e671c88abc9df800c1b296.jpg"
+                }
+            },
+            "bbox": [
+                189,
+                556,
+                382,
+                571
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "H"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the number of actions in the chunk. We refer to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "H"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as the prediction horizon. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                587,
+                482,
+                617
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Prediction and execution intervals. In practice, only the first "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "K \\leq H"
+                    },
+                    {
+                        "type": "text",
+                        "content": "actions from each chunk are executed before the next inference to ensure control accuracy. We denote "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "K"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as the execution horizon. For a chunk "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "A _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "predicted at timestep "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "t"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", we define the prediction interval "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                642,
+                483,
+                717
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "I _ {t} ^ {\\text {p r e d}} = [ t, t + K)",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/78e14cdcbdca4dce1603d1a202d24050c09e6ca6db6491184b96df3e4d721f79.jpg"
+                }
+            },
+            "bbox": [
+                227,
+                729,
+                344,
+                750
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "as the time interval where the first "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "K"
+                    },
+                    {
+                        "type": "text",
+                        "content": "actions from the action chunk "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "A _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are planned to be executed. During actual execution, however, the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "K"
+                    },
+                    {
+                        "type": "text",
+                        "content": "actions from "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "A _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "will start being applied later due to inference latency [4, 31]. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                763,
+                482,
+                824
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Let "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Delta > 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": "be the inference latency measured in control steps. Then the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "K"
+                    },
+                    {
+                        "type": "text",
+                        "content": "actions from "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "A _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are actually executed on the robot over the execution interval "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                825,
+                483,
+                869
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "I _ {t} ^ {\\text {e x e c}} = [ t + \\Delta , t + \\Delta + K).",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/d9f00e901146dc303d41afade84c98c62c7b6e1fd578cc3c79108d0a604f2b45.jpg"
+                }
+            },
+            "bbox": [
+                196,
+                883,
+                375,
+                902
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Asynchronous inference and interval misalignment. With asynchronous inference, the robot continues executing the previous action chunk while "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { \\theta }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "computes "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "A _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in the background. As illustrated in Fig. 2, when "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Delta \\mathit { \\Theta } > 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", the action chunk "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "A _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is planned for the prediction interval "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "I _ { t } ^ { \\mathrm { p r e d } } = \\left[ t , t + K \\right)"
+                    },
+                    {
+                        "type": "text",
+                        "content": "but actually executed over the shifted execution interval "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "I _ { t } ^ { \\mathrm { e x e c } } = \\left[ t + \\Delta , t + \\Delta + K \\right)"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Intuitively, the actions in "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "A _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are not wrong for the original prediction interval "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "[ t , t + K )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". However, under asynchronous inference, by the time they are executed, the environment and robot state have changed, so the same action sequence is applied to a different state and scene, leading to unstable and discontinuous behavior [4, 29]. "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                362,
+                906,
+                561
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4. VLASH "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                513,
+                577,
+                606,
+                592
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.1. Future State Awareness "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                511,
+                604,
+                732,
+                619
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In asynchronous inference, the robot keeps moving while the VLA performs a forward pass, so the state at inference start generally differs from the state at which the new actions actually begin execution. Our key idea is to make the policy future-state-aware: instead of conditioning on the current robot state "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "s _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", we condition on the robot state at the beginning of the next execution interval "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "s _ { t + \\Delta }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". "
+                    }
+                ]
+            },
+            "bbox": [
+                509,
+                627,
+                906,
+                733
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Although the future environment observation is unknown, the robot state at the beginning of the execution interval "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "s _ { t + \\Delta }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is determined by the current robot state "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "s _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and the actions executed during the inference delay "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "a _ { t : t + \\Delta - 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". As shown in Fig. 3(c), when inference for the new chunk starts at state "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "s _ { 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", the robot will still execute the remaining actions "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "a _ { 1 } , a _ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "from the previous chunk before the new chunk is ready to take over. Since the actions "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "a _ { 1 } , a _ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are already known, we can roll the state forward under them to obtain the execution-time state. In the Fig. 3(c), this corresponds to computing "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "s _ { 3 } = s _ { 1 } + a _ { 1 } + a _ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", which gives the robot state "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                734,
+                908,
+                900
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "3 "
+                    }
+                ]
+            },
+            "bbox": [
+                493,
+                924,
+                503,
+                935
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/51d732b863c4d6e30ee16871892d571951c28d6ef4643460296f13aec50d9eb2.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 4. Attention pattern for efficient fine-tuning with shared observation. We pack one shared observation "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "o _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and multiple offset branches "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\left( { { s _ { t + \\delta } } , { A _ { t + \\delta } } } \\right)"
+                    },
+                    {
+                        "type": "text",
+                        "content": "into a single sequence. Blue and yellow cells indicate allowed attention, while gray cells indicate masked attention. Positional encodings of each offset branch are reassigned to start at the same index, equal to the length of observation tokens. "
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                91,
+                85,
+                480,
+                303
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "at the start of the execution interval. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                425,
+                328,
+                438
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "During the forward pass, VLASH feeds both the current environment observation "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "o _ { 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and this rolled-forward future state "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "s _ { 3 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "into the VLA. In this way, the model generates actions for the state at the execution-time rather than for the stale state at inference start, bridging the gap between prediction and execution in terms of robot state. While the future environment is still unknown, this mechanism mirrors how humans act under reaction delays: we react to the world with slightly outdated visual input, but use our internal body state to anticipate what we will do when the action actually takes effect. Thus, humans inherently have the ability to compensate for such reaction delay, and we expect VLAs to possess the same capability. "
+                    }
+                ]
+            },
+            "bbox": [
+                88,
+                440,
+                483,
+                638
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.2. Fine-tuning with Offsets to States and Actions "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                89,
+                648,
+                478,
+                666
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The future-state-awareness assumes that the VLA is able to leverage the rolled-forward robot state. However, we find that existing VLAs often fail to exploit this future state properly. Even more, current VLAs appear to largely rely on visual input and under-utilize the robot state. In our experiments with "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(Table 1), fine-tuning without state input (visual only) consistently outperforms fine-tuning with state input on LIBERO [23]. Therefore, simply feeding a future robot state at test time is insufficient to achieve accurate and stable asynchronous control. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                672,
+                482,
+                823
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Since large VLAs are almost always fine-tuned on downstream data before deployment, we design a training augmentation that can be seamlessly integrated into the standard fine-tuning stage with no additional overhead. We keep the architecture and fine-tuning pipeline unchanged, and only "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                824,
+                483,
+                902
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/287f0915198f31ce8d8cf8121ed78d3cb8bd58e61c1a8643e82d95088c16224e.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 5. Action quantization for efficient execution. We group consecutive fine-grained micro-actions into coarser macro-actions to accelerate robot motion. The original trajectory with finegrained actions "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "a _ { 0 } , a _ { 1 } , a _ { 2 } , \\dots"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(gray) is quantized into a shorter trajectory with macro-actions "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { a } _ { 0 } , \\hat { a } _ { 1 } , \\hat { a } _ { 2 } , \\hat { a } _ { 3 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(black), where each macro-action summarizes "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "q"
+                    },
+                    {
+                        "type": "text",
+                        "content": "consecutive fine-grained actions (e.g., "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { a } _ { 0 } = a _ { 0 } + a _ { 1 } + a _ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for quantization factor "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "q = 3"
+                    },
+                    {
+                        "type": "text",
+                        "content": "). "
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                630,
+                87,
+                790,
+                193
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "modify how training samples are constructed. "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                325,
+                815,
+                340
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Concretely, given a trajectory "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{ ( o _ { t } , s _ { t } , a _ { t } ) \\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", standard fine-tuning trains the model to predict the action chunk "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\scriptstyle a _ { t : t + H - 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "from "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\left( o _ { t } , s _ { t } \\right)"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". We instead apply a simple temporaloffset augmentation with two key steps: "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                340,
+                905,
+                402
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "text_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "(i) Offset state and action together. We sample a random offset "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "\\delta"
+                            },
+                            {
+                                "type": "text",
+                                "content": "from a predefined range (e.g., "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "\\delta \\in \\{ 0 , \\ldots , \\Delta _ { \\operatorname* { m a x } } \\} )"
+                            },
+                            {
+                                "type": "text",
+                                "content": "and construct training targets from the future state "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "s _ { t + \\delta }"
+                            },
+                            {
+                                "type": "text",
+                                "content": "and future action chunk "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "a _ { ( t + \\delta ) : ( t + \\delta + H - 1 ) }"
+                            },
+                            {
+                                "type": "text",
+                                "content": "on the same trajectory. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "(ii) Fix the environment observation. For each timestep ??, we always use the same visual input "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "o _ { t }"
+                            },
+                            {
+                                "type": "text",
+                                "content": "when varying "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "\\delta"
+                            },
+                            {
+                                "type": "text",
+                                "content": ". Therefore, the model is trained to predict "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "a _ { ( t + \\delta ) : ( t + \\delta + H - 1 ) }"
+                            },
+                            {
+                                "type": "text",
+                                "content": "from the pair "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "\\left( o _ { t } , s _ { t + \\delta } \\right)"
+                            },
+                            {
+                                "type": "text",
+                                "content": ". "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                526,
+                402,
+                905,
+                537
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Under this scheme, the same image "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "o _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "can correspond to different ground-truth actions depending on the offset robot state "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "s _ { t + \\delta }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". To fit the data, the VLA is forced to attend to the state input rather than overfitting purely to visual features. In particular, it learns to interpret "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "s _ { t + \\delta }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as a meaningful future state for action selection. "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                537,
+                905,
+                627
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We randomly sample "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\delta"
+                    },
+                    {
+                        "type": "text",
+                        "content": "during training because, in practice, the same VLA may be deployed on hardware with different compute budgets, leading to different inference delays "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Delta"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", and sometimes even in synchronous settings where there is no gap between prediction and execution. By training over a range of offsets, our augmentation makes the model compatible with different inference delays while preserving performance in the synchronous case. At deployment with asynchronous inference, we can then feed the rolled-forward execution-time state together with the current observation, and the fine-tuned VLA naturally leverages this future state to produce actions that are aligned and stable over the execution interval. "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                628,
+                905,
+                824
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.3. Efficient Fine-tuning with Shared Observation "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                511,
+                833,
+                903,
+                849
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The temporal-offset augmentation creates multiple stateaction pairs for the same observation "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "o _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". A naive implementation would treat each offset "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\delta"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as a separate training ex-"
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                854,
+                905,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4 "
+                    }
+                ]
+            },
+            "bbox": [
+                493,
+                924,
+                504,
+                935
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "ample, i.e., run the VLA independently on "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\left( o _ { t } , s _ { t + \\delta } , A _ { t + \\delta } \\right)"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for each sampled "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\delta"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". This implementation is completely plug-and-play and can be seamlessly integrated into existing VLA fine-tuning pipeline. However, it repeatedly encodes the same observation "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "o _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for every offset, leaving substantial room for further efficiency gains. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                90,
+                480,
+                181
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Instead, we exploit the fact that all offsets share the same observation "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "o _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and design an efficient attention pattern that reuses the observation tokens across offsets in a single pass (Fig. 4). Concretely, we pack one observation and multiple offset branches into a single sequence: "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                181,
+                480,
+                257
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\left[ o _ {t}, \\left(s _ {t}, A _ {t}\\right), \\left(s _ {t + 1}, A _ {t + 1}\\right), \\dots , \\left(s _ {t + \\Delta_ {\\max}}, A _ {t + \\Delta_ {\\max}}\\right) \\right],",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/c9622f2468a2e6419242f13cb569192e52015ccee66b4f7cd5ef572ef62d5fe5.jpg"
+                }
+            },
+            "bbox": [
+                114,
+                267,
+                459,
+                282
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where each "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\left( { { s _ { t + \\delta } } , { A _ { t + \\delta } } } \\right)"
+                    },
+                    {
+                        "type": "text",
+                        "content": "corresponds to one temporal offset. We then apply a block-sparse self-attention mask with the following structure: "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                292,
+                482,
+                337
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "text_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• All observation tokens (e.g., image tokens from two views and language prompt, about "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "\\sim 7 0 0"
+                            },
+                            {
+                                "type": "text",
+                                "content": "tokens for "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "\\pi _ { 0 . 5 } \\mathrm { \\ : . }"
+                            },
+                            {
+                                "type": "text",
+                                "content": ") can attend to each other, as in standard VLA fine-tuning. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• For each offset branch, the state-action tokens "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "\\left( { { s _ { t + \\delta } } , { A _ { t + \\delta } } } \\right)"
+                            },
+                            {
+                                "type": "text",
+                                "content": "can attend to all observation tokens and to tokens within the same offset, but cannot attend to tokens from other offsets. "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                339,
+                482,
+                444
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "This attention map, illustrated in Fig. 4, makes different offsets condition on a shared observation while remaining independent of each other. For each offset branch, the positional encodings of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\left( { { s _ { t + \\delta } } , { A _ { t + \\delta } } } \\right)"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are assigned to start at the same index, equal to the length of observation tokens. From the model’s perspective, this is equivalent to training on multiple "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\left( o _ { t } , s _ { t + \\delta } , A _ { t + \\delta } \\right)"
+                    },
+                    {
+                        "type": "text",
+                        "content": "examples that share the same "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "o _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", but we only encode "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "o _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "once. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                446,
+                482,
+                568
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "For "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", an observation with two images and language prompt corresponds to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\sim 7 0 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": "tokens, while one state and action chunk are about "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\sim 5 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": "tokens [16]. Therefore, packing "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "N _ { \\delta } = 5"
+                    },
+                    {
+                        "type": "text",
+                        "content": "offsets into a single sequence therefore increases the token length by only "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\sim 2 0 \\%"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", while the number of effective training trajectories becomes "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "5 \\times"
+                    },
+                    {
+                        "type": "text",
+                        "content": "larger. In practice, under the same effective batch size as standard fine-tuning, this method can significantly improve training efficiency by reusing each observation across multiple offset targets in a single pass. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                568,
+                482,
+                719
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.4. Action Quantization "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                89,
+                727,
+                284,
+                742
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "With asynchronous inference and future-state-awareness, the model inference time is effectively hidden behind execution. Once this inference latency is removed, the overall speed of the system is primarily limited by how fast the robot can physically execute the action sequence. To push the execution speed further, we need to accelerate the motion itself. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                750,
+                482,
+                853
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Our approach is to quantize actions, in analogy to weight quantization for LLMs [11, 22, 37]. State-of-the-art VLAs are typically trained on fine-grained teleoperation data (e.g., "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                854,
+                482,
+                900
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/b8d9fa3fbb555199bc996144b8f85b64ab2a164b40e5a0e139338d5effed79db.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 6. Performance on Kinetix benchmark. We evaluate the success rate under different execution horizons "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "K"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and inference delays "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Delta"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Left: Fixed inference delay "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Delta = 1"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with varying execution horizon "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "K"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Right: Execution horizon adapts to inference delay, i.e., "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "K \\ = \\ \\operatorname* { m a x } ( \\Delta , 1 )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", with varying "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Delta"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". For the Sync baseline, inference delay is always "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Delta \\mathit { \\Psi } = \\mathit { \\Psi } 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", but the execution horizon "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "K"
+                    },
+                    {
+                        "type": "text",
+                        "content": "follows the same settings as other baselines for fair comparison. "
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                519,
+                92,
+                898,
+                244
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\sim } 5 0 \\mathrm { H z }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "control with small deltas at each step) [3, 16], which leads to action sequences with high granularity. However, many short micro-movements are more precise than what is actually required to solve the tasks. In LLMs, 16-bit weights provide high numerical precision, but quantizing them to 8- bit or 4-bit can substantially accelerate inference with only a mild drop in accuracy [11, 22, 37]. We apply the same philosophy to robot control. "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                382,
+                903,
+                503
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Given a fine-grained action sequence "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{ a _ { 0 } , a _ { 1 } , \\ldots , a _ { T } \\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "we group consecutive actions into coarser macro-actions. For a chosen quantization factor "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "q"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", we construct a new sequence "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{ \\hat { a } _ { 0 } , \\hat { a } _ { 1 } , \\hdots \\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "where each macro-action summarizes a block of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "q"
+                    },
+                    {
+                        "type": "text",
+                        "content": "fine-grained actions. For delta actions, this can be implemented as "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                503,
+                903,
+                593
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\hat {a} _ {i} = a _ {i q} + a _ {i q + 1} + \\dots + a _ {(i + 1) q - 1}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/059db25e26c19efd95387ee6e7834b15cb0c613ce65da79f15dea8cdbc842031.jpg"
+                }
+            },
+            "bbox": [
+                594,
+                604,
+                821,
+                619
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "so that "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { a } _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "takes the robot approximately from the start state of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "a _ { i q }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to the end state of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "a _ { ( i + 1 ) q - 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in a single, longer step. Fig. 5 illustrates this process: the original fine-grained trajectory (gray) is replaced by a shorter, quantized trajectory (black) with macro-actions "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { a } _ { 0 } , \\hat { a } _ { 1 } , \\hat { a } _ { 2 } , \\hat { a } _ { 3 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { a } _ { 0 } = a _ { 0 } + a _ { 1 } + a _ { 2 }"
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                628,
+                903,
+                704
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Executing macro-actions instead of all micro-actions increases the distance moved per control step, effectively speeding up the robot’s motion. The temporal granularity of control becomes coarser, but in many tasks the robot does not need to visit every intermediate waypoint explicitly; moving directly between sparser waypoints is sufficient to achieve the goal. As a result, action quantization offers a tunable speed-accuracy trade-off: small quantization factors behave like the original fine-grained policy, while larger factors yield progressively faster but less fine-grained motion. In practice, we select task-dependent quantization factors that maintain success rates close to the unquantized policy while substantially reducing the number of executed steps. "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                704,
+                905,
+                900
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "5 "
+                    }
+                ]
+            },
+            "bbox": [
+                493,
+                924,
+                503,
+                935
+            ]
+        }
+    ],
+    [
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/9c164c81ebdda9e146bb2538c7552fb504f6ff5f05d117e5a7c207ff759ae276.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 1. Performance on LIBERO benchmarks with different inference delays. We evaluate "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[16] across four LIBERO subbenchmarks (Spatial, Object, Goal, LIBERO-10) under various inference delays (0 to 4 steps). SR: average success rate; Steps: average execution steps to task completion; Time: completion time on a laptop RTX 4090 GPU (inference latency: "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "1 0 3 \\mathrm { m s }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for 2 images). Sync (w/o state): fine-tuned and evaluated with synchronous inference without robot state input. "
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td rowspan=\"2\">Method</td><td rowspan=\"2\">Delay</td><td colspan=\"4\">Success Rate (%)</td><td colspan=\"3\">Average</td><td colspan=\"2\">Improvement</td></tr><tr><td>Spatial</td><td>Object</td><td>Goal</td><td>LIBERO-10</td><td>SR</td><td>Steps</td><td>Time (s)</td><td>Δ SR</td><td>Speedup</td></tr><tr><td>Sync</td><td rowspan=\"2\">0</td><td>97.3</td><td>99.6</td><td>96.7</td><td>93.5</td><td>96.8</td><td>156.0</td><td>8.4</td><td>-</td><td>-</td></tr><tr><td>Sync (w/o state)</td><td>98.5</td><td>99.6</td><td>97.3</td><td>95.4</td><td>97.7</td><td>157.2</td><td>8.4</td><td>+0.9</td><td>-</td></tr><tr><td rowspan=\"2\">VLASH</td><td>1</td><td>98.8</td><td>99.2</td><td>96.7</td><td>94.4</td><td>97.2</td><td>153.9</td><td>7.2</td><td>+0.4</td><td>1.17×</td></tr><tr><td>2</td><td>97.5</td><td>99.2</td><td>97.3</td><td>94.6</td><td>97.1</td><td>157.6</td><td>6.4</td><td>+0.3</td><td>1.31×</td></tr><tr><td rowspan=\"2\">(Async)</td><td>3</td><td>94.4</td><td>98.8</td><td>93.3</td><td>91.9</td><td>94.6</td><td>167.3</td><td>5.7</td><td>-2.2</td><td>1.47×</td></tr><tr><td>4</td><td>92.5</td><td>96.9</td><td>93.3</td><td>89.6</td><td>93.1</td><td>176.7</td><td>5.8</td><td>-3.7</td><td>1.45×</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                127,
+                156,
+                867,
+                296
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5. Experiments "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                89,
+                319,
+                225,
+                338
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We design experiments to investigate the following questions: "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                345,
+                482,
+                375
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "text_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "1. Performance. How does our method compare to synchronous control, naive asynchronous and baselines in terms of accuracy and latency? (Sec. 5.1.1, Sec. 5.2) "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "2. Generalization. How well does our method generalize across different inference delays? Does it hurt the original model performance? How well does our method generalize across different VLAs? (Sec. 5.1.2) "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "3. Speed-accuracy trade-off. What is the speed-accuracy trade-off of action quantization at deployment? (Sec. 5.2) "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "4. Fine-tuning efficiency. How does our method compare to the standard fine-tuning in terms of training cost and data efficiency? How much the shared observation finetuning can reduce the training cost? (Sec. 5.3) "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                380,
+                482,
+                575
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5.1. Simulated Evaluation "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                89,
+                588,
+                294,
+                604
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We evaluate VLASH on simulated robotic manipulation benchmarks including Kinetix [25] and LIBERO [23]. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                611,
+                482,
+                643
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5.1.1. Kinetix "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                89,
+                652,
+                189,
+                666
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Experimental Setup. Kinetix [25] is a highly dynamic simulated robotic manipulation benchmark that demands asynchronous execution to handle rapidly changing environments. The tasks are designed to test dynamic reaction capabilities, including throwing, catching, and balancing. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                671,
+                482,
+                747
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Following the setup in RTC [4], we train action chunking flow policies with a prediction horizon of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "H \\ = \\ 8"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and a 4-layer MLP-Mixer [35] architecture for 32 epochs. We report average success rates across 12 tasks, each evaluated with 1,024 rollouts per data point, under simulated delays ranging from 0 to 4 steps. We compare against the following baselines: "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                748,
+                482,
+                852
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "• Sync. This baseline serves as an optimal baseline for all tasks. The inference delay is explicitly set to 0 at all times. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                854,
+                482,
+                898
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "text_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• Naive async. This baseline is the naive asynchronous inference baseline, which simply switches chunks as soon as the new one is ready [31]. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• RTC. This baseline is the Real-time Chunking [4], which freezes the actions guaranteed to execute and inpaints the rest. This introduces additional overhead at runtime. "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                513,
+                321,
+                903,
+                411
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Results. As shown in Fig. 6, VLASH tracks the synchronous upper bound closely across execution horizons, while other baselines drop more noticeably as the execution horizon increases. When the inference delay increases, VLASH remains robust and consistently achieves high success rates, while RTC degrades rapidly and the Naive Async baseline collapses under larger delays. Notably, at inference delay of 4 steps, VLASH achieves "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "8 1 . 7 \\%"
+                    },
+                    {
+                        "type": "text",
+                        "content": "success rate compared to only "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "5 1 . 2 \\%"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for Naive Async, which is a substantial "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "3 0 . 5 \\%"
+                    },
+                    {
+                        "type": "text",
+                        "content": "accuracy improvement. Overall, VLASH effectively mitigates prediction-execution misalignment, delivering high success rates under asynchronous operation. "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                433,
+                906,
+                616
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5.1.2. LIBERO "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                513,
+                625,
+                624,
+                638
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Experimental Setup. We evalute on LIBERO benchmark [23], one of the popular benchmarks for evaluating VLA, which includes 4 different sub-benchmarks (Spatial, Object, Goal, and LIBERO-10) that contain 10 tasks each. We evaluate on 2 state-of-the-art VLAs: "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[16] and SmolVLA [31]. We report the performance by fine-tuning all models on the training dataset for 30K iterations with a batch size of 32. Following the setup in "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[16], we set the execution horizon to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "K = 5"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[10]. Since LIBERO tasks involve slowly changing environments with mild state transitions, different asynchronous methods behave similarly. Therefore, we focus our comparisons on synchronous inference to evaluate the effectiveness of VLASH under various inference delays. For time measurement, we use a laptop RTX 4090 GPU where the inference latency with 2 input images is "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "1 0 3 \\mathrm { m s }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". For synchronous inference, the time per action chunk is the sum of execution duration (166ms for "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                643,
+                906,
+                900
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "6 "
+                    }
+                ]
+            },
+            "bbox": [
+                493,
+                925,
+                504,
+                936
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/14b349f03508956ba10b177c0309fb8b4ad917fb6c9b8275fc2075c4f5922ba1.jpg"
+                },
+                "image_caption": [],
+                "image_footnote": []
+            },
+            "bbox": [
+                137,
+                95,
+                509,
+                292
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/3ac5174cdbf313cd62504393f296455456129589f8da6c158c029f53af89c633.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 7. Real-world evaluation results on manipulation tasks. We evaluate "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[16] on three tasks with different inference methods. Left: Score percentages (based on 2-point scoring: 1 for success of picking up the object, 1 for task completion) of VLASH and baselines across three tasks. Right: Task completion times with green arrows indicating speedup of VLASH "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( q = 2 )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "relative to synchronous baseline. VLASH (??) applies action quantization with quantization ratio "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "q"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". "
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                511,
+                95,
+                859,
+                292
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "equation_inline",
+                        "content": "K = 5"
+                    },
+                    {
+                        "type": "text",
+                        "content": "steps at "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "3 0 \\mathrm { H z }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ") and inference time. For asynchronous inference, larger delays are needed to overlap with the inference latency, so the time per action chunk is: execution duration + max(0, inference time − execution duration?? × delay). "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                391,
+                482,
+                455
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Results. As shown in Table 1, VLASH demonstrates strong performance across all LIBERO benchmarks under various inference delays. With small inference delays, VLASH maintains comparable accuracy to synchronous inference while achieving speedups of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "1 . 1 7 \\times"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "1 . 3 1 \\times"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", respectively. As the inference delay increases, the time advantages become more pronounced, achieving up to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "1 . 4 7 \\times"
+                    },
+                    {
+                        "type": "text",
+                        "content": "speedup at delay 3. Although accuracy decreases slightly at higher delays, VLASH still achieves strong performance across all tasks, demonstrating an effective accuracy-latency trade-off. We also evaluate on SmolVLA [31], with detailed results provided in supplementary materials. "
+                    }
+                ]
+            },
+            "bbox": [
+                88,
+                473,
+                482,
+                655
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5.2. Real-World Evaluation "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                89,
+                666,
+                305,
+                681
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To evaluate VLASH in real-world settings, we deploy "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[16] on two robotic platforms: the Galaxea R1 Lite [13] and the LeRobot SO-101 [15]. The R1 Lite is a dual-arm robot equipped with two 7-DOF arms from Galaxea [12]. The SO-101 is a 6-DOF collaborative robotic arm from LeRobot [5]. For "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", we apply a projection layer to map the robot state into an embedding, bypassing the tokenizer instead of incorporating it into the language prompt in the original implementation. We design our real-world experiments to evaluate three key aspects: (1) Accuracy: the success rate of completing manipulation tasks; (2) Efficiency: the task completion time and motion smoothness; and (3) Reaction speed: the latency to react to dynamic changes in the environment. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                688,
+                482,
+                898
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5.2.1. Accuracy and Efficiency "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                511,
+                391,
+                728,
+                406
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Experimental Setup. Following the setup in SmolVLA [31], we evaluate "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\left( H \\ = \\ 5 0 \\right)"
+                    },
+                    {
+                        "type": "text",
+                        "content": "on three manipulation tasks that test different aspects of robotic control. We set the execution horizon to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "K = 2 4"
+                    },
+                    {
+                        "type": "text",
+                        "content": "steps at "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "3 0 \\mathrm { H z }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". All experiments are conducted on a laptop with NVIDIA RTX 4090 GPU, with an inference delay of 4 steps. On our robotic platforms, we evaluate three tasks: "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                410,
+                906,
+                515
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "text_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• Pick and Place: pick up a cube from varying starting positions and place it into a fixed box; "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• Stacking: pick up a blue cube and stack it on top of an orange cube, where both cubes’ initial positions vary across episodes; "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• Sorting: sort cubes by color, placing the orange cube in the left box and the blue cube in the right box, with cube positions varying across episodes. "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                517,
+                903,
+                637
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "For each task, we conduct 16 rollouts per method and report both the score percentage and the task completion time. The score percentage is calculated based on a 2-point scoring system per rollout: 1 point for successfully picking up the object, and 1 point for completing the task. We compare synchronous inference, naive asynchronous inference, and VLASH across these tasks. "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                638,
+                905,
+                742
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Results. As shown in Fig. 7, VLASH delivers better or comparable score percentage to synchronous inference while significantly reducing task completion time across all tasks. Specifically, VLASH maintains an "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "9 4 \\%"
+                    },
+                    {
+                        "type": "text",
+                        "content": "average score percentage, outperforming synchronous baseline "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( 8 3 \\% )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and naive asynchronous inference "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( 8 9 . 7 \\% )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", while completing tasks in 18.8 seconds on average compared to 21 seconds for synchronous inference, which is a "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "1 . 1 2 \\times"
+                    },
+                    {
+                        "type": "text",
+                        "content": "speedup. "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                763,
+                905,
+                883
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Furthermore, by applying action quantization, we can "
+                    }
+                ]
+            },
+            "bbox": [
+                531,
+                885,
+                903,
+                900
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7 "
+                    }
+                ]
+            },
+            "bbox": [
+                493,
+                924,
+                503,
+                935
+            ]
+        }
+    ],
+    [
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/4442812ef91d0d075fcd39bcb2f21c98d97ea5842915e09f79b147e842340b98.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 2. Reaction speed comparison across devices. Latency of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[16] with 1 image input, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "K = 2 5"
+                    },
+                    {
+                        "type": "text",
+                        "content": "at "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "5 0 \\mathrm { H z }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Execution duration is 500ms. Max reaction latency "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "="
+                    },
+                    {
+                        "type": "text",
+                        "content": "execution duration "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "^ +"
+                    },
+                    {
+                        "type": "text",
+                        "content": "inference latency for Sync, inference latency only for Async. "
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>Inference Delay</td><td>RTX 5090</td><td>RTX 4090</td><td>RTX 5070</td></tr><tr><td>(in ms)</td><td>30.4</td><td>36.1</td><td>64.1</td></tr><tr><td>(in action steps)</td><td>1.52</td><td>1.81</td><td>3.21</td></tr><tr><td>Reaction (ms)</td><td></td><td></td><td></td></tr><tr><td>Sync</td><td>530.4</td><td>536.1</td><td>564.1</td></tr><tr><td>Async</td><td>30.4</td><td>36.1</td><td>64.1</td></tr><tr><td>Speedup</td><td>17.4×</td><td>14.9×</td><td>8.8×</td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                101,
+                156,
+                475,
+                282
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "achieve greater speedups with minimal accuracy loss. VLASH with "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "q { = } 2"
+                    },
+                    {
+                        "type": "text",
+                        "content": "achieves up to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "2 . 0 3 \\times"
+                    },
+                    {
+                        "type": "text",
+                        "content": "speedup, while maintaining the original accuracy. With a more aggressive quantization ratio of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "q { = } 3"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", VLASH achieves the faster execution at up to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "2 . 6 7 \\times"
+                    },
+                    {
+                        "type": "text",
+                        "content": "speedup, with only a modest "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "4 . 7 \\%"
+                    },
+                    {
+                        "type": "text",
+                        "content": "drop in average score percentage, which demonstrates a favorable speed-accuracy trade-off. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                311,
+                483,
+                417
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5.2.2. Reaction Speed "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                89,
+                429,
+                243,
+                444
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Experimental Setup. To evaluate the reaction speed improvement of asynchronous inference, we compare the maximum reaction latency between synchronous and asynchronous inference across different hardware configurations. Following the setup in "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[16], we set the execution horizon to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "K \\ = \\ 2 5"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for synchronous inference and a control frequency of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "5 0 \\mathrm { H z }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[4, 16], resulting in an execution duration of approximately 0.5 seconds per action chunk. We measure the model inference latency of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "on three different GPUs: RTX 5090, RTX 4090, and RTX 5070, using torch.compile to enable CUDAGraph optimization and kernel fusion for minimal latency [2]. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                449,
+                483,
+                632
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Results. As shown in Table 2, asynchronous inference significantly reduces the maximum reaction latency compared to synchronous inference, achieving up to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "1 7 . 4 \\times"
+                    },
+                    {
+                        "type": "text",
+                        "content": "speedup. To showcase the fast reaction and smooth control capabilities of VLASH, we train "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to perform highly dynamic interactive tasks: playing ping-pong with a human and playing whack-a-mole. These tasks demand both rapid reaction to dynamic changes and smooth continuous motion to maintain control accuracy. To the best of our knowledge, we are the first to demonstrate a VLA successfully playing pingpong rallies with a human. Under synchronous inference, the robot’s reaction is too slow to track the fast-moving ball, while VLASH enables real-time response and stable rallies. We encourage readers to view the demo videos in the supplementary materials to see the dynamic performance of VLASH in action. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                657,
+                485,
+                900
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/e20761ad91ce2994e0a313b2e8aeb1e486f608ad461ee17960bb35c194f0214c.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 3. Fine-tuning efficiency. Original (without offset augmentation) vs VLASH (with offset augmentation and shared observation) on LIBERO with "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[16]. Training on "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "4 { \\times } \\mathrm { H } 1 0 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": "GPUs using DDP, with effective batch size 16 per GPU (total 64). We report average LIBERO scores at different training steps. Both evaluated under synchronous inference. "
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td rowspan=\"2\">Method</td><td rowspan=\"2\">Time/Step (ms)</td><td colspan=\"3\">Fine-tuning Steps</td></tr><tr><td>10K</td><td>20K</td><td>30K</td></tr><tr><td>Original</td><td>420.99</td><td>94.1</td><td>97.1</td><td>96.8</td></tr><tr><td>VLASH</td><td>129.29</td><td>87.1</td><td>94.4</td><td>96.6</td></tr><tr><td>Speedup</td><td>3.26×</td><td>-</td><td>-</td><td>-</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                544,
+                183,
+                877,
+                282
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5.3. Fine-tuning Efficiency "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                511,
+                306,
+                720,
+                323
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Experimental Setup. We evaluate the training efficiency gains from our efficient fine-tuning with shared observation approach. A key consideration is that training with multiple temporal offsets using shared observation effectively increases the effective batch size by a factor equal to the number of offsets. Therefore, we compare our method against standard fine-tuning under the same effective batch size to ensure a fair comparison. Specifically, we conduct experiments on the LIBERO benchmark using "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[16] trained on "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "4 { \\times } \\mathrm { H } 1 0 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": "GPUs with DDP [21]. For our method, we use "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Delta _ { \\operatorname* { m a x } } = 3"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with a physical batch size of 4 per GPU, resulting in an effective batch size of 16 per GPU and 64 in global. The standard baseline uses a physical batch size of 16 per GPU to match this effective batch size. Both methods are trained for 10K, 20K, and 30K iterations, and we report the average success rate across all LIBERO tasks. We also measure the training time per forward-backward pass to quantify the speedup. "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                328,
+                906,
+                602
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Results. As shown in Table 3, VLASH converges more slowly in the early stages but ultimately achieves comparable accuracy to standard fine-tuning. Although more training steps are needed for convergence, each step is significantly faster, achieving a "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "3 . 2 6 \\times"
+                    },
+                    {
+                        "type": "text",
+                        "content": "speedup per step. This efficiency gain comes from encoding the shared observation only once and reusing it across all temporal offsets. Furthermore, since both methods are evaluated under synchronous inference, these results also demonstrate that VLASH does not hurt the original synchronous performance of the model. "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                619,
+                908,
+                772
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "6. Conclusion "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                511,
+                784,
+                633,
+                800
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We present VLASH, a general and efficient framework for enabling asynchronous inference in Vision-Language-Action models. By making the policy future-state-aware through simple state rollforward, VLASH effectively bridges the prediction-execution gap that has hindered asynchronous control. Experiments on both simulated and real-world "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                809,
+                908,
+                902
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "8 "
+                    }
+                ]
+            },
+            "bbox": [
+                493,
+                924,
+                504,
+                935
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "benchmarks demonstrate that VLASH achieves smooth, accurate, and fast-reaction control, consistently matching or surpassing the accuracy of synchronous inference while providing substantial speedups. Moreover, we demonstrate that VLAs can perform highly dynamic tasks such as playing ping-pong rallies with humans. We hope these results will inspire future research toward extending VLAs to more dynamic and physically interactive domains. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                90,
+                480,
+                212
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "Acknowledgements "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                91,
+                224,
+                256,
+                242
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We thank MIT-IBM Watson AI Lab, Amazon and National Science Foundation for supporting this research. We thank NVIDIA for donating the DGX server. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                250,
+                482,
+                292
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "References "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                91,
+                318,
+                187,
+                334
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[1] Abbas Abdolmaleki, Saminda Abeyruwan, Joshua Ainslie, Jean-Baptiste Alayrac, Montserrat Gonzalez Arenas, Ashwin Balakrishna, Nathan Batchelor, Alex Bewley, Jeff Bingham, Michael Bloesch, et al. Gemini robotics 1.5: Pushing the frontier of generalist robots with advanced embodied reasoning, thinking, and motion transfer. arXiv preprint arXiv:2510.03342, 2025. 1 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[2] Jason Ansel, Edward Yang, Horace He, Natalia Gimelshein, Animesh Jain, Michael Voznesensky, Bin Bao, Peter Bell, David Berard, Evgeni Burovski, Geeta Chauhan, Anjali Chourdia, Will Constable, Alban Desmaison, Zachary De-Vito, Elias Ellison, Will Feng, Jiong Gong, Michael Gschwind, Brian Hirsh, Sherlock Huang, Kshiteej Kalambarkar, Laurent Kirsch, Michael Lazos, Mario Lezcano, Yanbo Liang, Jason Liang, Yinghai Lu, C. K. Luk, Bert Maher, Yunjie Pan, Christian Puhrsch, Matthias Reso, Mark Saroufim, Marcos Yukio Siraichi, Helen Suk, Shunting Zhang, Michael Suo, Phil Tillet, Xu Zhao, Eikan Wang, Keren Zhou, Richard Zou, Xiaodong Wang, Ajit Mathews, William Wen, Gregory Chanan, Peng Wu, and Soumith Chintala. Pytorch 2: Faster machine learning through dynamic python bytecode transformation and graph compilation. In Proceedings of the 29th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 2, page 929–947, New York, NY, USA, 2024. Association for Computing Machinery. 8 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[3] Kevin Black, Noah Brown, Danny Driess, Adnan Esmail, Michael Equi, Chelsea Finn, Niccolo Fusai, Lachy Groom, Karol Hausman, Brian Ichter, et al. "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "\\pi _ { 0 }"
+                            },
+                            {
+                                "type": "text",
+                                "content": ": A vision-languageaction flow model for general robot control. arXiv preprint arXiv:2410.24164, 2024. 2, 5 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[4] Kevin Black, Manuel Y Galliker, and Sergey Levine. Realtime execution of action chunking flow policies. arXiv preprint arXiv:2506.07339, 2025. 1, 2, 3, 6, 8 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[5] Remi Cadene, Simon Alibert, Alexander Soare, Quentin Gallouedec, Adil Zouitine, Steven Palma, Pepijn Kooijmans, Michel Aractingi, Mustafa Shukor, Dana Aubakirova, Martino Russi, Francesco Capuano, Caroline Pascal, Jade Choghari, Jess Moss, and Thomas Wolf. Lerobot: State-ofthe-art machine learning for real-world robotics in pytorch. "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                99,
+                343,
+                482,
+                898
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "https://github.com/huggingface/lerobot, 2024. 7 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[6] Embodiment Collaboration, Abby O’Neill, Abdul Rehman, Abhinav Gupta, Abhiram Maddukuri, Abhishek Gupta, Abhishek Padalkar, Abraham Lee, Acorn Pooley, Agrim Gupta, Ajay Mandlekar, Ajinkya Jain, Albert Tung, Alex Bewley, Alex Herzog, Alex Irpan, Alexander Khazatsky, Anant Rai, Anchit Gupta, Andrew Wang, Andrey Kolobov, Anikait Singh, Animesh Garg, Aniruddha Kembhavi, Annie Xie, Anthony Brohan, Antonin Raffin, Archit Sharma, Arefeh Yavary, Arhan Jain, Ashwin Balakrishna, Ayzaan Wahid, Ben Burgess-Limerick, Beomjoon Kim, Bernhard Scholkopf, ¨ Blake Wulfe, Brian Ichter, Cewu Lu, Charles Xu, Charlotte Le, Chelsea Finn, Chen Wang, Chenfeng Xu, Cheng Chi, Chenguang Huang, Christine Chan, Christopher Agia, Chuer Pan, Chuyuan Fu, Coline Devin, Danfei Xu, Daniel Morton, Danny Driess, Daphne Chen, Deepak Pathak, Dhruv Shah, Dieter B¨uchler, Dinesh Jayaraman, Dmitry Kalashnikov, Dorsa Sadigh, Edward Johns, Ethan Foster, Fangchen Liu, Federico Ceola, Fei Xia, Feiyu Zhao, Felipe Vieira Frujeri, Freek Stulp, Gaoyue Zhou, Gaurav S. Sukhatme, Gautam Salhotra, Ge Yan, Gilbert Feng, Giulio Schiavi, Glen Berseth, Gregory Kahn, Guangwen Yang, Guanzhi Wang, Hao Su, Hao-Shu Fang, Haochen Shi, Henghui Bao, Heni Ben Amor, Henrik I Christensen, Hiroki Furuta, Homanga Bharadhwaj, Homer Walke, Hongjie Fang, Huy Ha, Igor Mordatch, Ilija Radosavovic, Isabel Leal, Jacky Liang, Jad Abou-Chakra, Jaehyung Kim, Jaimyn Drake, Jan Peters, Jan Schneider, Jasmine Hsu, Jay Vakil, Jeannette Bohg, Jeffrey Bingham, Jeffrey Wu, Jensen Gao, Jiaheng Hu, Jiajun Wu, Jialin Wu, Jiankai Sun, Jianlan Luo, Jiayuan Gu, Jie Tan, Jihoon Oh, Jimmy Wu, Jingpei Lu, Jingyun Yang, Jitendra Malik, Joao˜ Silverio, Joey Hejna, Jonathan Booher, Jonathan Tompson, ´ Jonathan Yang, Jordi Salvador, Joseph J. Lim, Junhyek Han, Kaiyuan Wang, Kanishka Rao, Karl Pertsch, Karol Hausman, Keegan Go, Keerthana Gopalakrishnan, Ken Goldberg, Kendra Byrne, Kenneth Oslund, Kento Kawaharazuka, Kevin Black, Kevin Lin, Kevin Zhang, Kiana Ehsani, Kiran Lekkala, Kirsty Ellis, Krishan Rana, Krishnan Srinivasan, Kuan Fang, Kunal Pratap Singh, Kuo-Hao Zeng, Kyle Hatch, Kyle Hsu, Laurent Itti, Lawrence Yunliang Chen, Lerrel Pinto, Li Fei-Fei, Liam Tan, Linxi ”Jim” Fan, Lionel Ott, Lisa Lee, Luca Weihs, Magnum Chen, Marion Lepert, Marius Memmel, Masayoshi Tomizuka, Masha Itkina, Mateo Guaman Castro, Max Spero, Maximilian Du, Michael Ahn, Michael C. Yip, Mingtong Zhang, Mingyu Ding, Minho Heo, Mohan Kumar Srirama, Mohit Sharma, Moo Jin Kim, Muhammad Zubair Irshad, Naoaki Kanazawa, Nicklas Hansen, Nicolas Heess, Nikhil J Joshi, Niko Suenderhauf, Ning Liu, Norman Di Palo, Nur Muhammad Mahi Shafiullah, Oier Mees, Oliver Kroemer, Osbert Bastani, Pannag R Sanketi, Patrick ”Tree” Miller, Patrick Yin, Paul Wohlhart, Peng Xu, Peter David Fagan, Peter Mitrano, Pierre Sermanet, Pieter Abbeel, Priya Sundaresan, Qiuyu Chen, Quan Vuong, Rafael Rafailov, Ran Tian, Ria Doshi, Roberto Mart´ın-Mart´ın, Rohan Baijal, Rosario Scalise, Rose Hendrix, Roy Lin, Runjia Qian, Ruohan Zhang, Russell Mendonca, Rutav Shah, Ryan Hoque, Ryan Julian, Samuel Bustamante, Sean Kir-"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                522,
+                92,
+                903,
+                900
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "9 "
+                    }
+                ]
+            },
+            "bbox": [
+                493,
+                924,
+                504,
+                935
+            ]
+        }
+    ],
+    [
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "mani, Sergey Levine, Shan Lin, Sherry Moore, Shikhar Bahl, Shivin Dass, Shubham Sonawani, Shubham Tulsiani, Shuran Song, Sichun Xu, Siddhant Haldar, Siddharth Karamcheti, Simeon Adebola, Simon Guist, Soroush Nasiriany, Stefan Schaal, Stefan Welker, Stephen Tian, Subramanian Ramamoorthy, Sudeep Dasari, Suneel Belkhale, Sungjae Park, Suraj Nair, Suvir Mirchandani, Takayuki Osa, Tanmay Gupta, Tatsuya Harada, Tatsuya Matsushima, Ted Xiao, Thomas Kollar, Tianhe Yu, Tianli Ding, Todor Davchev, Tony Z. Zhao, Travis Armstrong, Trevor Darrell, Trinity Chung, Vidhi Jain, Vikash Kumar, Vincent Vanhoucke, Vitor Guizilini, Wei Zhan, Wenxuan Zhou, Wolfram Burgard, Xi Chen, Xiangyu Chen, Xiaolong Wang, Xinghao Zhu, Xinyang Geng, Xiyuan Liu, Xu Liangwei, Xuanlin Li, Yansong Pang, Yao Lu, Yecheng Jason Ma, Yejin Kim, Yevgen Chebotar, Yifan Zhou, Yifeng Zhu, Yilin Wu, Ying Xu, Yixuan Wang, Yonatan Bisk, Yongqiang Dou, Yoonyoung Cho, Youngwoon Lee, Yuchen Cui, Yue Cao, Yueh-Hua Wu, Yujin Tang, Yuke Zhu, Yunchu Zhang, Yunfan Jiang, Yunshuang Li, Yunzhu Li, Yusuke Iwasawa, Yutaka Matsuo, Zehan Ma, Zhuo Xu, Zichen Jeff Cui, Zichen Zhang, Zipeng Fu, and Zipeng Lin. Open x-embodiment: Robotic learning datasets and rt-x models, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[7] Tri Dao. Flashattention-2: Faster attention with better parallelism and work partitioning, 2023. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[8] Tri Dao, Daniel Y. Fu, Stefano Ermon, Atri Rudra, and Christopher Re. Flashattention: Fast and memory-efficient ´ exact attention with io-awareness, 2022. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[9] Juechu Dong, Boyuan Feng, Driss Guessous, Yanbo Liang, and Horace He. Flex attention: A programming model for generating optimized attention kernels, 2024. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[10] Danny Driess, Jost Tobias Springenberg, Brian Ichter, Lili Yu, Adrian Li-Bell, Karl Pertsch, Allen Z. Ren, Homer Walke, Quan Vuong, Lucy Xiaoyang Shi, and Sergey Levine. Knowledge insulating vision-language-action models: Train fast, run fast, generalize better, 2025. 6 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[11] Elias Frantar, Saleh Ashkboos, Torsten Hoefler, and Dan Alistarh. GPTQ: Accurate post-training compression for generative pretrained transformers. arXiv preprint arXiv:2210.17323, 2022. 5 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[12] Ltd. Galaxea AI Technology Co. Galaxea ai. https:// galaxea-ai.com/cn, 2025. 7 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[13] Ltd. Galaxea AI Technology Co. R1 lite. https:// galaxea-ai.com/cn/products/R1-Lite, 2025. 7 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[14] Weifan Guan, Qinghao Hu, Aosheng Li, and Jian Cheng. Efficient vision-language-action models for embodied manipulation: A systematic survey. arXiv preprint arXiv:2510.17111, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[15] Inc. Hugging Face. So-101. https://huggingface. co/docs/lerobot/en/so101, 2025. 7 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[16] Physical Intelligence, Kevin Black, Noah Brown, James Darpinian, Karan Dhabalia, Danny Driess, Adnan Esmail, Michael Equi, Chelsea Finn, Niccolo Fusai, et al. ??0.5: a vision-language-action model with open-world generalization. arXiv preprint arXiv:2504.16054, 2025. 1, 2, 3, 5, 6, 7, 8 "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                93,
+                90,
+                480,
+                898
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[17] Titong Jiang, Xuefeng Jiang, Yuan Ma, Xin Wen, Bailin Li, Kun Zhan, Peng Jia, Yahui Liu, Sheng Sun, and Xianpeng Lang. The better you learn, the smarter you prune: Towards efficient vision-language-action models via differentiable token pruning, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[18] Alexander Khazatsky, Karl Pertsch, Suraj Nair, Ashwin Balakrishna, Sudeep Dasari, Siddharth Karamcheti, Soroush Nasiriany, Mohan Kumar Srirama, Lawrence Yunliang Chen, Kirsty Ellis, Peter David Fagan, Joey Hejna, Masha Itkina, Marion Lepert, Yecheng Jason Ma, Patrick Tree Miller, Jimmy Wu, Suneel Belkhale, Shivin Dass, Huy Ha, Arhan Jain, Abraham Lee, Youngwoon Lee, Marius Memmel, Sungjae Park, Ilija Radosavovic, Kaiyuan Wang, Albert Zhan, Kevin Black, Cheng Chi, Kyle Beltran Hatch, Shan Lin, Jingpei Lu, Jean Mercat, Abdul Rehman, Pannag R Sanketi, Archit Sharma, Cody Simpson, Quan Vuong, Homer Rich Walke, Blake Wulfe, Ted Xiao, Jonathan Heewon Yang, Arefeh Yavary, Tony Z. Zhao, Christopher Agia, Rohan Baijal, Mateo Guaman Castro, Daphne Chen, Qiuyu Chen, Trinity Chung, Jaimyn Drake, Ethan Paul Foster, Jensen Gao, Vitor Guizilini, David Antonio Herrera, Minho Heo, Kyle Hsu, Jiaheng Hu, Muhammad Zubair Irshad, Donovon Jackson, Charlotte Le, Yunshuang Li, Kevin Lin, Roy Lin, Zehan Ma, Abhiram Maddukuri, Suvir Mirchandani, Daniel Morton, Tony Nguyen, Abigail O’Neill, Rosario Scalise, Derick Seale, Victor Son, Stephen Tian, Emi Tran, Andrew E. Wang, Yilin Wu, Annie Xie, Jingyun Yang, Patrick Yin, Yunchu Zhang, Osbert Bastani, Glen Berseth, Jeannette Bohg, Ken Goldberg, Abhinav Gupta, Abhishek Gupta, Dinesh Jayaraman, Joseph J Lim, Jitendra Malik, Roberto Mart´ın-Mart´ın, Subramanian Ramamoorthy, Dorsa Sadigh, Shuran Song, Jiajun Wu, Michael C. Yip, Yuke Zhu, Thomas Kollar, Sergey Levine, and Chelsea Finn. Droid: A large-scale in-the-wild robot manipulation dataset, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[19] Moo Jin Kim, Karl Pertsch, Siddharth Karamcheti, Ted Xiao, Ashwin Balakrishna, Suraj Nair, Rafael Rafailov, Ethan Foster, Grace Lam, Pannag Sanketi, Quan Vuong, Thomas Kollar, Benjamin Burchfiel, Russ Tedrake, Dorsa Sadigh, Sergey Levine, Percy Liang, and Chelsea Finn. Openvla: An open-source vision-language-action model. arXiv preprint arXiv:2406.09246, 2024. 2 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[20] Moo Jin Kim, Chelsea Finn, and Percy Liang. Fine-tuning vision-language-action models: Optimizing speed and success, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[21] Shen Li, Yanli Zhao, Rohan Varma, Omkar Salpekar, Pieter Noordhuis, Teng Li, Adam Paszke, Jeff Smith, Brian Vaughan, Pritam Damania, et al. Pytorch distributed: Experiences on accelerating data parallel training. arXiv preprint arXiv:2006.15704, 2020. 8 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[22] Ji Lin, Jiaming Tang, Haotian Tang, Shang Yang, Wei-Ming Chen, Wei-Chen Wang, Guangxuan Xiao, Xingyu Dang, Chuang Gan, and Song Han. Awq: Activation-aware weight quantization for llm compression and acceleration. In MLSys, 2024. 5 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[23] Bo Liu, Yifeng Zhu, Chongkai Gao, Yihao Feng, Qiang Liu, Yuke Zhu, and Peter Stone. Libero: Benchmarking knowledge transfer for lifelong robot learning. arXiv preprint arXiv:2306.03310, 2023. 4, 6, 1 "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                516,
+                92,
+                903,
+                898
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "10 "
+                    }
+                ]
+            },
+            "bbox": [
+                490,
+                925,
+                508,
+                936
+            ]
+        }
+    ],
+    [
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[24] Yunchao Ma, Yizhuang Zhou, Yunhuan Yang, Tiancai Wang, and Haoqiang Fan. Running vlas at real-time speed. arXiv preprint arXiv:2510.26742, 2025. 1, 2 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[25] Michael Matthews, Michael Beukman, Chris Lu, and Jakob Foerster. Kinetix: Investigating the training of general agents through open-ended physics-based control tasks. 2025. 2, 6 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[26] NVIDIA, Nikita Cherniadev Johan Bjorck andFernando Castaneda, Xingye Da, Runyu Ding, Linxi ”Jim” Fan, Yu ˜ Fang, Dieter Fox, Fengyuan Hu, Spencer Huang, Joel Jang, Zhenyu Jiang, Jan Kautz, Kaushil Kundalia, Lawrence Lao, Zhiqi Li, Zongyu Lin, Kevin Lin, Guilin Liu, Edith Llontop, Loic Magne, Ajay Mandlekar, Avnish Narayan, Soroush Nasiriany, Scott Reed, You Liang Tan, Guanzhi Wang, Zu Wang, Jing Wang, Qi Wang, Jiannan Xiang, Yuqi Xie, Yinzhen Xu, Zhenjia Xu, Seonghyeon Ye, Zhiding Yu, Ao Zhang, Hao Zhang, Yizhou Zhao, Ruijie Zheng, and Yuke Zhu. GR00T N1: An open foundation model for generalist humanoid robots. In ArXiv Preprint, 2025. 1, 2 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[27] Karl Pertsch, Kyle Stachowicz, Brian Ichter, Danny Driess, Suraj Nair, Quan Vuong, Oier Mees, Chelsea Finn, and Sergey Levine. Fast: Efficient action tokenization for visionlanguage-action models, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[28] Delin Qu, Haoming Song, Qizhi Chen, Yuanqi Yao, Xinyi Ye, Yan Ding, Zhigang Wang, JiaYuan Gu, Bin Zhao, Dong Wang, and Xuelong Li. Spatialvla: Exploring spatial representations for visual-language-action model, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[29] Kohei Sendai, Maxime Alvarez, Tatsuya Matsushima, Yutaka Matsuo, and Yusuke Iwasawa. Leave no observation behind: Real-time correction for vla action chunks. arXiv preprint arXiv:2509.23224, 2025. 1, 2, 3 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[30] Jay Shah, Ganesh Bikshandi, Ying Zhang, Vijay Thakkar, Pradeep Ramani, and Tri Dao. Flashattention-3: Fast and accurate attention with asynchrony and low-precision, 2024. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[31] Mustafa Shukor, Dana Aubakirova, Francesco Capuano, Pepijn Kooijmans, Steven Palma, Adil Zouitine, Michel Aractingi, Caroline Pascal, Martino Russi, Andres Marafioti, et al. Smolvla: A vision-language-action model for affordable and efficient robotics. arXiv preprint arXiv:2506.01844, 2025. 1, 2, 3, 6, 7 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[32] Zhi Su, Bike Zhang, Nima Rahmanian, Yuman Gao, Qiayuan Liao, Caitlin Regan, Koushil Sreenath, and S Shankar Sastry. Hitter: A humanoid table tennis robot via hierarchical planning and learning. arXiv preprint arXiv:2508.21043, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[33] Galaxea Team. Galaxea g0: Open-world dataset and dualsystem vla model. arXiv preprint arXiv:2509.00576v1, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[34] Gemini Robotics Team, Saminda Abeyruwan, Joshua Ainslie, Jean-Baptiste Alayrac, Montserrat Gonzalez Arenas, Travis Armstrong, Ashwin Balakrishna, Robert Baruch, Maria Bauza, Michiel Blokzijl, et al. Gemini robotics: Bringing ai into the physical world. arXiv preprint arXiv:2503.20020, 2025. 1 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[35] Ilya O Tolstikhin, Neil Houlsby, Alexander Kolesnikov, Lucas Beyer, Xiaohua Zhai, Thomas Unterthiner, Jessica Yung, Andreas Steiner, Daniel Keysers, Jakob Uszkoreit, et al. Mlpmixer: An all-mlp architecture for vision. Advances in neural information processing systems, 34:24261–24272, 2021. 6 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[36] Junjie Wen, Yichen Zhu, Jinming Li, Minjie Zhu, Kun Wu, Zhiyuan Xu, Ning Liu, Ran Cheng, Chaomin Shen, Yaxin "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                91,
+                92,
+                480,
+                900
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Peng, Feifei Feng, and Jian Tang. Tinyvla: Towards fast, data-efficient vision-language-action models for robotic manipulation, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[37] Guangxuan Xiao, Ji Lin, Mickael Seznec, Hao Wu, Julien Demouth, and Song Han. Smoothquant: Accurate and efficient post-training quantization for large language models, 2024. 5 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[38] Zhaoshu Yu, Bo Wang, Pengpeng Zeng, Haonan Zhang, Ji Zhang, Lianli Gao, Jingkuan Song, Nicu Sebe, and Heng Tao Shen. A survey on efficient vision-language-action models, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[39] Wenyao Zhang, Hongsi Liu, Zekun Qi, Yunnan Wang, Xinqiang Yu, Jiazhao Zhang, Runpei Dong, Jiawei He, Fan Lu, He Wang, Zhizheng Zhang, Li Yi, Wenjun Zeng, and Xin Jin. Dreamvla: A vision-language-action model dreamed with comprehensive world knowledge, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[40] Qingqing Zhao, Yao Lu, Moo Jin Kim, Zipeng Fu, Zhuoyang Zhang, Yecheng Wu, Zhaoshuo Li, Qianli Ma, Song Han, Chelsea Finn, Ankur Handa, Ming-Yu Liu, Donglai Xiang, Gordon Wetzstein, and Tsung-Yi Lin. Cot-vla: Visual chain-of-thought reasoning for vision-language-action models, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[41] Tony Z Zhao, Vikash Kumar, Sergey Levine, and Chelsea Finn. Learning fine-grained bimanual manipulation with lowcost hardware. arXiv preprint arXiv:2304.13705, 2023. 1 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[42] Tony Z. Zhao, Vikash Kumar, Sergey Levine, and Chelsea Finn. Learning fine-grained bimanual manipulation with lowcost hardware, 2023. 3 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[43] Brianna Zitkovich, Tianhe Yu, Sichun Xu, Peng Xu, Ted Xiao, Fei Xia, Jialin Wu, Paul Wohlhart, Stefan Welker, Ayzaan Wahid, et al. Rt-2: Vision-language-action models transfer web knowledge to robotic control. In Conference on Robot Learning, pages 2165–2183. PMLR, 2023. 2 "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                516,
+                92,
+                903,
+                556
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "11 "
+                    }
+                ]
+            },
+            "bbox": [
+                490,
+                924,
+                506,
+                936
+            ]
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "VLASH: Real-Time VLAs via Future-State-Aware Asynchronous Inference Supplementary Material "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                120,
+                85,
+                875,
+                138
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "7. Appendix "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                89,
+                155,
+                197,
+                174
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "7.1. SmolVLA Results on LIBERO Benchmarks "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                89,
+                184,
+                464,
+                200
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To further evaluate the generalization of VLASH across different VLAs, we conduct additional experiments on SmolVLA-450M [31], a compact yet efficient visionlanguage-action model. Following the same experimental setup as described in Sec. 5.1.2, we fine-tune SmolVLA on the LIBERO benchmark [23] for 30K iterations with a batch size of 32. We evaluate the model across four LIBERO subbenchmarks (Spatial, Object, Goal, and LIBERO-10) under various inference delays ranging from 0 to 4 steps, with an execution horizon of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "K = 5"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                210,
+                483,
+                361
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "As shown in Table 4, VLASH achieves consistent speedups across all inference delays when applied to SmolVLA. At delay 2 and 3, VLASH achieves up to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "1 . 3 5 \\times"
+                    },
+                    {
+                        "type": "text",
+                        "content": "speedup compared to synchronous inference. While the success rate shows minor variations across different delays, VLASH at delay 3 achieves "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "7 9 . 0 6 \\%"
+                    },
+                    {
+                        "type": "text",
+                        "content": "success rate, which is comparable to the synchronous baseline "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( 7 8 . 9 6 \\% )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", demonstrating that VLASH can maintain performance while providing significant latency improvements. These results further validate that VLASH generalizes effectively across different VLA architectures. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                367,
+                483,
+                532
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "7.2. Experimental Details "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                89,
+                556,
+                290,
+                571
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We present the detailed training hyperparameters used for fine-tuning VLAs in our experiments in Table 5. For all experiments on LIBERO benchmarks and real-world tasks, we use same hyperparameters to ensure fair comparison across different methods and models. These hyperparameters are carefully tuned to balance training stability and convergence speed while preventing overfitting on the downstream tasks. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                582,
+                483,
+                689
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/7d70b1ea9648c472a9ebcdf0fddd47175197d05b2aa06da24c5356934412b7d7.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 5. Training hyperparameters for fine-tuning VLAs. We use these hyperparameters for fine-tuning "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and SmolVLA on LIBERO and real-world tasks. "
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>Hyperparameter</td><td>Value</td></tr><tr><td colspan=\"2\">Training Configuration</td></tr><tr><td>Batch Size</td><td>32</td></tr><tr><td>Training Steps</td><td>30,000</td></tr><tr><td colspan=\"2\">Optimizer (AdamW)</td></tr><tr><td>Learning Rate</td><td>5e-5</td></tr><tr><td>Betas</td><td>[0.9, 0.95]</td></tr><tr><td>Weight Decay</td><td>1e-10</td></tr><tr><td colspan=\"2\">Learning Rate Scheduler</td></tr><tr><td>Type</td><td>Cosine Decay with Warmup</td></tr><tr><td>Warmup Steps</td><td>1,000</td></tr><tr><td>Peak Learning Rate</td><td>5e-5</td></tr><tr><td>Decay Learning Rate</td><td>2.5e-6</td></tr><tr><td>Decay Steps</td><td>30,000</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                535,
+                208,
+                885,
+                431
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "7.3. Supplementary Demo Video "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                511,
+                452,
+                764,
+                468
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We provide comprehensive video demonstrations comparing our method against synchronous and naive asynchronous baselines across various real-world manipulation tasks. All demonstrations are conducted using "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[16] deployed on a laptop with NVIDIA RTX 5090 GPU, achieving an inference frequency of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "1 5 \\mathrm { H z }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                474,
+                906,
+                565
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We showcase the following tasks in the supplementary materials: "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                566,
+                905,
+                595
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "text_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• Ping-pong: Interactive rallies with a human player, demonstrating rapid reaction capabilities. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• Whack-a-mole: Fast-response game requiring quick detection and precise striking motions. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• Pick and place: Standard manipulation task showing smooth motion control. "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                513,
+                598,
+                903,
+                686
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/516543c36bb6cd9830222d04784602c559dd1c5b28ae6c23ee69d4c347a915cb.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 4. Performance on LIBERO benchmarks with SmolVLA-450M and different inference delays. We evaluate SmolVLA across four LIBERO sub-benchmarks (Spatial, Object, Goal, LIBERO-10) under various inference delays (1 to 4 steps). SR: average success rate; Steps: average execution steps to task completion; Latency: inference latency in seconds. "
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td rowspan=\"2\">Method</td><td rowspan=\"2\">Delay</td><td colspan=\"4\">Success Rate (%)</td><td colspan=\"3\">Average</td><td colspan=\"2\">Improvement</td></tr><tr><td>Spatial</td><td>Object</td><td>Goal</td><td>LIBERO-10</td><td>SR</td><td>Steps</td><td>Latency (s)</td><td>Δ SR</td><td>Speedup</td></tr><tr><td>Sync</td><td>0</td><td>81.25</td><td>92.91</td><td>85.83</td><td>55.83</td><td>78.96</td><td>198.70</td><td>8.82</td><td>-</td><td>-</td></tr><tr><td rowspan=\"4\">VLASH (Async)</td><td>1</td><td>80.00</td><td>92.91</td><td>82.29</td><td>53.13</td><td>77.08</td><td>199.08</td><td>7.53</td><td>-1.88</td><td>1.17×</td></tr><tr><td>2</td><td>78.54</td><td>92.08</td><td>86.88</td><td>55.00</td><td>78.12</td><td>197.83</td><td>6.53</td><td>-0.84</td><td>1.35×</td></tr><tr><td>3</td><td>79.79</td><td>94.17</td><td>87.50</td><td>54.79</td><td>79.06</td><td>197.68</td><td>6.52</td><td>+0.10</td><td>1.35×</td></tr><tr><td>4</td><td>73.13</td><td>93.54</td><td>84.38</td><td>53.33</td><td>76.09</td><td>203.64</td><td>6.72</td><td>-2.87</td><td>1.31×</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                91,
+                762,
+                906,
+                897
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "1 "
+                    }
+                ]
+            },
+            "bbox": [
+                493,
+                924,
+                503,
+                935
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "• Folding clothes: Complex manipulation requiring coordinated movements. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                90,
+                480,
+                119
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We compare three inference modes: synchronous inference, naive asynchronous inference, and VLASH. Additionally, we demonstrate the effects of action quantization, showing how our method can achieve further speedups while maintaining task performance. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                122,
+                480,
+                196
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The video demonstrations clearly show that VLASH produces noticeably smoother motions and faster task completion compared to both synchronous and naive asynchronous baselines. The synchronous baseline often exhibits stuttering behavior due to action stalls, while naive asynchronous inference suffers from prediction-execution misalignment that leads to erratic movements. In contrast, VLASH maintains fluid motion throughout task execution while achieving significant speedup. We encourage readers to view the video to appreciate the dynamic performance improvements of our approach. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                199,
+                480,
+                364
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "7.4. Architectural Modifications "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                89,
+                377,
+                339,
+                392
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "A key advantage of VLASH is that it requires no architectural modifications to achieve effective performance across diverse VLA models. Since all current VLA models accept robot state inputs, VLASH can be applied directly by simply offsetting the state information during fine-tuning to account for inference delay. This straightforward approach enables the model to learn the temporal alignment between delayed observations and corresponding actions without any changes to the model architecture. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                400,
+                480,
+                535
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "For standard VLA architectures like "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[3] and SmolVLA [31], which incorporate a state projection layer to embed proprioceptive state vectors into continuous representations before feeding them into the transformer backbone, VLASH integrates seamlessly and achieves excellent results out of the box. "
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                537,
+                480,
+                626
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We further note that VLASH also works directly with "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[16] without modifications, as demonstrated in our experiments in Table 1. However, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "employs a unique design that converts numerical state values into text tokens and appends them to the language prompt. This text-based encoding forces numerical state values through tokenization and one-hot encoding, disrupting their inherent numerical structure and making it more challenging for the model to learn from state information. For such architectures, we find that adding a lightweight state projection like the design of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and injecting the resulting embeddings back into their original positions can further enhance smoothness and stability. A simpler alternative is to incorporate the projected state embeddings into the AdaRMSNorm layers as conditioning signals alongside timestep embeddings. While entirely optional (and VLASH already performs well without it), this small architectural enhancement consistently improves control smoothness for "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 . 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Importantly, the ad-"
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                628,
+                482,
+                900
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "ditional parameters introduced by this state projection layer are negligible: it consists only of a linear mapping from the state dimension to the hidden dimension. Moreover, because it is zero-initialized, it completely preserves the pretrained model’s performance during the initial stages of fine-tuning. "
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                90,
+                903,
+                167
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "2 "
+                    }
+                ]
+            },
+            "bbox": [
+                493,
+                924,
+                504,
+                935
+            ]
+        }
+    ]
+]

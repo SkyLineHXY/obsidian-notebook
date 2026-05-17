@@ -1,0 +1,3493 @@
+[
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "VLA-OPD: Bridging Offline SFT and Online RL for Vision-Language-Action Models via On-Policy Distillation "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                112,
+                104,
+                843,
+                191
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Zhide Zhong1, Haodong Yan1, Junfeng Li1, Junjie He1, Tianran Zhang1, and Haoang Li 1 "
+                    }
+                ]
+            },
+            "bbox": [
+                143,
+                204,
+                810,
+                223
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "1HKUST (GZ) "
+                    }
+                ]
+            },
+            "bbox": [
+                426,
+                233,
+                529,
+                250
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Although pre-trained Vision-Language-Action (VLA) models exhibit impressive generalization in robotic manipulation, post-training remains crucial to ensure reliable performance during deployment. However, standard offline Supervised Fine-Tuning (SFT) suffers from distribution shifts and catastrophic forgetting of pre-trained capabilities, while online Reinforcement Learning (RL) struggles with sparse rewards and poor sample efficiency. In this paper, we propose On-Policy VLA Distillation (VLA-OPD), a framework bridging the efficiency of SFT with the robustness of RL. Instead of relying on sparse environmental rewards, VLA-OPD leverages an expert teacher to provide dense, token-level supervision on the student’s self-generated trajectories. This enables active error correction on policy-induced states while preserving pre-trained general capabilities through gentle alignment. Crucially, we formulate VLA-OPD via a Reverse-KL objective. Unlike standard Forward-KL that induces mode-covering entropy explosion, or Hard-CE that causes premature entropy collapse, our bounded mode-seeking objective ensures stable policy learning by filtering out the teacher’s epistemic uncertainty while maintaining action diversity. Experiments on LIBERO and RoboTwin2.0 benchmarks demonstrate that VLA-OPD significantly improves sample efficiency over RL and robustness over SFT, while effectively mitigating catastrophic forgetting during post-training. "
+                    }
+                ]
+            },
+            "bbox": [
+                109,
+                265,
+                887,
+                500
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Keywords: Vision-Language-Action Models, Post-training, On-Policy Distillation "
+                    }
+                ]
+            },
+            "bbox": [
+                111,
+                505,
+                658,
+                521
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Project Page: https: // irpn-lab. github. io/ VLA-OPD/ "
+                    }
+                ]
+            },
+            "bbox": [
+                112,
+                525,
+                560,
+                541
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "1. Introduction "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                84,
+                595,
+                240,
+                613
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The integration of Large Language Models (LLMs) with visual perception has catalyzed a paradigm shift in embodied intelligence, giving rise to generalist Vision-Language-Action (VLA) models Kim et al. (2024), Zitkovich et al. (2023), Bai et al. (2025), Intelligence et al. (2025a,b), NVIDIA et al. (2025). By unifying perception, planning, and control into a single transformer architecture, pre-trained VLAs exhibit remarkable generalization across diverse environments and instructions. However, despite their broad capabilities, directly deploying pre-trained foundation models often struggles with precise execution in specific downstream tasks. Consequently, to translate this generalist knowledge into reliable, deployable robotic policies, post-training has emerged as an essential step in adapting VLA models. "
+                    }
+                ]
+            },
+            "bbox": [
+                80,
+                628,
+                915,
+                765
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Currently, the landscape of VLA post-training is dominated by two primary paradigms: offline Supervised Fine-Tuning (SFT) and online Reinforcement Learning (RL). SFT, typically implemented as behavior cloning, maximizes the likelihood of expert actions given static observation histories O’Neill et al. (2024), Black et al. (2024). With dense supervision at every token, SFT is optimization-stable and fast to converge; however, it inherently demands large-scale, high-quality expert demonstrations to cover diverse scene distributions. To reduce this reliance on static datasets, recent efforts have explored online RL for VLA post-training Li et al. (2025a), Zang et al. (2025), Lu et al. (2025), Liu et al. (2025), Xu et al. (2025), Xiao et al. (2025). By allowing the model to interact with the environment and optimizing for task success, RL exposes the policy to its own induced state distribution, aiming to improve closed-loop robustness through active exploration and error correction. "
+                    }
+                ]
+            },
+            "bbox": [
+                80,
+                773,
+                916,
+                912
+            ]
+        },
+        {
+            "type": "page_aside_text",
+            "content": {
+                "page_aside_text_content": [
+                    {
+                        "type": "text",
+                        "content": "arXiv:2603.26666v1 [cs.RO] 27 Mar 2026 "
+                    }
+                ]
+            },
+            "bbox": [
+                22,
+                273,
+                57,
+                722
+            ]
+        }
+    ],
+    [
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/1cedb608fd618ad0f458fdf9b54e23e39dd466c6c8b492119e4d3f64b948c93e.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 1: Comparison of VLA training paradigms. VLA-OPD combines the best of both worlds: it inherits the Few-Demo capability of RL (learning from limited expert trajectories) while maintaining the Fast Convergence of SFT (via dense supervision). "
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>Paradigm</td><td>Sampling</td><td>Signal</td><td>Few-Demo</td><td>Convergence</td><td>Anti-forget</td><td>Robustness</td></tr><tr><td>VLA-Offline SFT</td><td>Off-policy</td><td>Dense</td><td>✗</td><td>Fast</td><td>✗</td><td>✗</td></tr><tr><td>VLA-Online RL</td><td>On-policy</td><td>Sparse</td><td>√</td><td>Slow</td><td>√</td><td>√</td></tr><tr><td>VLA-OPD (Ours)</td><td>On-policy</td><td>Dense</td><td>√</td><td>Fast</td><td>√</td><td>√</td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                107,
+                162,
+                885,
+                268
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                81,
+                273,
+                913,
+                308
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Despite their respective strengths, both paradigms suffer from critical limitations. SFT is fundamentally constrained by its “off-policy” nature; it is highly vulnerable to distribution shifts and often suffers from catastrophic forgetting due to aggressive parameter updates on static, disjoint datasets Zhu et al. (2025), Lai et al. (2025), Chu et al. (2025), Shenfeld et al. (2025). Conversely, online RL addresses distribution shifts via environment interaction but relies on sparse rewards, resulting in prohibitive sample inefficiency and high-variance optimization Li et al. (2025a). Furthermore, simply adapting SFT to an on-policy setting (e.g., DAGGER Kelly et al. (2019)) typically relies on suboptimal alignment objectives. Using a Forward-KL divergence forces a mode-covering behavior that mimics the teacher’s epistemic uncertainty, leading to an entropy explosion. Conversely, employing Hard-CE (argmax matching) causes premature entropy collapse, depriving the student of the action diversity needed for effective state-space exploration. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                316,
+                916,
+                489
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To bridge this gap, we introduce On-Policy VLA Distillation (VLA-OPD), a unified framework that synthesizes the efficiency of SFT with the robustness of RL (summarized in Table 1). VLA-OPD leverages an expert teacher to provide dense, token-level supervision on the student’s self-generated trajectories, intrinsically enabling active error recovery without sparse rewards. Crucially, we formulate VLA-OPD using a Reverse-KL objective to overcome the aforementioned optimization flaws. By promoting bounded mode-seeking behavior, Reverse-KL allows the student to confidently capture the teacher’s primary intent while retaining sufficient stochasticity to sample diverse, valid actions. This elegantly prevents both the entropy explosion of Forward-KL and the collapse of Hard-CE, ensuring highly stable updates that preserve pre-trained generalist capabilities and gracefully mitigate catastrophic forgetting. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                496,
+                916,
+                652
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Furthermore, this distillation paradigm fundamentally decouples the computationally prohibitive process of RL exploration from the student’s policy optimization. While relying on an expert teacher assumes its prior availability, high-performing experts are increasingly accessible through open-source checkpoints, proprietary APIs, or easily trained single-task policies. VLA-OPD capitalizes on these existing resources by providing a highly sample-efficient distillation pipeline. This enables the seamless transfer of robust behaviors from diverse teachers into new, upgraded, or unified generalist student backbones. Consequently, our framework establishes a scalable pathway for continuous foundation model development, effectively circumventing the severe costs and instabilities associated with training VLA policies from scratch via online RL. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                657,
+                916,
+                797
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Our main contributions are summarized as follows: "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                804,
+                485,
+                821
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "text_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• We propose VLA-OPD, a unified post-training framework that bridges SFT and RL. By leveraging dense, token-level supervision on self-generated trajectories, it effectively resolves the exposure bias of SFT and the sample inefficiency of sparse-reward RL. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• We formulate a Reverse-KL distillation objective for VLA models. We demonstrate that its bounded "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                107,
+                840,
+                915,
+                910
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "VLA-OPD: Bridging Offline SFT and Online RL for Vision-Language-Action Models via On-Policy Distillation "
+                    }
+                ]
+            },
+            "bbox": [
+                189,
+                66,
+                805,
+                80
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "2 "
+                    }
+                ]
+            },
+            "bbox": [
+                901,
+                938,
+                911,
+                948
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "mode-seeking property effectively filters out the teacher’s epistemic uncertainty while maintaining action diversity, elegantly preventing both the entropy explosion of Forward-KL and the premature entropy collapse of Hard-CE. "
+                    }
+                ]
+            },
+            "bbox": [
+                125,
+                107,
+                911,
+                157
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "text_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• We provide a principled approach to mitigate catastrophic forgetting. By ensuring gradient updates remain grounded in the student’s active policy manifold, VLA-OPD achieves a “gentle” alignment that preserves pre-trained generalist capabilities. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• Extensive evaluations across LIBERO and RoboTwin2.0 benchmarks demonstrate that VLA-OPD achieves superior robustness and success rates compared to SFT, while requiring substantially fewer training steps than on-policy RL baselines. "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                107,
+                159,
+                913,
+                262
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "2. Preliminaries "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                83,
+                287,
+                250,
+                305
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In this section, we formalize the VLA training problem and briefly review the two dominant paradigms: Supervised Fine-Tuning (SFT) and Online Reinforcement Learning (RL). "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                321,
+                915,
+                356
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "2.1. Problem Formulation "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                83,
+                378,
+                303,
+                393
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We formulate the robotic manipulation task as a Markov Decision Process (MDP) defined by the tuple "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( S , { \\mathcal { A } } , { \\mathcal { T } } , r , \\gamma )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". At each timestep t, the VLA agent observes a state "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "s _ { t } \\in S"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(comprising visual observations and language instructions) and predicts an action "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "a _ { t } \\in { \\mathcal { A } } ."
+                    },
+                    {
+                        "type": "text",
+                        "content": ". The goal is to learn a policy "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { \\boldsymbol { \\theta } } ( a _ { t } | s _ { t } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "that maximizes the success rate of the task. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                406,
+                913,
+                474
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "2.2. Supervised Fine-Tuning (SFT) "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                83,
+                497,
+                372,
+                513
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Standard VLA training typically starts with SFT on a static dataset of expert demonstrations "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { D } _ { d e m o } = \\{ ( \\tau _ { i } ) \\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". The objective is to maximize the log-likelihood of the expert actions: "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                525,
+                915,
+                560
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathcal {L} _ {S F T} (\\theta) = - \\mathbb {E} _ {(s, a) \\sim \\mathcal {D} _ {d e m o}} [ \\log \\pi_ {\\theta} (a | s) ]. \\tag {1}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/67768c01ac86bb8ed74a9a0c6b75882e1cca1b4a761db98b79d7a14e4fb54867.jpg"
+                }
+            },
+            "bbox": [
+                346,
+                566,
+                913,
+                587
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "While SFT provides dense supervision, it is off-policy: the policy is trained on expert states but evaluated on student-induced states. This discrepancy leads to the distribution shift problem discussed in Sec. 1. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                590,
+                913,
+                626
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "2.3. Online RL with Sparse Outcome Rewards "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                83,
+                648,
+                468,
+                666
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To address the limitations of SFT, researchers have increasingly turned to Online Reinforcement Learning. Drawing inspiration from its immense success in enhancing the reasoning capabilities of Large Language Models (LLMs) Guo et al. (2025), Group Relative Policy Optimization (GRPO) has recently emerged as the promising approach for VLA post-training Li et al. (2025a), Zang et al. (2025). "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                676,
+                913,
+                746
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The widespread adoption of GRPO in the VLA domain stems from its architectural efficiency. By computing advantages via group-based relative normalization, GRPO eliminates the need for a separate value network (Critic). This significantly reduces memory overhead, making it uniquely suitable for fine-tuning large-scale vision-language backbones where maintaining a Critic is prohibitively expensive. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                753,
+                913,
+                823
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Formally, for an observation s, the policy samples a group of G trajectories "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\left\\{ \\tau _ { 1 } , \\dots , \\tau _ { G } \\right\\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". The optimization objective is to maximize the expected outcome reward: "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                830,
+                913,
+                864
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathcal {J} _ {R L} (\\theta) = \\mathbb {E} _ {s \\sim \\mathcal {D}, \\tau \\sim \\pi_ {\\theta_ {o l d}}} \\left[ \\frac {1}{G} \\sum_ {i = 1} ^ {G} \\min \\left(\\frac {\\pi_ {\\theta} (\\tau_ {i})}{\\pi_ {\\theta_ {o l d}} (\\tau_ {i})} \\hat {A} _ {i}, \\operatorname{clip} \\left(\\frac {\\pi_ {\\theta} (\\tau_ {i})}{\\pi_ {\\theta_ {o l d}} (\\tau_ {i})}, 1 - \\epsilon , 1 + \\epsilon\\right) \\hat {A} _ {i}\\right) \\right], \\tag {2}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/0ec2922da38f8945094594f1c4343d28456a010c660813154bc6f5ba329e2d52.jpg"
+                }
+            },
+            "bbox": [
+                171,
+                871,
+                913,
+                917
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "VLA-OPD: Bridging Offline SFT and Online RL for Vision-Language-Action Models via On-Policy Distillation "
+                    }
+                ]
+            },
+            "bbox": [
+                189,
+                66,
+                805,
+                80
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "3 "
+                    }
+                ]
+            },
+            "bbox": [
+                901,
+                938,
+                911,
+                948
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/c018afb576ba5a4fca8892aa5e61c245fb78f9833128f47fde1f6281144c50dd.jpg"
+                },
+                "content": "",
+                "image_caption": [],
+                "image_footnote": []
+            },
+            "bbox": [
+                81,
+                104,
+                578,
+                309
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/4e70b05ebf8f7359e54c4a1e50c529e5547a6eb9617d4d93438b3a8571e1db84.jpg"
+                },
+                "content": "",
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 1: Overview of VLA-OPD. Our framework unifies offline SFT and online RL through three phases. Phase 1 (Student Sampling): The student VLA policy interacts with the environment to collect on-policy trajectory rollouts "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( O \\to A \\to O )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Phase 2 (Teacher Labeling): For each state visited by the student, a frozen expert teacher provides dense, token-level action labels "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\widehat { A } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "without executing them in the environment. Phase 3 (Student Optimization): The student is optimized against the teacher’s distribution via a Reverse-KL objective. Unlike standard Forward-KL (bottom right) which induces mass-covering and entropy explosion, our Reverse-KL formulation (bottom left) promotes a mode-seeking behavior, effectively filtering out the teacher’s out-of-distribution uncertainty and focusing on highreward actions. "
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                589,
+                104,
+                911,
+                309
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where ϵ is the clipping parameter, and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { A } _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "represents the advantage derived from a sparse outcome reward "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "R ( \\tau ) \\in \\{ 0 , 1 \\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(indicating task success or failure) relative to the group average. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                464,
+                911,
+                501
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "However, despite its provenance from LLMs and architectural efficiency, applying GRPO to robotics introduces a unique challenge: feedback sparsity. Unlike reasoning tasks where intermediate steps might have clearer structure, robotics tasks often provide a binary signal only upon completion. This lack of granular supervision leads to high variance in optimization and severe sample inefficiency, necessitating prohibitively large amounts of interaction data to learn effective manipulation policies. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                508,
+                913,
+                594
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3. Methodology "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                83,
+                621,
+                246,
+                641
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In this section, we present VLA-OPD, a unified post-training framework designed to align Vision-Language-Action models efficiently and robustly. Our approach is motivated by the observation that standard SFT lacks the ability to recover from self-induced compounding errors, while on-policy RL suffers from feedback sparsity. To address these limitations simultaneously, VLA-OPD reformulates the alignment process as dense supervision on self-generated trajectories. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                654,
+                915,
+                741
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We begin with a high-level overview of the framework (Sec. 3.1). We then detail the on-policy sampling mechanism that addresses distribution shift (Sec. 3.2) and the teacher-guided dense supervision strategy that ensures sample efficiency (Sec. 3.3). Finally, we analyze our Reverse-KL optimization objective and its inherent mode-seeking properties (Sec. 3.4). "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                748,
+                915,
+                818
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.1. Framework Overview "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                83,
+                842,
+                305,
+                858
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "As illustrated in Figure 1 and detailed in Algorithm 1, VLA-OPD operates as an iterative, closed-loop process involving two distinct policy roles. The Teacher Policy "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\left( \\pi _ { t e a } \\right)"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is a robust expert model (e.g., trained via RL) "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                869,
+                915,
+                905
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "VLA-OPD: Bridging Offline SFT and Online RL for Vision-Language-Action Models via On-Policy Distillation "
+                    }
+                ]
+            },
+            "bbox": [
+                189,
+                66,
+                805,
+                80
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4 "
+                    }
+                ]
+            },
+            "bbox": [
+                901,
+                939,
+                911,
+                948
+            ]
+        }
+    ],
+    [
+        {
+            "type": "algorithm",
+            "content": {
+                "algorithm_caption": [
+                    {
+                        "type": "text",
+                        "content": "Algorithm 1 VLA-OPD Training Procedure "
+                    }
+                ],
+                "algorithm_content": [
+                    {
+                        "type": "text",
+                        "content": "Input: Student Policy   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi_{\\theta}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "  (initialized from 1-traj SFT), Teacher Policy   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi_{tea}"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n\nInput: Group Size G, Learning Rate   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\alpha"
+                    },
+                    {
+                        "type": "text",
+                        "content": " , Dataset   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "D_{prompt}"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n\n1: Initialize iteration counter   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "k \\leftarrow 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n\n2: while not converged do\n\n3: Sample a batch of prompts   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{o_{j}\\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "  from   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "D_{prompt}"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n\n4: for each prompt o in batch do\n\n5: // Phase 1: Group Sampling (On-Policy)\n\n6: Generate G trajectories   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{\\tau_{1}, \\ldots, \\tau_{G}\\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "  using student   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi_{\\theta}(\\cdot|o)"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n\n7: for each trajectory   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tau_{i}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "  in group do\n\n8: // Phase 2: Dense Teacher Labeling\n\n9: for each timestep t in   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tau_{i}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "  do\n\n10: Query student logits   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi_{\\theta}(\\cdot|s_{t,i})"
+                    },
+                    {
+                        "type": "text",
+                        "content": "  and teacher logits   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi_{tea}(\\cdot|s_{t,i})"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n\n11: // Compute Intrinsic Reward (Negative Reverse-KL)\n\n12:   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "r_{t} = -\\left(\\log \\pi_{\\theta}(a_{t,i}|s_{t,i}) - \\log \\pi_{tea}(a_{t,i}|s_{t,i})\\right)"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n\n13: end for\n\n14: end for\n\n15: end for\n\n16: // Phase 3: Optimization (Group-Based Policy Gradient)\n\n17: Estimate gradients averaged over group size G:\n\n18:   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\nabla J \\approx \\frac{1}{B \\times G} \\sum_{j} \\sum_{i=1}^{G} \\sum_{t} \\nabla_{\\theta} \\log \\pi_{\\theta}(a_{t,i}|s_{t,i}) \\cdot r_{t}"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n\n19: Update parameters:   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\theta \\leftarrow \\theta + \\alpha \\nabla J"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n\n20: end while "
+                    }
+                ]
+            },
+            "bbox": [
+                83,
+                127,
+                679,
+                506
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "that remains frozen during distillation. It acts as a reference oracle, providing dense supervision signals that enable the student to learn optimal recovery behaviors even in states not covered by the original expert demonstrations. The Student Policy "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\left( \\pi _ { \\theta } \\right)"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the target VLA model being trained, typically initialized from a base checkpoint (e.g., via offline SFT). By interacting with the environment on-policy, the student collects trajectories and is continuously updated to align with the teacher’s robust distribution. "
+                    }
+                ]
+            },
+            "bbox": [
+                80,
+                532,
+                913,
+                619
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The goal of VLA-OPD is to efficiently transfer the robustness of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { t e a }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to the brittle "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { \\theta }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". As depicted in Figure 1, the training cycle consists of three phases: "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                626,
+                916,
+                662
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "text_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• Phase 1: On-Policy Sampling (Exploration). The student "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "\\pi _ { \\theta }"
+                            },
+                            {
+                                "type": "text",
+                                "content": "generates trajectories "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "\\mathcal { T } _ { s t u d e n t }"
+                            },
+                            {
+                                "type": "text",
+                                "content": "in the environment. Since the student is trained on limited data, it frequently encounters out-of-distribution states. This explicitly triggers the distribution shift, exposing the model to the boundaries of its capabilities. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• Phase 2: Dense Teacher Labeling (Correction). Instead of waiting for sparse outcome rewards, we query the frozen teacher "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "\\pi _ { t e a }"
+                            },
+                            {
+                                "type": "text",
+                                "content": ". For every state "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "s _ { t }"
+                            },
+                            {
+                                "type": "text",
+                                "content": "visited by the student, the teacher provides its action logits. This acts as a dense guiding signal, effectively injecting an optimal recovery prior to correct the student’s deviations in unfamiliar states. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• Phase 3: Mode-Seeking Optimization (Update). The student is updated via on-policy policy-gradient using the token-level Reverse-KL reward, which is equivalent to minimizing the divergence from the teacher on student-visited states. "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                107,
+                685,
+                913,
+                873
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "VLA-OPD: Bridging Offline SFT and Online RL for Vision-Language-Action Models via On-Policy Distillation "
+                    }
+                ]
+            },
+            "bbox": [
+                189,
+                66,
+                805,
+                80
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "5 "
+                    }
+                ]
+            },
+            "bbox": [
+                901,
+                938,
+                911,
+                948
+            ]
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.2. On-Policy Trajectory Sampling "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                81,
+                107,
+                382,
+                125
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "A fundamental limitation of the SFT initialization is the distribution shift problem. Since the student model is trained on a highly restricted set of expert states "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { D } _ { e x p e r t . }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", it lacks knowledge of how to behave in states outside this narrow manifold. During evaluation, minor execution errors accumulate, driving the agent into unfamiliar states where its policy is undefined, leading to catastrophic failure. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                135,
+                915,
+                205
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To address this, VLA-OPD discards the static offline dataset after initialization and switches to dynamic on-policy sampling. At each training iteration "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "k ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "we collect a batch of trajectories "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { D } _ { k }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "by executing the current student policy "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { \\theta _ { k } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in the environment: "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                212,
+                913,
+                265
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathcal {D} _ {k} = \\{\\tau \\mid \\tau = (s _ {0}, a _ {0}, s _ {1}, a _ {1}, \\dots , s _ {T}) \\}, \\quad \\text { where } a _ {t} \\sim \\pi_ {\\theta_ {k}} (\\cdot | s _ {t}), s _ {t + 1} \\sim \\mathcal {P} (\\cdot | s _ {t}, a _ {t}). \\tag {3}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/c1772c53f93b4e0fac8ea7b510bfdc0ee0910448db9e49314c7359f3186f7673.jpg"
+                }
+            },
+            "bbox": [
+                189,
+                277,
+                911,
+                297
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Crucially, the states "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "s _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { D } _ { k }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are drawn from the student’s induced distribution "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "d ^ { \\pi _ { \\theta _ { k } } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", rather than the expert distribution. For a brittle 1-traj student, this sampling process is primarily driven by the need for active correction. Because the student frequently deviates from the expert’s path, VLA-OPD explicitly captures these “failure states” "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( s _ { e r r } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { D } _ { k }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". By subsequently training on these samples (as detailed in Sec. 3.3), we effectively convert the “unknown” out-of-distribution regions into “known” training data, transforming the alignment problem from passive imitation to active correction. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                316,
+                916,
+                420
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Beyond robust correction, this on-policy formulation provides a principled mechanism for mitigating catastrophic forgetting. Standard SFT is inherently off-policy, forcing the model to fit a fixed, disjoint target distribution, which necessitates aggressive parameter shifts that overwrite pre-trained generalist knowledge. In contrast, VLA-OPD ensures that gradient updates remain anchored to the student’s current behavioral manifold. By distilling knowledge strictly on trajectories the student naturally visits, our approach achieves a “gentle” alignment that effectively preserves the backbone’s pre-trained capabilities. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                428,
+                916,
+                532
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.3. Dense Teacher Supervision "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                83,
+                556,
+                352,
+                573
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Instead of relying on sparse outcome rewards that suffer from severe credit assignment issues, VLA-OPD leverages the robust teacher "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { t e a }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to provide dense, token-level supervision. For every timestep t in a student-generated trajectory "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tau \\in \\mathcal { D } _ { k } ."
+                    },
+                    {
+                        "type": "text",
+                        "content": "we query the teacher to obtain the target action distribution: "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                584,
+                915,
+                637
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "q _ {t} (a) = \\pi_ {t e a} (a | s _ {t}). \\tag {4}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/b75c78587b3e30cca42609f24ef6598557b0b57e4c6c68bd175ec79eaba2ea05.jpg"
+                }
+            },
+            "bbox": [
+                424,
+                648,
+                913,
+                667
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "This dense signal offers two critical advantages. First, it converts the delayed RL problem into an immediate supervised signal, drastically accelerating convergence. Second, by labeling the student’s on-policy states, including out-of-distribution deviations, the teacher imparts structural knowledge Hinton et al. (2014) on optimal recovery behaviors. However, standard distillation across the entire distribution can be detrimental when the teacher is uncertain. To selectively leverage this knowledge while filtering out high-entropy noise, we introduce a mode-seeking objective, which we discuss in detail in Section 3.4. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                680,
+                916,
+                784
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.4. Optimization Objective and Analysis "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                81,
+                808,
+                429,
+                825
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To align the student policy "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { \\theta }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with the robust teacher "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { t e a ; }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", VLA-OPD employs an optimization strategy grounded in minimizing the Reverse Kullback-Leibler (KL) divergence. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                835,
+                915,
+                872
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Reverse-KL as Dense Reward. Our goal is to minimize the divergence between the student and teacher distributions on student-generated trajectories. To formulate this as a reinforcement learning problem, we define the objective as maximizing the negative Reverse-KL divergence: "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                878,
+                915,
+                914
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "VLA-OPD: Bridging Offline SFT and Online RL for Vision-Language-Action Models via On-Policy Distillation "
+                    }
+                ]
+            },
+            "bbox": [
+                189,
+                66,
+                805,
+                80
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "6 "
+                    }
+                ]
+            },
+            "bbox": [
+                901,
+                938,
+                911,
+                948
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                81,
+                107,
+                645,
+                125
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\max _ {\\theta} \\mathcal {J} (\\theta) = \\mathbb {E} _ {s \\sim \\pi_ {\\theta}} \\left[ - D _ {K L} \\left(\\pi_ {\\theta} (\\cdot | s) \\right\\rvert \\mid \\pi_ {t e a} (\\cdot | s)) \\right]. \\tag {5}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/7fefbc85d4741bc3046ac787e24026f52ae8a98a13db7cf5eb02f046f9c7befa.jpg"
+                }
+            },
+            "bbox": [
+                313,
+                133,
+                911,
+                160
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "At the token level, this translates to an intrinsic reward "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "r _ { t } ^ { O P D }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "defined as the negative log-ratio of the probabilities: "
+                    }
+                ]
+            },
+            "bbox": [
+                80,
+                169,
+                913,
+                203
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "r _ {t} ^ {O P D} (s _ {t}, a _ {t}) = - \\left(\\log \\pi_ {\\theta} (a _ {t} | s _ {t}) - \\log \\pi_ {t e a} (a _ {t} | s _ {t})\\right) = - \\log \\frac {\\pi_ {\\theta} (a _ {t} | s _ {t})}{\\pi_ {t e a} (a _ {t} | s _ {t})}. \\tag {6}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/718b9dd86c3770cafdfa4bc1e4e4f5866fb0b4f37ebb0b2ee60079994786fc14.jpg"
+                }
+            },
+            "bbox": [
+                230,
+                203,
+                911,
+                239
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Intuitively, this reward acts as a penalty: the student receives a higher reward (closer to 0) when its action distribution matches the teacher’s, and a large negative penalty when it deviates significantly. Crucially, when computing the policy gradient update, we apply a stop_gradient operation to the student’s log-probability term log "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { \\boldsymbol { \\theta } } ( a _ { t } | s _ { t } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "within the reward calculation. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                242,
+                913,
+                311
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Theoretical Analysis: Mode-Seeking vs. Mode-Covering. The choice of divergence direction fundamentally alters the optimization dynamics, particularly in OOD states where the teacher may exhibit high epistemic uncertainty (i.e., flat, high-entropy distributions). "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                319,
+                913,
+                371
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "text_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• Forward KL (Teacher-Forced): Standard SFT minimizes "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "D _ { \\mathrm { K L } } ( \\pi _ { \\mathrm { t e a } } \\parallel \\pi _ { \\theta } )"
+                            },
+                            {
+                                "type": "text",
+                                "content": ". Its gradient is estimated over teacher samples "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "( \\mathbb { E } _ { a \\sim \\pi _ { \\mathrm { t e a } } } )"
+                            },
+                            {
+                                "type": "text",
+                                "content": ", effectively forcing the student to cover the teacher’s entire support (mode-covering). In OOD states, this compels the student to mimic the teacher’s hesitation and high entropy, leading to the entropy explosion phenomenon. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Hard-CE (Argmax Matching): A common alternative in on-policy settings (e.g., standard DAgger) is minimizing Cross-Entropy against the teacher’s top-1 action. Mathematically, this discards the teacher’s soft probabilities (\"dark knowledge\"). When the teacher’s argmax oscillates at multi-modal decision boundaries, Hard-CE forces the student to violently track these rigid targets, causing premature entropy collapse and depriving the student of the action diversity necessary for robust exploration. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• Reverse-KL (Bounded Mode-Seeking): In contrast, VLA-OPD minimizes "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "D _ { \\mathrm { K L } } ( \\pi _ { \\theta } \\ \\parallel \\ \\pi _ { \\mathsf { t e a } } )"
+                            },
+                            {
+                                "type": "text",
+                                "content": ". Due to the zero-forcing property of Reverse-KL, as long as the student’s chosen action falls within the teacher’s acceptable probability mass, it is not penalized for ignoring other potential actions. This induces a mode-seeking behavior that elegantly avoids both extremes: it filters out the teacher’s tail uncertainty (preventing entropy explosion) while retaining sufficient stochasticity within the valid modes (preventing premature entropy collapse). "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                107,
+                390,
+                913,
+                648
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We validate these distinct optimization dynamics in our ablation studies (Section 4.4). As vividly demonstrated in Figure 4, Forward-KL indeed suffers from severe entropy explosion, Hard-CE experiences premature entropy collapse leading to sub-optimal plateaus, whereas our Reverse-KL maintains a healthy, bounded entropy that translates to the highest and most stable task success rate. "
+                    }
+                ]
+            },
+            "bbox": [
+                80,
+                667,
+                913,
+                737
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Group-Based Gradient Estimation. To reduce the high variance typically associated with on-policy gradients, we adopt a group sampling strategy. Specifically, for each instruction s, we sample a group of G trajectories "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\left\\{ \\tau _ { 1 } , \\dots , \\tau _ { G } \\right\\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "from the current student policy "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { \\theta }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". We estimate the policy gradient by averaging over this group: "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                744,
+                913,
+                813
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\nabla_ {\\theta} \\mathcal {J} (\\theta) \\approx \\frac {1}{G} \\sum_ {i = 1} ^ {G} \\sum_ {t = 0} ^ {T} \\nabla_ {\\theta} \\log \\pi_ {\\theta} (a _ {t, i} | s _ {t, i}) \\cdot r _ {t} ^ {O P D} (s _ {t, i}, a _ {t, i}). \\tag {7}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/046ecfc717d4754bdc53cf6e7b0daa753baa443ccecfa877710bde95ad592921.jpg"
+                }
+            },
+            "bbox": [
+                282,
+                811,
+                911,
+                858
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Unlike standard GRPO which computes advantages via outcome reward normalization, our method uses the raw Reverse-KL reward directly as the advantage signal, ensuring consistent convergence toward the teacher’s optimal mode. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                862,
+                913,
+                914
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "VLA-OPD: Bridging Offline SFT and Online RL for Vision-Language-Action Models via On-Policy Distillation "
+                    }
+                ]
+            },
+            "bbox": [
+                189,
+                66,
+                805,
+                80
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7 "
+                    }
+                ]
+            },
+            "bbox": [
+                901,
+                938,
+                911,
+                948
+            ]
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4. Experiments "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                83,
+                106,
+                240,
+                125
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Our experimental design addresses several fundamental research questions regarding the efficiency, efficacy, and stability of On-Policy Distillation (OPD) for robotic manipulation: "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                138,
+                915,
+                174
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "text_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "1. Training Efficiency: Does dense teacher supervision enable significantly faster convergence compared to standard online reinforcement learning (e.g., GRPO), which relies on sparse reward exploration? "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "2. Policy Efficacy: To what extent can VLA-OPD recover robust performance from a sub-optimal base policy, whether constrained by extreme data scarcity (e.g., 1-traj SFT) or morphological complexity (e.g., dual-arm coordination), and bridge the gap to an expert teacher? "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "3. Catastrophic Forgetting: Does on-policy distillation better preserve pre-trained generalist capabilities than offline SFT, while improving performance on the target tasks? "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "4. Ablation and Design Choices: How do the core algorithmic components of VLA-OPD—such as the alignment objective—contribute to the overall stability and success rate of the policy? "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                98,
+                188,
+                916,
+                348
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.1. Experimental Setup "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                83,
+                369,
+                290,
+                388
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Benchmarks and Protocols. We evaluate across two distinct domains to test data-scarce generalization and complex coordination. (1) LIBERO Liu et al. (2023): We utilize four suites (Spatial, Object, Goal, Long) for single-arm manipulation. To evaluate under extreme data scarcity, student models are initialized via 1-traj SFT (one demo per task). (2) RoboTwin2.0 Chen et al. (2025a): We select four representative tasks requiring complex dual-arm coordination. Given its inherent difficulty, students are initialized via 1,000-traj SFT per task; the sub-optimal base policy provides an ideal testbed for our distillation framework. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                398,
+                915,
+                501
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Teacher and Baselines. We employ SimpleVLA-RL Li et al. (2025a) as our teacher "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { t e a }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(Performance Oracle). We compare against: (1) Student Init. (Lower Bound): The base OpenVLA-OFT Kim et al. (2025) models before distillation (1-traj and 1,000-traj SFT for LIBERO and RoboTwin2.0, respectively). (2) Online RL: GRPO with sparse rewards. (3) Offline SFT: Models fine-tuned on full expert datasets. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                508,
+                915,
+                579
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.2. Main Results: Efficiency and Efficacy "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                83,
+                601,
+                429,
+                619
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We compare our method against the baseline GRPO. To ensure a fair comparison, following SimpleVLA-RL Li et al. (2025a), we set the batch size to 64 and the group size to G = 8 across main experiments. Our approach is evaluated in two settings: (1) Ours (Distill), which uses only the distillation process, and (2) Ours (Distill + GRPO), which further fine-tunes the distilled model using GRPO. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                628,
+                913,
+                699
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "As shown in Figure 2, our method demonstrates significant advantages in both data efficiency and stability: "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                705,
+                915,
+                724
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "text_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• Rapid Convergence: On LIBERO-Object (Figure 2a), our distillation method achieves over 90% success rate within just 10 steps, exhibiting a “vertical” takeoff compared to the gradual climb of the baseline. Similarly, on LIBERO-Long (Figure 2b), we reach comparable performance to the baseline’s 150-step result in only 50 steps. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• Breaking Performance Ceilings: While distillation alone provides a strong “warm start”, the combination with GRPO (dashed orange line) further pushes the performance boundaries, achieving state-of-the-art results (over 95% on Object and 90% on Long). "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• Stability: Unlike the baseline GRPO, which suffers from severe fluctuations (zig-zag patterns) particularly visible in the LIBERO-Long task, our training curves are remarkably smooth, indicating a more robust and stable optimization process. "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                107,
+                739,
+                916,
+                916
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "VLA-OPD: Bridging Offline SFT and Online RL for Vision-Language-Action Models via On-Policy Distillation "
+                    }
+                ]
+            },
+            "bbox": [
+                189,
+                66,
+                805,
+                80
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "8 "
+                    }
+                ]
+            },
+            "bbox": [
+                901,
+                939,
+                911,
+                948
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/681ef7003c59f847c75c59642aef937e402be8372ebb1fb3389b6cb2d9a29137.jpg"
+                },
+                "content": "",
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(a) Training Efficiency on LIBERO-Object "
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                86,
+                107,
+                483,
+                287
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/c480d6aed5485223c010768419f21eca92fe3fab3a7be406700146bd5864bf97.jpg"
+                },
+                "content": "",
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(b) Training Efficiency on LIBERO-Long "
+                    },
+                    {
+                        "type": "text",
+                        "content": "Figure 2: Training Efficiency Comparison. We compare our method with the baseline GRPO across two benchmarks. The red line (Ours (Distill)) demonstrates superior sample efficiency in the early stages, achieving high success rates with significantly fewer steps. The dashed orange line (Ours (Distill + GRPO)) shows that further RL fine-tuning breaks the performance bottleneck, surpassing the baseline’s final convergence. Notably, on LIBERO-Long (b), our method achieves near 80% success rate in just 50 steps, whereas the baseline requires over 150 steps, representing a 3× speedup. "
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                513,
+                107,
+                910,
+                287
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/b8af64cca356c7f5f1605d43b817fe7ba755c3983f13ba25c84ad20866b6adc5.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 2: Main Results: Policy Efficacy on LIBERO. We report the success rate (%). We compare VLA-OPD (trained on 1-traj) against two groups of baselines: (1) Full-Dataset Methods: Models trained on the complete expert dataset (50 demos/task), representing the data-abundant upper bound. (2) Data-Scarce Methods: Models trained on the same 1-traj split. VLA-OPD achieves performance comparable to Full-Dataset methods, significantly outperforming other data-scarce approaches. "
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>Method</td><td>Spatial</td><td>Object</td><td>Goal</td><td>Long</td><td>Avg.</td></tr><tr><td colspan=\"6\">Teacher (Reference)</td></tr><tr><td>SimpleVLA-RL Li et al. (2025a)</td><td>94.2</td><td>96.1</td><td>94.6</td><td>90.7</td><td>93.9</td></tr><tr><td colspan=\"6\">Full-Dataset Methods (50-traj)</td></tr><tr><td>Octo Team et al. (2024)</td><td>78.9</td><td>85.7</td><td>84.6</td><td>51.1</td><td>75.1</td></tr><tr><td>OpenVLA Kim et al. (2024)</td><td>84.7</td><td>88.4</td><td>79.2</td><td>53.7</td><td>76.5</td></tr><tr><td>Nora Hung et al. (2025)</td><td>92.2</td><td>95.4</td><td>89.4</td><td>74.6</td><td>87.9</td></tr><tr><td> $\\pi_0 + FAST$  Pertsch et al. (2025)</td><td>96.4</td><td>96.8</td><td>88.6</td><td>60.2</td><td>85.5</td></tr><tr><td colspan=\"6\">Data-Scarce Methods (1-traj)</td></tr><tr><td>OpenVLA-OFT Kim et al. (2025) (Student Init.)</td><td>63.6</td><td>54.9</td><td>59.6</td><td>17.3</td><td>48.9</td></tr><tr><td>VLA-OPD (Ours) (Distill)</td><td>84.3</td><td>93.8</td><td>92.5</td><td>78.9</td><td>87.4</td></tr><tr><td>VLA-OPD (Ours) (Distill + GRPO)</td><td>93.4</td><td>95.3</td><td>94.5</td><td>90.2</td><td>93.4</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                241,
+                526,
+                756,
+                704
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Beyond training efficiency, we evaluate the final policy efficacy across four LIBERO task suites. As shown in Table 2, VLA-OPD achieves striking performance improvements under the data-scarce (1-traj) setting. While the student initialization (OpenVLA-OFT) struggles with an average success rate of only 48.9%, our pure distillation variant (Ours (Distill)) boosts the performance to 87.4%, effectively matching or surpassing several full-dataset (50-traj) baselines like Octo Team et al. (2024) and OpenVLA Kim et al. (2024). Furthermore, by seamlessly integrating the distillation warm-start with subsequent RL fine-tuning (Ours (Distill + GRPO)), the student policy reaches an impressive 93.4% average success rate. This nearly recovers the performance of the expert teacher (93.9%) while bypassing the prohibitive exploration costs of training a VLA from scratch. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                729,
+                916,
+                885
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Extension to Dual-Arm Manipulation (RoboTwin2.0). To verify that VLA-OPD is not limited to single-arm tabletop tasks, we extend our evaluation to the RoboTwin2.0 benchmark, which features complex dual-arm coordination tasks. As shown in Table 3, despite being initialized with 1,000 demonstrations per task via single-task SFT (OpenVLA-OFT), the student still struggles significantly due to the increased morphological complexity, averaging only 45.2% success. However, by applying our distillation framework (Ours (Distill)), the student’s average success rate surges to 71.1%, nearly matching the Teacher’s performance (74.0%) and substantially outperforming other baselines such as π0 Black et al. (2024) and RDT Liu et al. (2024). This confirms the efficacy and morphological generalization of VLA-OPD in highly complex environments. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                892,
+                913,
+                910
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "VLA-OPD: Bridging Offline SFT and Online RL for Vision-Language-Action Models via On-Policy Distillation "
+                    }
+                ]
+            },
+            "bbox": [
+                191,
+                66,
+                805,
+                80
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "9 "
+                    }
+                ]
+            },
+            "bbox": [
+                901,
+                938,
+                911,
+                948
+            ]
+        }
+    ],
+    [
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/5264bbd50e1d3131d4f764a0b4231b8ac2a4bcdc553131399a1756ba694d43c0.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 3: Evaluation on Selected RoboTwin2.0 Tasks. Following the setting in Li et al. (2025a), models are initialized with full-dataset SFT (1000 demos/task). We report success rates (%) on four representative tasks with varying horizon lengths. VLA-OPD consistently improves over the SFT initialization, especially in long-horizon tasks. "
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>Method</td><td>ShortPick dual bottles</td><td>MediumPlace Empty Cup</td><td>LongHandover Block</td><td>LongStack Bowls Two</td><td>Avg.</td></tr><tr><td>Teacher (Reference)SimpleVLA-RL Li et al. (2025a)</td><td>68.3</td><td>94.2</td><td>57.8</td><td>75.8</td><td>74.0</td></tr><tr><td>Baselines $\\pi_0$  Black et al. (2024)RDT Liu et al. (2024)</td><td>50.018.0</td><td>60.042.0</td><td>39.026.0</td><td>53.042.0</td><td>50.532.0</td></tr><tr><td>OpenVLA-OFT Kim et al. (2025) (Student Init.)</td><td>29.7</td><td>77.3</td><td>33.1</td><td>40.6</td><td>45.2</td></tr><tr><td>VLA-OPD (Ours) (Distill)</td><td>66.4</td><td>90.6</td><td>52.3</td><td>75.0</td><td>71.1</td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                86,
+                161,
+                911,
+                316
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                81,
+                338,
+                916,
+                462
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.3. Mitigating Catastrophic Forgetting via On-Policy Alignment "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                81,
+                483,
+                617,
+                501
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We analyze catastrophic forgetting via a seen–unseen trade-off (Figure 3), fine-tuning on target (seen) tasks and evaluating on four held-out unseen tasks (two Object, two Spatial). The ideal upper-right region indicates strong target mastery alongside preserved general capabilities. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                511,
+                915,
+                563
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Consistently, offline SFT exhibits severe forgetting: as seen-task success improves, unseen performance collapses—approaching zero for Object tasks and dropping substantially for Spatial tasks—confirming that optimizing solely on offline trajectories quickly erodes pre-trained skills due to distribution shifts. Conversely, methods leveraging on-policy data (RL and VLA-OPD) largely avoid this collapse. VLA-OPD matches or exceeds RL across multiple axes, achieving strong preservation on Object Task 1, remaining competitive on Object Task 2, and providing comparable retention on Spatial tasks. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                570,
+                916,
+                674
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "This simultaneous mastery without degradation demonstrates VLA-OPD’s suitability for continual learning. By safeguarding pre-trained knowledge via on-policy supervision, it offers a sustainable paradigm for lifelong robot learning without requiring the heavy replay buffers typically needed in offline adaptation. Ultimately, on-policy data keeps the model within a safer distributional neighborhood, effectively mitigating the catastrophic forgetting inherent to offline SFT. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                681,
+                916,
+                768
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.4. Ablation Studies "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                81,
+                791,
+                264,
+                808
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To validate the architectural design of VLA-OPD, we conduct ablation studies focusing on two critical components: the choice of alignment objective (Reverse-KL vs. Forward-KL vs. Hard-CE) and the impact of group sampling size. All ablation experiments are conducted with a fixed batch size of 32. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                819,
+                915,
+                872
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "1. Alignment Objective: Reverse KL vs. Forward KL vs. Hard CE. To verify the optimal alignment objective for our framework, we conduct a comparative experiment against standard Forward KL and Hard CE (e.g., standard DAgger). As shown in Figure 4a, while Reverse KL leads to a steady and robust improvement in task success rate, the alternatives struggle significantly. Forward KL suffers from a severe “performance valley” where the success rate drops by more than 50% during early stages. Meanwhile, Hard CE fails to recover effectively, ultimately plateauing at the lowest success rate. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                878,
+                915,
+                915
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "VLA-OPD: Bridging Offline SFT and Online RL for Vision-Language-Action Models via On-Policy Distillation "
+                    }
+                ]
+            },
+            "bbox": [
+                189,
+                66,
+                805,
+                80
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "10 "
+                    }
+                ]
+            },
+            "bbox": [
+                895,
+                938,
+                911,
+                949
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/98e979ef17397b21498dcb20e6553c045054a345e4078c15b59de63d84c12be1.jpg"
+                },
+                "content": "",
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 3: Seen–Unseen Trade-off for Forgetting Analysis. Each point corresponds to a checkpoint during fine-tuning. The x-axis is the success rate on seen (target) tasks, and the y-axis is the success rate on a held-out unseen task. Offline SFT exhibits a strong collapse on unseen tasks as seen-task performance increases, while on-policy methods (RL and our distillation) better preserve unseen-task capability. "
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                183,
+                104,
+                815,
+                489
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                81,
+                604,
+                916,
+                676
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "These performance disparities are intrinsically linked to the optimization dynamics in Out-Of-Distribution (OOD) states, which are vividly reflected in the actor’s entropy (Figure 4b). During early training, the on-policy student frequently visits OOD states where the teacher exhibits high epistemic uncertainty. The mode-covering nature of Forward KL forces the student to mimic this uncertainty, resulting in an entropy explosion (orange curve) where the policy becomes overly diffused and loses precision. Conversely, Hard CE discards the teacher’s soft probabilities entirely, forcing the student to rigidly track argmax targets. This causes a premature entropy collapse (green curve), depriving the student of the action diversity necessary for effective state-space exploration and trapping it in local optima. In contrast, the bounded mode-seeking property of Reverse KL elegantly avoids both extremes. By filtering out the teacher’s uncertain long tails while retaining sufficient stochasticity within the primary modes, Reverse KL maintains a healthy, stable entropy (blue curve). This ensures the agent remains decisive yet capable of exploration, translating to the highest and most stable task success rate. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                681,
+                916,
+                888
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "2. Impact of Group Sampling Size (G). We investigate the impact of the group-based sampling mechanism (G) on the LIBERO-Object suite with a fixed batch size of 32, evaluating "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "G \\in \\{ 2 , 4 , 8 \\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". As illustrated in Figure 5, increasing the group size generally leads to smoother optimization. Specifically, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "G = 8"
+                    },
+                    {
+                        "type": "text",
+                        "content": "achieves the highest final success rate (∼ 89%). However, the most notable finding is that smaller group sizes remain highly effective and do not lead to performance collapse. Even with "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "G = 2 ."
+                    },
+                    {
+                        "type": "text",
+                        "content": ", the success rate steadily climbs to over 80%, demonstrating competitive performance. This reveals a highly favorable trade-off between gradient variance and computational efficiency. Theoretically, a larger G provides a more robust Monte Carlo approximation "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\mathbb { E } _ { \\tau \\sim \\pi _ { \\theta } } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to average out environment stochasticity. Nevertheless, our results indicate that a minimal group size "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( G = 2 )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "still provides a sufficient signal-to-noise ratio. This offers a crucial practical advantage: using smaller group sizes drastically reduces the computational overhead and wall-clock time associated with environment rollouts and teacher inference. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                896,
+                915,
+                914
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "VLA-OPD: Bridging Offline SFT and Online RL for Vision-Language-Action Models via On-Policy Distillation "
+                    }
+                ]
+            },
+            "bbox": [
+                191,
+                66,
+                805,
+                80
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "11 "
+                    }
+                ]
+            },
+            "bbox": [
+                895,
+                938,
+                911,
+                949
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/e29e2e22a33d346beb3fd1d363986a1fbb0ab48a41559b3ba80824e302d62ba1.jpg"
+                },
+                "content": "",
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(a) Training Success Rate "
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                86,
+                108,
+                488,
+                277
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/cf697348f0f18b3cdd425f13bb044c9b8cbc874ecd8f1352bccb469a5ba981db.jpg"
+                },
+                "content": "",
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(b) Actor Entropy "
+                    },
+                    {
+                        "type": "text",
+                        "content": "Figure 4: Ablation study comparing Reverse "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\mathrm { K L } } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Forward "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\mathrm { K L } } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and Hard CE in an on-policy distillation setting, evaluated on the RoboTwin2.0 Beat Block Hammer task. (a) Forward KL suffers a severe early performance drop, and Hard CE plateaus at a suboptimal level, whereas Reverse KL shows steady and superior improvement. (b) These performance differences correlate directly with entropy extremes: Forward KL induces entropy explosion (mode-covering), while Hard CE causes premature entropy collapse (loss of action diversity). In contrast, Reverse KL maintains a healthy, bounded entropy via mode-seeking, ensuring stable training. "
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                504,
+                108,
+                910,
+                277
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                81,
+                429,
+                916,
+                602
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/2d8be44ce125ffc59994aeab0b7d3abc3de6985f316c48eaa2e3c0cd5844880b.jpg"
+                },
+                "content": "",
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 5: Ablation on Group Sampling Size (G). Training success rates demonstrate that while a larger group size "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( G = 8 )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "yields the smoothest optimization and highest final performance, smaller group sizes "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( G = 2 , 4 )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "also achieve competitive success rates (over 80%) without performance collapse. This highlights a highly favorable trade-off between task performance and computational efficiency. "
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                274,
+                614,
+                723,
+                803
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "VLA-OPD: Bridging Offline SFT and Online RL for Vision-Language-Action Models via On-Policy Distillation "
+                    }
+                ]
+            },
+            "bbox": [
+                189,
+                66,
+                805,
+                80
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "12 "
+                    }
+                ]
+            },
+            "bbox": [
+                895,
+                938,
+                911,
+                949
+            ]
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5. Related Work "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                83,
+                106,
+                250,
+                122
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5.1. Offline SFT for Vision-Language-Action Models "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                83,
+                140,
+                514,
+                157
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Recent advancements in robotic manipulation have been largely driven by VLA models Zitkovich et al. (2023), Kim et al. (2024), Black et al. (2024), Liu et al. (2024), O’Neill et al. (2024), Song et al. (2025), which are typically fine-tuned via offline SFT. While SFT benefits from dense supervision and fast convergence, it inherently suffers from covariate shift and compounding errors during online deployment. To mitigate this, interactive imitation learning algorithms like DAgger Kelly et al. (2019) collect expert annotations on student-induced out-of-distribution (OOD) states. However, adapting SFT to such on-policy settings typically relies on suboptimal alignment objectives. Standard DAgger uses hard expert labels (Hard-CE), which forces the student to rigidly track argmax targets, often leading to premature entropy collapse and poor exploration. Conversely, utilizing soft expert distributions implicitly optimizes the Forward-KL divergence. When the teacher exhibits high epistemic uncertainty in OOD states, Forward-KL forces the student to average across all modes, inevitably leading to entropy explosion and hesitant behaviors. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                167,
+                916,
+                358
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5.2. Online RL for Vision-Language-Action Models "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                83,
+                382,
+                503,
+                398
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To address the distribution shift inherent in offline SFT, Online RL has been introduced to align models with policy-induced state distributions Li et al. (2025a), Zang et al. (2025), Lu et al. (2025), Tan et al. (2025), Chen et al. (2025b), Li et al. (2025b), Xu et al. (2025). By continuously interacting with the environment, online RL exposes the policy to its own execution trajectories, naturally allowing the model to learn recovery behaviors when deviating from ideal paths, thereby enhancing closed-loop robustness. However, applying standard RL to billion-parameter VLAs is notoriously challenging due to the sparse nature of environment rewards, leading to prohibitively low sample efficiency and high-variance optimization. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                410,
+                916,
+                532
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Our work bridges this gap by framing VLA post-training as an on-policy RL problem augmented by dense teacher guidance. Unlike standard GRPO Li et al. (2025a) that relies on sparse environmental signals, VLA-OPD utilizes a teacher model to provide token-level dense rewards. Crucially, inspired by recent insights in large language models Gu et al. (2023), Tan et al. (2023), we optimize a Reverse-KL objective for action prediction. This formulation naturally exhibits a mode-seeking property, encouraging the student policy to decisively commit to the teacher’s most confident action mode in uncertain OOD states. Consequently, VLA-OPD achieves the robust exploration of RL without its extreme sample inefficiency, while gracefully avoiding the entropy extremes associated with the aforementioned imitation learning baselines. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                539,
+                916,
+                676
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "6. Conclusion "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                83,
+                703,
+                225,
+                720
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In this paper, we propose On-Policy VLA Distillation (VLA-OPD), a novel framework bridging the sample efficiency of offline SFT with the closed-loop robustness of online RL. By actively exploring the environment and leveraging token-level dense guidance from a teacher, VLA-OPD mitigates compounding errors and bypasses the extreme sample inefficiency of sparse-reward RL. A critical insight is identifying Reverse-KL as the optimal alignment objective. By avoiding the entropy extremes inherent to Forward-KL and Hard-CE in out-of-distribution states, Reverse-KL ensures stable and robust policy updates. This leads to superior success rates in complex robotic manipulation tasks without catastrophic forgetting. Future work will focus on reducing the framework’s reliance on specific teacher models. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                736,
+                916,
+                875
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "VLA-OPD: Bridging Offline SFT and Online RL for Vision-Language-Action Models via On-Policy Distillation "
+                    }
+                ]
+            },
+            "bbox": [
+                189,
+                66,
+                805,
+                80
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "13 "
+                    }
+                ]
+            },
+            "bbox": [
+                895,
+                938,
+                911,
+                949
+            ]
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "References "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                84,
+                104,
+                194,
+                122
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Shuanghao Bai, Wenxuan Song, Jiayi Chen, Yuheng Ji, Zhide Zhong, Jin Yang, Han Zhao, Wanqi Zhou, Wei Zhao, Zhe Li, et al. Towards a unified understanding of robot manipulation: A comprehensive survey. arXiv preprint arXiv:2510.10903, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Kevin Black, Noah Brown, Danny Driess, Adnan Esmail, Michael Equi, Chelsea Finn, Niccolo Fusai, Lachy Groom, Karol Hausman, Brian Ichter, Szymon Jakubczak, Tim Jones, Liyiming Ke, Sergey Levine, Adrian Li-Bell, Mohith Mothukuri, Suraj Nair, Karl Pertsch, Lucy Xiaoyang Shi, James Tanner, Quan Vuong, Anna Walling, Haohuan Wang, and Ury Zhilinsky. π0: A vision-language-action flow model for general robot control, 2024. URL https://arxiv.org/abs/2410.24164. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Tianxing Chen, Zanxin Chen, Baijun Chen, Zijian Cai, Yibin Liu, Zixuan Li, Qiwei Liang, Xianliang Lin, Yiheng Ge, Zhenyu Gu, et al. Robotwin 2.0: A scalable data generator and benchmark with strong domain randomization for robust bimanual robotic manipulation. arXiv preprint arXiv:2506.18088, 2025a. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Yuhui Chen, Shuai Tian, Shugao Liu, Yingting Zhou, Haoran Li, and Dongbin Zhao. Conrft: A reinforced fine-tuning method for vla models via consistency policy. arXiv preprint arXiv:2502.05450, 2025b. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Tianzhe Chu, Yuexiang Zhai, Jihan Yang, Shengbang Tong, Saining Xie, Dale Schuurmans, Quoc V Le, Sergey Levine, and Yi Ma. Sft memorizes, rl generalizes: A comparative study of foundation model post-training. arXiv preprint arXiv:2501.17161, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Yuxian Gu, Li Dong, Furu Wei, and Minlie Huang. Minillm: Knowledge distillation of large language models. arXiv preprint arXiv:2306.08543, 2023. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Ruoyu Zhang, Runxin Xu, Qihao Zhu, Shirong Ma, Peiyi Wang, Xiao Bi, et al. Deepseek-r1: Incentivizing reasoning capability in llms via reinforcement learning. arXiv preprint arXiv:2501.12948, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Geoffrey Hinton, Oriol Vinyals, and Jeff Dean. Dark knowledge. Presented as the keynote in BayLearn, 2(2):4, 2014. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Chia-Yu Hung, Qi Sun, Pengfei Hong, Amir Zadeh, Chuan Li, U Tan, Navonil Majumder, Soujanya Poria, et al. Nora: A small open-sourced generalist vision language action model for embodied tasks. arXiv preprint arXiv:2504.19854, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Physical Intelligence, Ali Amin, Raichelle Aniceto, Ashwin Balakrishna, Kevin Black, Ken Conley, Grace Connors, James Darpinian, Karan Dhabalia, Jared DiCarlo, Danny Driess, Michael Equi, Adnan Esmail, Yunhao Fang, Chelsea Finn, Catherine Glossop, Thomas Godden, Ivan Goryachev, Lachy Groom, Hunter Hancock, Karol Hausman, Gashon Hussein, Brian Ichter, Szymon Jakubczak, Rowan Jen, Tim Jones, Ben Katz, Liyiming Ke, Chandra Kuchi, Marinda Lamb, Devin LeBlanc, Sergey Levine, Adrian Li-Bell, Yao Lu, Vishnu Mano, Mohith Mothukuri, Suraj Nair, Karl Pertsch, Allen Z. Ren, Charvi Sharma, Lucy Xiaoyang Shi, Laura Smith, Jost Tobias Springenberg, Kyle Stachowicz, Will Stoeckle, Alex Swerdlow, James Tanner, Marcel Torne, Quan Vuong, Anna Walling, Haohuan Wang, Blake Williams, Sukwon Yoo, Lili Yu, Ury Zhilinsky, and Zhiyuan Zhou. "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "\\pi _ { 0 . 6 } ^ { * } \\colon"
+                            },
+                            {
+                                "type": "text",
+                                "content": "a vla that learns from experience, 2025a. URL https: //arxiv.org/abs/2511.14759. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Physical Intelligence, Kevin Black, Noah Brown, James Darpinian, Karan Dhabalia, Danny Driess, Adnan Esmail, Michael Equi, Chelsea Finn, Niccolo Fusai, Manuel Y. Galliker, Dibya Ghosh, Lachy Groom, Karol Hausman, Brian Ichter, Szymon Jakubczak, Tim Jones, Liyiming Ke, Devin LeBlanc, Sergey Levine, "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                78,
+                138,
+                919,
+                917
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "VLA-OPD: Bridging Offline SFT and Online RL for Vision-Language-Action Models via On-Policy Distillation "
+                    }
+                ]
+            },
+            "bbox": [
+                189,
+                66,
+                805,
+                80
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "14 "
+                    }
+                ]
+            },
+            "bbox": [
+                895,
+                938,
+                911,
+                948
+            ]
+        }
+    ],
+    [
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Adrian Li-Bell, Mohith Mothukuri, Suraj Nair, Karl Pertsch, Allen Z. Ren, Lucy Xiaoyang Shi, Laura Smith, Jost Tobias Springenberg, Kyle Stachowicz, James Tanner, Quan Vuong, Homer Walke, Anna Walling, Haohuan Wang, Lili Yu, and Ury Zhilinsky. "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "\\pi _ { 0 . 5 } { : }"
+                            },
+                            {
+                                "type": "text",
+                                "content": "a vision-language-action model with open-world generalization, 2025b. URL https://arxiv.org/abs/2504.16054. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Michael Kelly, Chelsea Sidrane, Katherine Driggs-Campbell, and Mykel J Kochenderfer. Hg-dagger: Interactive imitation learning with human experts. In 2019 International Conference on Robotics and Automation (ICRA), pages 8077–8083. IEEE, 2019. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Moo Jin Kim, Karl Pertsch, Siddharth Karamcheti, Ted Xiao, Ashwin Balakrishna, Suraj Nair, Rafael Rafailov, Ethan Foster, Grace Lam, Pannag Sanketi, et al. Openvla: An open-source vision-language-action model. arXiv preprint arXiv:2406.09246, 2024. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Moo Jin Kim, Chelsea Finn, and Percy Liang. Fine-tuning vision-language-action models: Optimizing speed and success, 2025. URL https://arxiv.org/abs/2502.19645. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Song Lai, Haohan Zhao, Rong Feng, Changyi Ma, Wenzhuo Liu, Hongbo Zhao, Xi Lin, Dong Yi, Qingfu Zhang, Hongbin Liu, et al. Reinforcement fine-tuning naturally mitigates forgetting in continual post-training. arXiv preprint arXiv:2507.05386, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Haozhan Li, Yuxin Zuo, Jiale Yu, Yuhao Zhang, Zhaohui Yang, Kaiyan Zhang, Xuekai Zhu, Yuchen Zhang, Tianxing Chen, Ganqu Cui, et al. Simplevla-rl: Scaling vla training via reinforcement learning. arXiv preprint arXiv:2509.09674, 2025a. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Hengtao Li, Pengxiang Ding, Runze Suo, Yihao Wang, Zirui Ge, Dongyuan Zang, Kexian Yu, Mingyang Sun, Hongyin Zhang, Donglin Wang, et al. Vla-rft: Vision-language-action reinforcement fine-tuning with verified rewards in world simulators. arXiv preprint arXiv:2510.00406, 2025b. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Bo Liu, Yifeng Zhu, Chongkai Gao, Yihao Feng, Qiang Liu, Yuke Zhu, and Peter Stone. Libero: Benchmarking knowledge transfer for lifelong robot learning. Advances in Neural Information Processing Systems, 36: 44776–44791, 2023. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Jijia Liu, Feng Gao, Bingwen Wei, Xinlei Chen, Qingmin Liao, Yi Wu, Chao Yu, and Yu Wang. What can rl bring to vla generalization? an empirical study. arXiv preprint arXiv:2505.19789, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Songming Liu, Lingxuan Wu, Bangguo Li, Hengkai Tan, Huayu Chen, Zhengyi Wang, Ke Xu, Hang Su, and Jun Zhu. Rdt-1b: a diffusion foundation model for bimanual manipulation. arXiv preprint arXiv:2410.07864, 2024. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Guanxing Lu, Wenkai Guo, Chubin Zhang, Yuheng Zhou, Haonan Jiang, Zifeng Gao, Yansong Tang, and Ziwei Wang. Vla-rl: Towards masterful and general robotic manipulation with scalable reinforcement learning. arXiv preprint arXiv:2505.18719, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "NVIDIA, Johan Bjorck, Nikita Cherniadev Fernando Castañeda, Xingye Da, Runyu Ding, Linxi \"Jim\" Fan, Yu Fang, Dieter Fox, Fengyuan Hu, Spencer Huang, Joel Jang, Zhenyu Jiang, Jan Kautz, Kaushil Kundalia, Lawrence Lao, Zhiqi Li, Zongyu Lin, Kevin Lin, Guilin Liu, Edith Llontop, Loic Magne, Ajay Mandlekar, Avnish Narayan, Soroush Nasiriany, Scott Reed, You Liang Tan, Guanzhi Wang, Zu Wang, Jing Wang, Qi Wang, Jiannan Xiang, Yuqi Xie, Yinzhen Xu, Zhenjia Xu, Seonghyeon Ye, Zhiding Yu, Ao Zhang, Hao Zhang, Yizhou Zhao, Ruijie Zheng, and Yuke Zhu. GR00T N1: An open foundation model for generalist humanoid robots. In ArXiv Preprint, March 2025. "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                78,
+                103,
+                919,
+                902
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "VLA-OPD: Bridging Offline SFT and Online RL for Vision-Language-Action Models via On-Policy Distillation "
+                    }
+                ]
+            },
+            "bbox": [
+                189,
+                66,
+                803,
+                80
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "15 "
+                    }
+                ]
+            },
+            "bbox": [
+                895,
+                938,
+                911,
+                948
+            ]
+        }
+    ],
+    [
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Abby O’Neill, Abdul Rehman, Abhiram Maddukuri, Abhishek Gupta, Abhishek Padalkar, Abraham Lee, Acorn Pooley, Agrim Gupta, Ajay Mandlekar, Ajinkya Jain, et al. Open x-embodiment: Robotic learning datasets and rt-x models: Open x-embodiment collaboration 0. In 2024 IEEE International Conference on Robotics and Automation (ICRA), pages 6892–6903. IEEE, 2024. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Karl Pertsch, Kyle Stachowicz, Brian Ichter, Danny Driess, Suraj Nair, Quan Vuong, Oier Mees, Chelsea Finn, and Sergey Levine. Fast: Efficient action tokenization for vision-language-action models. arXiv preprint arXiv:2501.09747, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Idan Shenfeld, Jyothish Pari, and Pulkit Agrawal. Rl’s razor: Why online reinforcement learning forgets less. arXiv preprint arXiv:2509.04259, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Wenxuan Song, Jiayi Chen, Pengxiang Ding, Han Zhao, Wei Zhao, Zhide Zhong, Zongyuan Ge, Zhijun Li, Donglin Wang, Jun Ma, et al. Pd-vla: Accelerating vision-language-action model integrated with action chunking via parallel decoding. arXiv preprint arXiv:2503.02310, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Shicheng Tan, Weng Lam Tam, Yuanchun Wang, Wenwen Gong, Shu Zhao, Peng Zhang, and Jie Tang. Gkd: A general knowledge distillation framework for large-scale pre-trained language model. In Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 5: Industry Track), pages 134–148, 2023. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Shuhan Tan, Kairan Dou, Yue Zhao, and Philipp Krähenbühl. Interactive post-training for vision-languageaction models. arXiv preprint arXiv:2505.17016, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Octo Model Team, Dibya Ghosh, Homer Walke, Karl Pertsch, Kevin Black, Oier Mees, Sudeep Dasari, Joey Hejna, Tobias Kreiman, Charles Xu, et al. Octo: An open-source generalist robot policy. arXiv preprint arXiv:2405.12213, 2024. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Wenli Xiao, Haotian Lin, Andy Peng, Haoru Xue, Tairan He, Yuqi Xie, Fengyuan Hu, Jimmy Wu, Zhengyi Luo, Linxi Fan, et al. Self-improving vision-language-action models with data generation via residual rl. arXiv preprint arXiv:2511.00091, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Feng Xu, Guangyao Zhai, Xin Kong, Tingzhong Fu, Daniel FN Gordon, Xueli An, and Benjamin Busam. Stare-vla: Progressive stage-aware reinforcement for fine-tuning vision-language-action models. arXiv preprint arXiv:2512.05107, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Hongzhi Zang, Mingjie Wei, Si Xu, Yongji Wu, Zhen Guo, Yuanqing Wang, Hao Lin, Liangzhi Shi, Yuqing Xie, Zhexuan Xu, et al. Rlinf-vla: A unified and efficient framework for vla+ rl training. arXiv preprint arXiv:2510.06710, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Hanqing Zhu, Zhenyu Zhang, Hanxian Huang, DiJia Su, Zechun Liu, Jiawei Zhao, Igor Fedorov, Hamed Pirsiavash, Zhizhou Sha, Jinwon Lee, et al. The path not taken: Rlvr provably learns off the principals. arXiv preprint arXiv:2511.08567, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Brianna Zitkovich, Tianhe Yu, Sichun Xu, Peng Xu, Ted Xiao, Fei Xia, Jialin Wu, Paul Wohlhart, Stefan Welker, Ayzaan Wahid, et al. Rt-2: Vision-language-action models transfer web knowledge to robotic control. In Conference on Robot Learning, pages 2165–2183. PMLR, 2023. "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                78,
+                103,
+                919,
+                851
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "VLA-OPD: Bridging Offline SFT and Online RL for Vision-Language-Action Models via On-Policy Distillation "
+                    }
+                ]
+            },
+            "bbox": [
+                189,
+                66,
+                803,
+                80
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "16 "
+                    }
+                ]
+            },
+            "bbox": [
+                895,
+                938,
+                911,
+                948
+            ]
+        }
+    ]
+]

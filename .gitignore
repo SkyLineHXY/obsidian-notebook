@@ -1,0 +1,19 @@
+# Claude configuration (contains sensitive tokens)
+.claude/
+.claudian/
+
+# Obsidian trash
+.trash/
+
+# Binary assets (PDFs, PPTs, figures — too large / copyright risk)
+raw/assets/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temp / draft files
+*.tmp
+*.temp
+draft/

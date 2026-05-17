@@ -1,0 +1,3028 @@
+[
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "Reinforcement Fine-Tuning of Flow-Matching Policies for Vision-Language-Action Models "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                168,
+                87,
+                831,
+                137
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Mingyang Lyua,b,1, Yinqian Suna,d,1, Erliang Lina, Huangrui Lib, Ruolin Chena,b, Feifei Zhaoa,c,d,2, Yi Zenga,b,c,d,2 "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                172,
+                919,
+                191
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Abstract— Vision-Language-Action (VLA) models such as OpenVLA, Octo, and π0 have shown strong generalization by leveraging large-scale demonstrations, yet their performance is still fundamentally constrained by the quality and coverage of supervised data. Reinforcement learning (RL) provides a promising path for improving and fine-tuning VLAs through online interaction. However, conventional policy gradient methods are computationally infeasible in the context of flow-matching based models due to the intractability of the importance sampling process, which requires explicit computation of policy ratios. To overcome this limitation, we propose Flow Policy Optimization (FPO) algorithm, which reformulates importance sampling by leveraging per-sample changes in the conditional flow-matching objective. Furthermore, FPO achieves stable and scalable online reinforcement fine-tuning of the π0 model by integrating structure-aware credit assignment to enhance gradient efficiency, clipped surrogate objectives to stabilize optimization, multi-step latent exploration to encourage diverse policy updates, and a Q-ensemble mechanism to provide robust value estimation. We evaluate FPO on the LIBERO benchmark and the ALOHA simulation task against supervised, preferencealigned, diffusion-based, autoregressive online RL, and π0-FAST baselines, observing consistent improvements over the imitation prior and strong alternatives with stable learning under sparse rewards. In addition, ablation studies and analyses of the latent space dynamics further highlight the contributions of individual components within FPO, validating the effectiveness of the proposed computational modules and the stable convergence of the conditional flow-matching objective during online RL. "
+                    }
+                ]
+            },
+            "bbox": [
+                86,
+                233,
+                490,
+                599
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "I. INTRODUCTION "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                207,
+                609,
+                364,
+                622
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The pursuit of generalist robots capable of executing a diverse array of physical tasks has advanced significantly with the emergence of Vision-Language-Action (VLA) models. Recent architectures, such as OpenVLA [1] and Octo [2], have demonstrated that policies pre-trained on large-scale datasets of human demonstrations can acquire broad semantic understanding and effectively execute a wide spectrum of instructions. Notably, the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[3] model implements action generation via a flow-matching technique [4], [5]. This method confers a unique advantage: it enables the generation of smooth, temporally coherent, high-frequency action segments, which is essential for achieving dexterous and long-horizon "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                628,
+                490,
+                811
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Author affiliations: a Brain-inspired Cognitive AI Lab, Institute of Automation, Chinese Academy of Sciences, Beijing, China.; b University of Chinese Academy of Sciences (UCAS), Beijing, China.; c State Key Laboratory of Brain Cognition and Brain-inspired Intelligence Technology, Shanghai, China.; d Long-term AI, Beijing, China. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                821,
+                488,
+                878
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "1 Co-first authors. 2 Co-corresponding authors. Correspondence: zhaofeifei2014@ia.ac.cn (Feifei Zhao), yi.zeng@ia.ac.cn (Yi Zeng). Additional contact: lvmingyang2024@ia.ac.cn (Mingyang Lyu). "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                878,
+                488,
+                926
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "manipulation tasks that require more than isolated, single-step action predictions. "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                232,
+                913,
+                261
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Drawing inspiration from the remarkable progress of Reinforcement Learning (RL) in enhancing Large Language Models (LLMs) beyond their supervised fine-tuning (SFT) performance [15]–[17], there is a growing trend to apply RL for post-training of embodied VLA models. Approaches such as online RL for auto-regressive VLAs [6], iterative RL+SL stabilization for large VLAs [7], and policy-gradient fine-tuning of diffusion/flow-matching policies [8], [9] have demonstrated that robotic agents can leverage online interaction to refine skills and discover strategies superior to those available in initial imitation datasets. This paradigm allows agents to overcome the inherent limitations of offline demonstration data quality and coverage, pushing performance beyond the imitation ceiling. "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                262,
+                913,
+                473
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "However, a core technical incompatibility arises when applying conventional RL techniques to flow-matching-based VLA models such as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[3]. Commonly used policy gradient methods for reinforcement fine-tuning of VLA models, such as PPO [12] and TRPO [18], require importance sampling, i.e., the explicit computation of policy ratios. For flow-matching models, this computation is analytically intractable. It necessitates solving an underlying ordinary differential equation [19] and integrating a computationally prohibitive Jacobian trace term along the generation path [20]. This renders such methods computationally infeasible for the demands of online fine-tuning. While reward-weighted supervised learning approaches exist, they typically struggle with active exploration and the discovery of novel, out-of-distribution behaviors. These combined challenges have largely precluded the effective application of online RL for fine-tuning flowmatching generative policy-based VLA models. "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                474,
+                913,
+                729
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In this paper, we introduce Flow Policy Optimization (FPO), a method designed to overcome the incompatibility between flow-matching policies and PPO-style updates by constructing a likelihood-free policy ratio based on persample changes in the conditional flow-matching objective. This formulation eliminates the need for explicit action likelihoods and ODE–Jacobian computations while preserving consistency with the policy’s generative structure. Furthermore, we provide structure-aware credit assignment in the latent space by leveraging the model’s training objective as a per-sample improvement signal. Combined with a clipped surrogate objective, multi-step latent exploration, and a Q-ensemble, FPO enables stable and efficient learning even in environments with sparse rewards and contactrich dynamics. The proposed method successfully facilitates online reinforcement fine-tuning of the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "model, with its effectiveness and superiority empirically validated on the LIBERO benchmark and the ALOHA Transfer Cube task. In summary, the main contributions of this work are summarized as follows: "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                729,
+                913,
+                926
+            ]
+        },
+        {
+            "type": "page_aside_text",
+            "content": {
+                "page_aside_text_content": [
+                    {
+                        "type": "text",
+                        "content": "arXiv:2510.09976v1 [cs.LG] 11 Oct 2025 "
+                    }
+                ]
+            },
+            "bbox": [
+                22,
+                277,
+                57,
+                717
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                81,
+                66,
+                491,
+                171
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "text_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• We propose FPO, a practical policy optimization framework that bridges flow-matching policies and PPO-style updates by introducing a likelihood-free policy ratio derived from per-sample changes in the conditional flow-matching objective. This formulation avoids explicit density estimation and complex Jacobian computations, while retaining structural consistency with the generative policy. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• We develop an online reinforcement fine-tuning algorithm for the "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "\\pi _ { 0 }"
+                            },
+                            {
+                                "type": "text",
+                                "content": "model by integrating structure-aware credit assignment in the latent space with key RL components including a clipped surrogate objective, multi-step latent exploration, and a Q-ensemble. This combination ensures stable and efficient learning in challenging environments with sparse rewards and contactrich dynamics. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "• Extensive experiments on the LIBERO benchmark and the ALOHA Transfer Cube task demonstrate the superior performance of "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "\\pi _ { 0 } { \\mathrm { - F P O } }"
+                            },
+                            {
+                                "type": "text",
+                                "content": "over six strong baselines such as OpenVLA, Octo, Diffusion Policy, GRAPE, and "
+                            },
+                            {
+                                "type": "equation_inline",
+                                "content": "\\pi _ { 0 } -"
+                            },
+                            {
+                                "type": "text",
+                                "content": "FAST, achieving an average success rate of 87.2% on LIBERO, 65.3% on LIBERO-Long, and more than 1.5× the baseline success rate on ALOHA-sim. Ablation studies validate the contribution of each component, while qualitative and latent-space analyses highlight improved correction of recurrent failure modes. "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                101,
+                172,
+                491,
+                566
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "II. RELATED WORK "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                202,
+                571,
+                370,
+                585
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "A. Vision-Language-Action Models "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                81,
+                590,
+                323,
+                606
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "VLA models are commonly trained via behavioral cloning on large-scale human demonstrations, coupling language and vision with end-to-end control [14]. Early systems predominantly used autoregressive, token-based action decoders, recent policies replace discrete heads with diffusion- or flow-matching controllers [40], [41], capturing continuous, multi-modal action distributions and enabling smooth, highfrequency control for dexterous manipulation. Representative systems include Octo and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "[2], [3], whose generative action heads are grounded in the modeling literature and applied to visuomotor control [4], [5], [28]. In parallel, OpenVLA provides an open-source generalist policy that scales across embodiments and supports efficient fine-tuning [1], orthogonal advances include frequency-space action tokenization (FAST) for high-rate control [29], BC-Z for zero-shot generalization from language goals [52], and preference alignment via GRAPE [30], DPO [43] and learning from human preferences [44]. Together, these developments situate diffusion- and flow-matching decoders within a broader VLA trajectory [14] and motivate online updates that improve beyond the imitation prior. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                609,
+                491,
+                928
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "B. Reinforcement Learning for VLA Policies "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                506,
+                66,
+                810,
+                80
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Policy-gradient fine-tuning of generative policies faces two obstacles: intractable (or costly) likelihoods along generative trajectories and long-horizon credit assignment. For diffusion policies, PPO-style surrogates have been adapted to the denoising process with architecture-aware designs (DPPO) [9]. For flow-matching policies, recent work follows two lines. One line performs reward-weighted supervised updates that avoid explicit likelihoods by biasing training toward high-return samples (RWFM and variants) [36]. The other introduces stochastic relaxations or noise injection to enable sampling-based ratios and on-policy updates (Flow-GRPO [37], ReinFlow [8]). Related gradient estimators for flow models have also been explored from a policygradient perspective [23]. In VLA settings with autoregressive heads, VLA-RL reports procedures for scaling online RL with trajectory-level optimization [6], while preference-based tuning connects to advances in RL for large models [15]–[17]. A persistent difficulty for flow-based actors is that exact policy ratios generally require solving probability-flow ODEs with Jacobian-trace terms [41], rendering likelihoods and ratios expensive or intractable for online control [19], [20]. We address this by constructing a likelihood-free ratio from persample changes in the conditional flow-matching objective and performing clipped PPO-style updates aligned with the model’s generative structure. "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                85,
+                915,
+                464
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "III. METHOD "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                653,
+                477,
+                764,
+                491
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The proposed FPO is an actor–critic framework that enables online fine-tuning of pretrained conditional flow-matching policies without requiring tractable action likelihoods. The central idea is to reformulate importance sampling by exploiting per-sample changes in the CFM objective as a structure-aligned signal, which is mapped to a likelihoodfree ratio and used within a PPO-style clipped surrogate. To obtain stable and efficient updates, FPO integrates (i) structure-aware credit assignment in the action latent space, (ii) clipped surrogates for trust-region control, (iii) multistep latent (Euler) exploration to produce smooth, temporally correlated perturbations, and (iv) a critic ensemble that supplies robust value estimates. Training alternates between rollout and update (Fig. 1b,c, Algorithm 1): rollout logs transitions and per-sample CFM losses into a small slidingwindow buffer; updates recompute losses under the current actor, map their differences to a clipped surrogate, and train the critic ensemble; the updated actor is then used for the next rollout. Formal details appear in Sec. III-A and Sec. III-B. "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                500,
+                915,
+                787
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "A. FPO Pipeline and Problem Formulation "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                504,
+                800,
+                805,
+                814
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "FPO steers a frozen base policy "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 } ( a \\mid s , x )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with a flowbased actor "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { \\boldsymbol { \\theta } } ( \\cdot \\mid s )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "operating in the action latent space. Let "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "x ( u ; s )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "denote the actor’s latent at flow time "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "u \\in [ 0 , 1 ]"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for state s, and write "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "x _ { t } : = x ( 1 ; s _ { t } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for the latent produced at environment step t. A frozen encoder maps observations to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "s _ { t } \\in \\mathbb { R } ^ { d } ;"
+                    },
+                    {
+                        "type": "text",
+                        "content": "; the actor samples "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\boldsymbol { x } _ { t } \\in \\mathbb { R } ^ { D }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "; the base decodes "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( s _ { t } , x _ { t } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to an action "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "a _ { t } ;"
+                    },
+                    {
+                        "type": "text",
+                        "content": "the environment yields reward "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "r _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and next state "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "s _ { t + 1 } ~ ( \\mathrm { F i g . ~ 1 } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". The optimization objective is "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                820,
+                915,
+                928
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/9ab5b7dd6d98b23efeb6324175b5555468a20bff1d5c59903a8526bba35b0106.jpg"
+                },
+                "content": "```mermaid\ngraph TD\n    subgraph (b) ROLLOUT PHASE\n        A[\"Observate\"] --> B[\"Approach\"] --> C[\"Align\"] --> D[\"Grasp\"] --> E[\"Finish\"]\n        F[\"Observations RGB\"] --> G[\"Frozen Vision Encoder\"]\n        H[\"Proprioceptive Sensors\"] --> I[\"Grab something and put it in a container\"]\n        J[\"Frozen Base Policy Decoder\"] --> K[\"Robot Action\"]\n        L[\"Environment\"] --> M[\"LIBERO&ALOHA TASKS\"]\n        N[\"Update\"] --> O[\"Latent action chunk\"]\n        P[\"Latent action chunk\"] --> Q[\"FPO Actor π₀\"]\n        Q --> R[\"Frozen Vision Encoder\"]\n        S[\"Latent action chunk\"] --> T[\"Frozen Base Policy Decoder\"]\n        U[\"Latent action chunk\"] --> V[\"Frozen Base Policy Decoder\"]\n        W[\"Latent action chunk\"] --> X[\"Frozen Base Policy Decoder\"]\n        Y[\"Latent action chunk\"] --> Z[\"Frozen Base Policy Decoder\"]\n        AA[\"Latent action chunk\"] --> AB[\"Frozen Base Policy Decoder\"]\n        AC[\"Latent action chunk\"] --> AD[\"Frozen Base Policy Decoder\"]\n        AE[\"Latent action chunk\"] --> AF[\"Frozen Base Policy Decoder\"]\n        AG[\"Latent action chunk\"] --> AH[\"Frozen Base Policy Decoder\"]\n        AI[\"Latent action chunk\"] --> AJ[\"Frozen Base Policy Decoder\"]\n        AK[\"Latent action chunk\"] --> AL[\"Frozen Base Policy Decoder\"]\n        AM[\"Latent action chunk\"] --> AN[\"Frozen Base Policy Decoder\"]\n        AO[\"Latent action chunk\"] --> AP[\"Frozen Base Policy Decoder\"]\n        AQ[\"Latent action chunk\"] --> AR[\"Frozen Base Policy Decoder\"]\n        AS[\"Latent action chunk\"] --> AT[\"Frozen Base Policy Decoder\"]\n        AU[\"Latent action chunk\"] --> AV[\"Frozen Base Policy Decoder\"]\n        AW[\"Latent action chunk\"] --> AX[\"Frozen Base Policy Decoder\"]\n        AY[\"Latent action chunk\"] --> AZ[\"Frozen Base Policy Decoder\"]\n        BA[\"Latent action chunk\"] --> BB[\"Frozen Base Policy Decoder\"]\n        BC[\"Latent action chunk\"] --> BD[\"Frozen Base Policy Decoder\"]\n        BE[\"Latent action chunk\"] --> BF[\"Frozen Base Policy Decoder\"]\n        BG[\"Latent action chunk\"] --> BH[\"Frozen Base Policy Decoder\"]\n        BI[\"Latent action chunk\"] --> BJ[\"Frozen Base Policy Decoder\"]\n        BK[\"Latent action chunk\"] --> BL[\"Frozen Base Policy Decoder\"]\n        BM[\"Latent action chunk\"] --> BN[\"Frozen Base Policy Decoder\"]\n        BO[\"Latent action chunk\"] --> BP[\"Frozen Base Policy Decoder\"]\n        BQ[\"Latent action chunk\"] --> BR[\"Frozen Base Policy Decoder\"]\n        BS[\"Latent action chunk\"] --> BT[\"Frozen Base Policy Decoder\"]\n        BU[\"Latent action chunk\"] --> BV[\"Frozen Base Policy Decoder\"]\n        BW[\"Latent action chunk\"] --> BX[\"Frozen Base Policy Decoder\"]\n        BY[\"Latent action chunk\"] --> BZ[\"Frozen Base Policy Decoder\"]\n        CA[\"Latent action chunk\"] --> CB[\"Frozen Base Policy Decoder\"]\n        CC[\"Latent action chunk\"] --> CD[\"Frozen Base Policy Decoder\"]\n        DD[\"Latent action chunk\"] --> DE[\"Frozen Base Policy Decoder\"]\n        DF[\"Latent action chunk\"] --> DG[\"Frozen Base Policy Decoder\"]\n        DH[\"Latent action chunk\"] --> DI[\"Frozen Base Policy Decoder\"]\n        DJ[\"Latent action chunk\"] --> DK[\"Frozen Base Policy Decoder\"]\n        DL[\"Latent action chunk\"] --> DN[\"Frozen Base Policy Decoder\"]\n        DB[\"Latent action chunk\"] --> DC[\"Frozen Base Policy Decoder\"]\n        DV[\"Latent action chunk\"] --> DW[\"Frozen Base Policy Decoder\"]\n        DX[\"Latent action chunk\"] --> DXB[\"Frozen Base Policy Decoder\"]\n        DXB --> DXC[\"Frozen Base Policy Decoder\"]\n    end\n\n    subgraph (c) UPDATE PHASE\n        AB[\"Loss Merger\"] --> AC[\"PPO Clipper\"]\n        AC --> AD[\"CFM Loss Recomputation\"]\n        AD --> AE[\"Input: θ, x₁, s, ||vθ(xₜ, s, t) - (x₁ - ε)||t ~ U(0,1), ℓ_curr, ε ~ N(0,1)\"]\n        AE --> AF\n        AF --> AG[\"Loss Differential\"]\n        AG --> AH[\"Ratio Transform ρ = exp β(δ - μ)/σ Ratio Transform\"]\n        AH --> AI[\"minibatches\"]\n        AI --> AJ[\"(s₁, x₁, r₁, s₁₋₁)\"]\n        AJ --> AK[\"Q-Ensemble Critics Q(s,a) min Qₐ(s,a) → reduced overestimation\"]\n        AK --> AL[\"Ahat Advantage Estimates\"]\n    end\n\n    subgraph (d) Performance Analysis\n        AM[\"Training Dynamics on ALOHA Transfer 65% Success Rate\"]\n        AN[\"Latent Action Space Evolution (t-SNE) t=0 Exploration t=50k Convergence t=160k Exploitation t=160k OpenVLA Octo GRAPE πo-FAST FPO (Ours) 53.7% 51.1% 55.8% 60.2% 65.3% LIBERO Benchmark Performacne\"]\n    end\n```",
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(a)Task Episode Timeline "
+                    },
+                    {
+                        "type": "text",
+                        "content": "Fig. 1. Overview of Flow Policy Optimization (FPO). (a) Task episode timeline. (b) Rollout phase: a frozen encoder produces state s, the actor πθ outputs a latent chunk "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "x _ { 1 } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "the frozen base policy "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "decodes "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( s , x _ { 1 } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to control a, yielding "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( r , s ^ { \\prime } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". We store the transition and cache the initial CFM loss in a near sliding-window trajectory buffer. (c) Update phase: Batch of trajectories are sampled, the CFM loss is recomputed to form a loss differential, which is mapped to a likelihood-free ratio. A Q-ensemble supplies advantages, and the actor is updated with a clipped surrogate. The updated policy feeds back to rollout. (d) Performance panels: example training curve, latent-space evolution (t-SNE), and LIBERO success rates. "
+                    }
+                ],
+                "image_footnote": []
+            },
+            "sub_type": "flowchart",
+            "bbox": [
+                84,
+                74,
+                911,
+                459
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                83,
+                558,
+                416,
+                574
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "J (\\theta) = \\mathbb {E} \\left[ \\sum_ {t = 0} ^ {T} \\gamma^ {t} r _ {t} \\right], \\quad \\gamma \\in (0, 1). \\tag {1}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/8eea40a8131c096650bce7d7819645611f0d7de052748f79a1c8fa8706e74062.jpg"
+                }
+            },
+            "bbox": [
+                151,
+                584,
+                488,
+                627
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Because the actor is a conditional flow model, log "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { \\boldsymbol { \\theta } } ( \\boldsymbol { x } _ { t } \\mid"
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "s _ { t } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is generally intractable, precluding direct policy-ratio computation. "
+                    }
+                ]
+            },
+            "bbox": [
+                83,
+                637,
+                488,
+                681
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "a) Rollout and Data Recording: Training proceeds in alternating rollout and update phases (Fig. 1b,c; Algorithm 1). During interaction, a frozen rollout copy "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\theta _ { \\mathrm { o l d } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is used to generate experience so that logged quantities remain consistent with the data-collecting policy. At each step, the encoder produces "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "s _ { t } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "the actor samples a latent chunk "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "x _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(with optional short Euler perturbations in latent space for exploration), and the frozen base policy "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "decodes "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( s _ { t } , x _ { t } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ") to low-level control "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "a _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "that is executed in the environment. The system records "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\left( { { s _ { t } } , { x _ { t } } , { a _ { t } } , { r _ { t } } , { s _ { t + 1 } } } \\right)"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and caches the persample CFM loss "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\ell _ { \\mathrm { c f m } } ( x _ { t } \\mid s _ { t } ; \\theta _ { \\mathrm { o l d } } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "attached to the exact latent used for control. Transitions are stored in a small slidingwindow trajectory buffer that retains only recent rollouts. This design preserves the linkage between cached losses and their originating policy, and bounds the distributional gap between the data-collecting policy and the subsequently updated actor. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                685,
+                491,
+                928
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "b) Update Cycle: During updates, data are drawn from the trajectory buffer and the CFM loss is re-evaluated under the current actor θ on the same "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( s _ { t } , x _ { t } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "pairs. The resulting per-sample loss differential is converted, via batchstandardization and a monotone mapping, into a likelihoodfree ratio proxy that serves as the multiplicative factor in a PPO-style clipped surrogate. Advantages are supplied by a critic ensemble queried in latent space. Actor and critics are optimized for several SGD epochs per interaction batch while continuously evicting older trajectories to keep the training distribution close to recent behavior. Target networks for the critics are updated by Polyak averaging to stabilize bootstrapped targets. After the update cycle, parameters are synchronized by setting "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\theta _ { \\mathrm { o l d } }  \\theta"
+                    },
+                    {
+                        "type": "text",
+                        "content": "before the next interaction phase. This schedule closes the interaction–update loop, maintains a tight coupling between the ratio proxy and the data-collecting policy, and yields steady improvement without requiring tractable action likelihoods. "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                556,
+                915,
+                829
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "B. Structure-Aligned Policy Update and Training Components "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                504,
+                844,
+                913,
+                859
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "a) Likelihood-Free Ratio from CFM Loss: Because "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\log \\pi _ { \\theta } ( x _ { t } \\ \\mid \\ s _ { t } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is intractable for flow-based actors, FPO uses the actor’s CFM objective as the update signal. Let "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\ell _ { \\mathrm { c f m } } ( x _ { t } \\mid s _ { t } ; \\boldsymbol { \\theta } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "denote the per-sample CFM loss [4], [5]. For each stored pair "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( s _ { t } , x _ { t } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", the loss reduction is: "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                866,
+                913,
+                926
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/2eaa9685355951fd569b4d65509c376dec7b011237da5c71f4a1036c57b53284.jpg"
+                },
+                "content": "\"AlohaTransferCube-v0\"\n\"Aloha\n\"pick up the black bowl on the ramekin and place it on the plate\"\nLibero",
+                "image_caption": [],
+                "image_footnote": []
+            },
+            "sub_type": "text_image",
+            "bbox": [
+                125,
+                60,
+                491,
+                184
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/c6f017e1e7558cfcf376edbbc9470c289bd240ad844ca24fc9d983c178b59019.jpg"
+                },
+                "content": "\"pick up the orange juice and place it in the basket\"\n\"put both the alphabet soup and the cream cheese box in the basket\"",
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Fig. 2. An overview of the challenging visuomotor control environments used in our evaluation: the bimanual ALOHA Transfer Cube task and several multi-object manipulation tasks from the LIBERO suite. These environments require a combination of long-horizon reasoning, precise control, and generalization across different objects and initial conditions. "
+                    }
+                ],
+                "image_footnote": []
+            },
+            "sub_type": "text_image",
+            "bbox": [
+                504,
+                60,
+                870,
+                184
+            ]
+        },
+        {
+            "type": "algorithm",
+            "content": {
+                "algorithm_caption": [
+                    {
+                        "type": "text",
+                        "content": "Algorithm 1 Flow Policy Optimization (FPO) "
+                    }
+                ],
+                "algorithm_content": [
+                    {
+                        "type": "text",
+                        "content": "1: Input: frozen base policy   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi_{0}"
+                    },
+                    {
+                        "type": "text",
+                        "content": " , actor   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi_{\\theta}"
+                    },
+                    {
+                        "type": "text",
+                        "content": " , critic ensemble   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{Q_{\\phi_{i}}\\}_{i=1}^{M}"
+                    },
+                    {
+                        "type": "text",
+                        "content": " , target critics   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{Q_{\\bar{\\phi}_{i}}\\}_{i=1}^{M}"
+                    },
+                    {
+                        "type": "text",
+                        "content": " , buffer B\n2: for each iteration do\n3:   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\theta_{old} \\leftarrow \\theta"
+                    },
+                    {
+                        "type": "text",
+                        "content": "  {Freeze actor for loss caching}\n4: // Rollout phase\n5: for   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "t = 0 \\ldots T_{rollout} - 1"
+                    },
+                    {
+                        "type": "text",
+                        "content": "  do\n6: observe   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "s_{t}"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n7: sample latent   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "x_{t} \\sim \\pi_{\\theta}(\\cdot \\mid s_{t})"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n8: decode action   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "a_{t} \\sim \\pi_{0}(\\cdot \\mid s_{t}, x_{t})"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n9: step env, obtain   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "(r_{t}, s_{t+1})"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n10: cache   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\ell_{init,t} \\leftarrow \\ell_{cfm}(x_{t} \\mid s_{t}; \\theta_{old})"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n11: push   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "(s_{t}, x_{t}, a_{t}, r_{t}, s_{t+1}, \\ell_{init,t})"
+                    },
+                    {
+                        "type": "text",
+                        "content": "  into B\n12: end for\n13: // Update phase\n14: for   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "k = 1 \\ldots K_{update}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "  do\n15: sample batch   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "M \\subset B"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n16: // Critic update (Eqs.5,6)\n17: for each   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "(s_{t}, x_{t}, r_{t}, s_{t+1}) \\in M"
+                    },
+                    {
+                        "type": "text",
+                        "content": " :\n18: sample   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "x'_{t+1} \\sim \\pi_{\\theta}(\\cdot \\mid s_{t+1})"
+                    },
+                    {
+                        "type": "text",
+                        "content": "  and set\n19:   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "y_{t} \\leftarrow r_{t} + \\gamma \\min_{i} Q_{\\bar{\\phi}_{i}}(s_{t+1}, x'_{t+1})"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n20: update   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{\\phi_{i}\\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "  by minimizing   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "L_{critic}(\\phi)"
+                    },
+                    {
+                        "type": "text",
+                        "content": " ;\n21: Polyak update targets   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "Q_{\\bar{\\phi}_{i}}"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n22: // Actor update (Eqs.2,3,4)\n23: compute   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Delta\\ell_{cfm,t} \\leftarrow \\ell_{cfm}(x_{t} \\mid s_{t}; \\theta_{old}) \\ell_{cfm}(x_{t} \\mid s_{t}; \\theta)"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n24: standardize   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "z_{t} \\leftarrow standardize(\\Delta\\ell_{cfm,t})"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n25: map ratio proxy   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\rho_{t} \\leftarrow \\exp(\\beta z_{t})"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n26: compute advantages   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat{A}_{t}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "  from the critic ensemble (e.g., GAE)\n27: update   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\theta"
+                    },
+                    {
+                        "type": "text",
+                        "content": "  by minimizing   "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "L_{actor}(\\theta)"
+                    },
+                    {
+                        "type": "text",
+                        "content": " \n28: end for\n29: end for "
+                    }
+                ]
+            },
+            "bbox": [
+                86,
+                273,
+                488,
+                757
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                83,
+                789,
+                397,
+                804
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\Delta \\ell_ {\\mathrm{cfm}, t} = \\ell_ {\\mathrm{cfm}} (x _ {t} \\mid s _ {t}; \\theta_ {\\mathrm{old}}) - \\ell_ {\\mathrm{cfm}} (x _ {t} \\mid s _ {t}; \\theta) \\tag {2}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/c05c630c5c0f00ec64c3c8ae8deacac0b1732b80a36a3a47702b35d7086711b2.jpg"
+                }
+            },
+            "bbox": [
+                127,
+                811,
+                488,
+                828
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "which measures improvement on the same sample relative to the rollout actor. Under a mild local monotonicity assumption—that per-sample CFM loss decreases coincide with increases in the actor’s conditional density—we treat "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Delta \\ell _ { \\mathrm { c f m } , t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as an order-preserving surrogate of the intractable importance ratio "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { \\boldsymbol { \\theta } } ( x _ { t } | \\boldsymbol { s } _ { t } ) / \\pi _ { \\boldsymbol { \\theta } _ { \\mathrm { o l d } } } ( x _ { t } | \\boldsymbol { s } _ { t } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". And the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Delta \\ell _ { \\mathrm { c f m } , t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is normalized with "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                835,
+                490,
+                928
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                506,
+                260,
+                540,
+                273
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "z _ {t} = \\frac {\\Delta \\ell_ {\\mathrm{cfm} , t} - \\mu_ {\\Delta}}{\\sigma_ {\\Delta}}, \\quad \\rho_ {t} = \\exp (\\beta z _ {t}) \\tag {3}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/5dadea0eb71213849185c984e00fe6f66728a492e770e05a5ec017b86537145c.jpg"
+                }
+            },
+            "bbox": [
+                563,
+                277,
+                911,
+                309
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\mu _ { \\Delta } , \\sigma _ { \\Delta } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are mean and standard deviation as batch statistics and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\beta > 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": "controls the sharpness of the mapping. "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                313,
+                911,
+                343
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "b) Clipped Surrogate and Actor Update: The actor is optimized with a PPO-style clipped surrogate [12] using advantages "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\hat { A } } _ { t } \\mathbf { : }"
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                343,
+                911,
+                388
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathcal {L} _ {\\text { actor }} (\\theta) = - \\mathbb {E} _ {t} \\left[ \\min \\left(\\rho_ {t} \\hat {A} _ {t}, \\operatorname{clip} \\left(\\rho_ {t}, 1 - \\epsilon , 1 + \\epsilon\\right) \\hat {A} _ {t}\\right) \\right] \\tag {4}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/4a8405f958ca8ef86c602831bbc657a67e2ca080081b6354acdd41e73c7bf524.jpg"
+                }
+            },
+            "bbox": [
+                514,
+                393,
+                911,
+                419
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\epsilon > 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the clipping parameter. This construction regulates update magnitude while preserving alignment with the actor’s generative structure.In practice, we standardize "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { A } _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "within each minibatch and stop gradients through "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\rho _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to reduce variance and avoid feedback instabilities. "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                422,
+                911,
+                496
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "c) Critic Ensemble and Advantage Estimation: We employ an ensemble of action–value functions "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{ Q _ { \\phi _ { i } } ( s , x ) \\} _ { i = 1 } ^ { M }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to reduce overestimation and stabilize advantage estimates. Target critics "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "Q _ { \\bar { \\phi } _ { i } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are updated by Polyak averaging once per gradient step. For a transition "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\left( { { s _ { t } } , { x _ { t } } , { r _ { t } } , { s _ { t + 1 } } } \\right)"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", the temporaldifference target is: "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                498,
+                913,
+                588
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "y _ {t} = r _ {t} + \\gamma \\min _ {i} Q _ {\\bar {\\phi} _ {i}} (s _ {t + 1}, x _ {t + 1} ^ {\\prime}), \\quad x _ {t + 1} ^ {\\prime} \\sim \\pi_ {\\theta} (\\cdot | s _ {t + 1}) \\tag {5}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/ae9f2cfd2117ad4949d0bb9d5a22ad7f583498b8cb3937d6d4f90a460791a59a.jpg"
+                }
+            },
+            "bbox": [
+                527,
+                595,
+                911,
+                612
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where the operation of minimizing introduces a conservative target that empirically curbs optimistic bias. For terminal "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "s _ { t + 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "the bootstrap term is masked out. The critic loss is the squared TD error: "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                619,
+                911,
+                679
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathcal {L} _ {\\text { critic }} (\\phi) = \\mathbb {E} \\left[ \\left(Q _ {\\phi} (s _ {t}, x _ {t}) - y _ {t}\\right) ^ {2} \\right] \\tag {6}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/8451d1a071679fd2974e0a45921b8cacea1a2234658372771e379e7220a474fa.jpg"
+                }
+            },
+            "bbox": [
+                586,
+                684,
+                911,
+                709
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Advantages are computed with generalized advantage estimation (GAE) [33]. The value baseline "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "V ( s )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is taken as a conservative estimate from the ensemble (the minimum across members). We reuse stored latents when available; otherwise a fresh latent is sampled from "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { \\boldsymbol { \\theta } } ( \\cdot \\mid s )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                713,
+                911,
+                787
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "d) Latent-Space Exploration and Data Handling: Exploration is induced by multi-step Euler integration in the actor’s latent dynamics. Starting from a sampled latent "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "x _ { t } ^ { ( 0 ) } \\sim \\pi _ { \\theta } ( \\cdot \\mid s _ { t } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "xt and the CFM velocity field "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "v _ { \\theta } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "we apply K short steps: "
+                    }
+                ]
+            },
+            "bbox": [
+                506,
+                787,
+                911,
+                864
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "x _ {t} ^ {(k + 1)} = x _ {t} ^ {(k)} + \\eta v _ {\\theta} \\left(x _ {t} ^ {(k)}, \\tau^ {(k)} \\mid s _ {t}\\right), \\quad k = 0, \\dots , K - 1 \\tag {7}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/33d5d05200b9ef9e9f4eca4e1cb633a2c89daa14f6af6f8dbe738db8e750522e.jpg"
+                }
+            },
+            "bbox": [
+                527,
+                869,
+                911,
+                888
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{ \\tau ^ { ( k ) } \\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is a discretization of the flow time and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\eta > 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is a small step size. The final "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "x _ { t } ^ { ( K ) }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is decoded by the frozen base. This procedure yields smooth, temporally correlated perturbations that remain aligned with the actor’s generative field. Transitions are stored in a compact sliding-window trajectory buffer B that retains only recent rollouts. Each update draws sample batches from B and performs several SGD epochs while evicting older entries, which limits distributional drift between the update policy and the datacollecting policy and keeps the loss differential "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Delta \\ell _ { \\mathrm { c f m } , t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(Eq. 2) evaluated under a distribution close to behavior, stabilizing the ratio mapping in Eq. 3. "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                893,
+                911,
+                926
+            ]
+        }
+    ],
+    [
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/7c8126d9c04891f878e3865f3aec6e61c1c4da5ce3df205de5f174e68ed68270.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "TABLE I "
+                    },
+                    {
+                        "type": "text",
+                        "content": "OVERALL SUCCESS RATE (SR, %) AND PER-SUITE RANK ON LIBERO BENCHMARKS. RANKS ARE COMPUTED AMONG BASELINE METHODS ONLY(EXCLUDING π0-FAST). AVG RANK IS THE MEAN OF PER-SUITE RANKS FOR EACH BASELINE. BEST IN BOLD."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td rowspan=\"2\">Method</td><td colspan=\"2\">LIBERO-Spatial</td><td colspan=\"2\">LIBERO-Object</td><td colspan=\"2\">LIBERO-Goal</td><td colspan=\"2\">LIBERO-Long</td><td colspan=\"2\">Average</td></tr><tr><td>SR (%)</td><td>Rank</td><td>SR (%)</td><td>Rank</td><td>SR (%)</td><td>Rank</td><td>SR (%)</td><td>Rank</td><td>SR (%)</td><td>Avg Rank</td></tr><tr><td>Diffusion Policy [28]</td><td>78.3</td><td>6</td><td>92.5</td><td>2</td><td>68.3</td><td>6</td><td>50.5</td><td>6</td><td>72.4</td><td>5.0</td></tr><tr><td>GRAPE (DPO) [30]</td><td>87.6</td><td>3</td><td>91.2</td><td>4</td><td>82.2</td><td>3</td><td>55.8</td><td>3</td><td>79.2</td><td>3.3</td></tr><tr><td>Octo (SFT) [2]</td><td>78.9</td><td>5</td><td>85.7</td><td>6</td><td>84.6</td><td>2</td><td>51.1</td><td>5</td><td>75.1</td><td>4.5</td></tr><tr><td>OpenVLA (SFT) [1]</td><td>84.7</td><td>4</td><td>88.4</td><td>5</td><td>79.2</td><td>5</td><td>53.7</td><td>4</td><td>76.5</td><td>4.5</td></tr><tr><td>VLA-RL [6]</td><td>90.2</td><td>2</td><td>91.8</td><td>3</td><td>82.2</td><td>3</td><td>59.8</td><td>2</td><td>81.0</td><td>2.5</td></tr><tr><td> $\\pi_0$ -FAST [3]</td><td>96.4</td><td>-</td><td>96.8</td><td>-</td><td>88.6</td><td>-</td><td>60.2</td><td>-</td><td>85.5</td><td>-</td></tr><tr><td> $\\pi_0$ -FPO (Ours)</td><td>97.2</td><td>1</td><td>97.3</td><td>1</td><td>89.4</td><td>1</td><td>65.3</td><td>1</td><td>87.2</td><td>1</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                135,
+                114,
+                864,
+                241
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/4906e378d7d049b5673ccb592a87a8a3d55b8610546dacc81645f6d0b3dc70d2.jpg"
+                },
+                "content": "| Training Steps (K) | Smoothed | SFT Baseline | Raw Data |\n| ------------------ | -------- | ------------ | -------- |\n| 0                  | 10       | 60           | 10       |\n| 50                 | 25       | 60           | 30       |\n| 100                | 20       | 60           | 40       |\n| 150                | 35       | 60           | 50       |\n| 200                | 40       | 60           | 60       |\n| 250                | 55       | 60           | 70       |\n| 300                | 50       | 60           | 65       |\n| 350                | 60       | 60           | 90       |\n| 400                | 45       | 60           | 80       |\n| 450                | 65       | 60           | 85       |\n| 500                | 65       | 60           | 85       |",
+                "chart_caption": [
+                    {
+                        "type": "text",
+                        "content": "(a) Success Rate "
+                    }
+                ],
+                "chart_footnote": []
+            },
+            "sub_type": "line",
+            "bbox": [
+                148,
+                268,
+                379,
+                410
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/727361aac462b13072a18610c0ab25d0489ec888cf2b6d6c36ac16270419922c.jpg"
+                },
+                "content": "| Training Steps (K) | Smoothed | Raw Data |\n| ------------------ | -------- | -------- |\n| 0                  | 0.0      | 0.1      |\n| 50                 | 0.2      | 0.3      |\n| 100                | 0.4      | 0.4      |\n| 150                | 0.4      | 0.5      |\n| 200                | 0.5      | 0.4      |\n| 250                | 0.6      | 0.5      |\n| 300                | 0.5      | 0.4      |\n| 350                | 0.6      | 0.5      |\n| 400                | 0.4      | 0.3      |\n| 450                | 0.6      | 0.5      |\n| 500                | 0.6      | 0.6      |",
+                "chart_caption": [
+                    {
+                        "type": "text",
+                        "content": "(b) Average Return "
+                    }
+                ],
+                "chart_footnote": []
+            },
+            "sub_type": "line",
+            "bbox": [
+                385,
+                268,
+                612,
+                410
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/8897efc03cd5bfb3a46fb9dccc97c32f8450b7c8d5a99992fab267dd2b4eee0b.jpg"
+                },
+                "content": "| Training Steps (K) | Smoothed | Raw Data |\n| ------------------ | -------- | -------- |\n| 0                  | 400      | 400      |\n| 50                 | 380      | 360      |\n| 100                | 370      | 380      |\n| 150                | 360      | 370      |\n| 200                | 350      | 360      |\n| 250                | 340      | 350      |\n| 300                | 330      | 340      |\n| 350                | 320      | 330      |\n| 400                | 310      | 320      |\n| 450                | 300      | 310      |\n| 500                | 290      | 300      |",
+                "chart_caption": [
+                    {
+                        "type": "text",
+                        "content": "(c) Episode Length "
+                    },
+                    {
+                        "type": "text",
+                        "content": "Fig. 3. LIBERO-Long simulation: online fine-tuning curves on a representative task. "
+                    }
+                ],
+                "chart_footnote": []
+            },
+            "sub_type": "line",
+            "bbox": [
+                616,
+                268,
+                846,
+                410
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                81,
+                465,
+                490,
+                617
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "IV. EXPERIMENTS "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                207,
+                625,
+                364,
+                638
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In this section, we empirically evaluate FPO along three axes: (i) final performance on standard manipulation benchmarks relative to strong baselines. (ii) learning dynamics under online interaction (improvement curves and exploration behavior). and (iii) ablations that isolate the contribution of each component. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                642,
+                490,
+                733
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "A. Experimental Setup "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                83,
+                742,
+                241,
+                757
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "text_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "a) Tasks and Evaluation: The proposed FPO algorithm was evaluated on two simulated visuomotor benchmarks: LIBERO [21] and ALOHA Transfer Cube [22] (as shown in Fig. 2). LIBERO [21] comprises four sub-suites—Spatial, Object, Goal, and LIBERO-Long. ALOHA Transfer Cube [22] is a bimanual manipulation task with contact-rich dynamics. We follow the official success criteria and report per-suite success rate (SR, %). "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "b) Baselines and Protocol: We compare against π0- FAST [29], GRAPE [30], Diffusion Policy [28], Open-VLA [1], Octo [2], and VLA-RL [6], covering supervised "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                760,
+                491,
+                928
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "steering of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "preference alignment, diffusion-based control, large-scale SFT VLAs, and online RL with autoregressive heads. Evaluations follow the official success metrics and protocols. We use public checkpoints when available, otherwise authors’ reference implementations with reported settings. Task definitions, observation/action interfaces, and evaluation seeds are matched across methods. Our runs initialize from the released "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "checkpoint, keep the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "decoder frozen, and update only the flow actor and an ensemble critic online. "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                465,
+                913,
+                602
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "B. Performance Evaluation and Analysis "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                506,
+                606,
+                787,
+                621
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "a) Performance Advantages of FPO on the LIBERO Benchmark: FPO (denoted as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 } { \\bf - F P 0 ) }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "achieves state-of-theart performance across all four task suites of the LIBERO benchmark, as shown in Table I. It attains suite-leading success rates with an overall average of 87.2%, outperforming all baseline methods. On the LIBERO-Long suite, FPO attains 65.3% SR. This corresponds to improvements of +5.5 percentage points over the RL baseline VLA-RL (59.8%), +9.5 over GRAPE (55.8%), and +5.1 over "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 } { \\mathrm { - F A S T } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(60.2%), as reported in Table I. These comparisons situate FPO ahead of both online RL and offline-trained baselines under the same evaluation protocol. "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                625,
+                913,
+                805
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "This improvement indicates that even foundation models trained on large-scale offline datasets retain unused capacity. FPO leverages an online, reward-driven update mechanism to exploit this capacity, addressing the lack of adaptability and exploration inherent to purely offline training. These results demonstrate that FPO can effectively learn from sparse rewards and refine goal-directed behaviors, extending performance beyond the limits of imitation-based methods. "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                806,
+                913,
+                926
+            ]
+        }
+    ],
+    [
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/46fd06907fd2521afc9b7b393dacf039eafda9fc7e65ca342437bef71ea42f47.jpg"
+                },
+                "content": "| Training Steps | Approach | Grasp | Outcome |\n| -------------- | -------- | ----- | ------- |\n| 1.6e6          |          |       |         |\n| 0.8e6          |          |       |         |\n| 0              |          |       |         |",
+                "chart_caption": [
+                    {
+                        "type": "text",
+                        "content": "(a)Policy Evolution "
+                    }
+                ],
+                "chart_footnote": []
+            },
+            "sub_type": "line",
+            "bbox": [
+                86,
+                61,
+                267,
+                181
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/762ac5e6861a974b3fcd6a2d29de5187027ac50860df02816e60f777d30ce793.jpg"
+                },
+                "content": "| Training Steps | Smoothed Curve | Baseline (0.4) | Raw Data |\n| -------------- | -------------- | -------------- | -------- |\n| 0.0            | 0.35           | 0.4            | 0.3      |\n| 0.2            | 0.3            | 0.4            | 0.4      |\n| 0.4            | 0.35           | 0.4            | 0.5      |\n| 0.6            | 0.3            | 0.4            | 0.6      |\n| 0.8            | 0.4            | 0.4            | 0.7      |\n| 1.0            | 0.5            | 0.4            | 0.6      |\n| 1.2            | 0.55           | 0.4            | 0.7      |\n| 1.4            | 0.6            | 0.4            | 0.8      |\n| 1.6            | 0.65           | 0.4            | 0.9      |",
+                "chart_caption": [
+                    {
+                        "type": "text",
+                        "content": "(b） Result of Learning"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Fig. 4. FPO online learning on the ALOHA Transfer Cube task. (a) Policy evolution at 0/0.8M/1.6M training steps: the baseline side-grasp failure mode is corrected to a robust top-down grasp that consistently completes the task. (b) Success rate (SR) curve: the smoothed trajectory (purple) steadily improves, surpassing the 40% baseline (red dashed) and reaching 65%, mirroring the behavioural change in (a). "
+                    }
+                ],
+                "chart_footnote": []
+            },
+            "sub_type": "line",
+            "bbox": [
+                267,
+                66,
+                464,
+                179
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "b) FPO Enables Stable and Efficient Online Learning: To further assess the effectiveness of FPO in improving model performance through online reinforcement learning, we examine its learning dynamics on the LIBERO benchmark and the ALOHA Transfer Cube task. Starting from an SFT baseline, FPO consistently increases both success rate and average return throughout training, as shown in Fig. 3. The return curve exhibits a similar upward trend, while episode length remains steady downward trend, indicating that gains arise from discovering more direct and efficient strategies rather than extending trial duration. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                301,
+                490,
+                467
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Comparable behavior is observed in the ALOHA Transfer Cube task (Fig. 4). Beginning with the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "model at ∼ 40% success, FPO exceeds 65% after a comparable training budget. The smoothed trajectory improves monotonically and avoids the instability typically seen in online RL under sparse rewards. Together, these results indicate stable online learning across distinct manipulation domains, supporting FPO as an effective fine-tuning framework for VLA policies. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                468,
+                488,
+                589
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "C. Analysis of FPO’s Internal Learning Mechanism "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                83,
+                603,
+                437,
+                618
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To analyze how FPO achieves its performance, we examined the evolution of its internal behavior during training by visualizing the distribution of latent action chunks across different stages, shown as Fig. 5. Using t-SNE for dimensionality reduction, the results reveal a clear trajectory from broad exploration to focused exploitation in the latent space. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                625,
+                490,
+                714
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In the initial phase (Fig. 5(a)), the policy, guided by the imitation prior, explores a wide region of the latent space, enabling the discovery of rewarding areas beyond the baseline policy. During the breakthrough phase (Fig. 5(b)), exploration becomes more structured and concentrated around successful action sequences, indicating prioritization of high-value regions. At convergence period (Fig. 5(c)), the distribution narrows into a low-variance cluster, reflecting efficient exploitation of the optimal region. The bar chart in Fig. 5(d) quantifies this transition, showing a marked reduction in dispersion and variance over training. These results demonstrate that FPO supports gradient-driven exploration beyond imitation priors and enables stable convergence to efficient task-solving behaviors. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                715,
+                488,
+                926
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/abe52eeeda6709fb095b60b09f52f9d36a4f34e00d3c46e2034355952231b4e3.jpg"
+                },
+                "content": "| t-SNE Component 1 | t-SNE Component 2 |\n| ----------------- | ----------------- |\n| -100              | 0                 |\n| -50               | 0                 |\n| 0                 | 0                 |\n| 50                | 0                 |\n| 100               | 0                 |",
+                "chart_caption": [],
+                "chart_footnote": []
+            },
+            "sub_type": "contour",
+            "bbox": [
+                511,
+                63,
+                684,
+                198
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/f008e58e4d36301d8e6d68e3f4ab68ab660135b59a7669df739c9891171dbe6d.jpg"
+                },
+                "content": "| t-SNE Component 1 | t-SNE Component 2 | Density |\n| ----------------- | ----------------- | ------- |\n| -100              | 100               | Low     |\n| -50               | 50                | Medium  |\n| 0                 | 0                 | High    |\n| 50                | -50               | Medium  |\n| 100               | -100              | Low     |",
+                "chart_caption": [],
+                "chart_footnote": []
+            },
+            "sub_type": "contour",
+            "bbox": [
+                511,
+                199,
+                683,
+                334
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/aea04635b33db38d3fc593ab5698c136bd474c49555f94d0574a59deb6eb0897.jpg"
+                },
+                "content": "| t-SNE Component 1 | t-SNE Component 2 | Point Density |\n| ----------------- | ----------------- | ------------- |\n| -100              | -100              | 2             |\n| -50               | -50               | 4             |\n| 0                 | 0                 | 6             |\n| 50                | 50                | 8             |\n| 100               | 100               | 10            |",
+                "chart_caption": [
+                    {
+                        "type": "text",
+                        "content": "12 10 8 4\r\n6\r\n8\r\n10\r\n 6 24 "
+                    }
+                ],
+                "chart_footnote": []
+            },
+            "sub_type": "contour",
+            "bbox": [
+                709,
+                63,
+                908,
+                198
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/2c1bf0dddbd83f8b74a084a84c4e26266f52c055769f93bf9d667962ceb64fc6.jpg"
+                },
+                "content": "(d) Exploration range comparison\n| Training methods | Exploring range (standard deviation mean) | Conting area (trained ball) | Overall dispersion |\n|---|---|---|---|\n| Extended Baseline (0-10K) | 52.56 | 39400 | 52.6 |\n| FPO Breakthrough (80-100K) | 43.62 | 38630 | 43.6 |\n| FPO Late-Training Phase (130K+) | 40.52 | 37077 | 40.5 |",
+                "chart_caption": [
+                    {
+                        "type": "text",
+                        "content": "Fig. 5. FPO latent action space evolution. Visualized via t-SNE, this figure shows the policy’s latent action distribution transitioning from broad exploration to focused exploitation across training stages. (a) Initial policy: wide, high-variance exploration. (b) Breakthrough phase: distribution concentrates around successful sequences. (c) Late-Training Phase: highly focused, low-variance exploitation of optimal regions. (d) Bar chart: quantifies reduced exploration range and dispersion, confirming convergence to refined behaviors. "
+                    }
+                ],
+                "chart_footnote": []
+            },
+            "sub_type": "bar",
+            "bbox": [
+                709,
+                199,
+                906,
+                335
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In addition, the Fig. 6 visually demonstrates FPO’s ability to resolve specific, recurring failure modes. The pre-trained "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "policy often fails in a representative LIBERO task by attempting a suboptimal side grasp, leading to object instability (Fig. 6, top). FPO, after online fine-tuning, fundamentally alters this approach, consistently executing a robust top-down grasp from the same initial state that previously led to failure (Fig. 6, bottom). This illustrates FPO’s capacity to learn physically grounded, effective trajectories through active online interaction, fixing nuanced, contact-rich errors that are challenging for offline methods alone. "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                465,
+                913,
+                633
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/e8eb95940868f93f668eed6143c6936161dd0cc2d48f350f37fc9588e20fec58.jpg"
+                },
+                "content": "3D rendering of a robotic arm in motion, showing multiple frames and control panels (no text or symbols visible)",
+                "image_caption": [],
+                "image_footnote": []
+            },
+            "sub_type": "natural_image",
+            "bbox": [
+                509,
+                643,
+                913,
+                683
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/e7a8c8004ae829e0124bbc6edac23d6ffaba41c3421150888d874a9c5ec73173.jpg"
+                },
+                "content": "Ours",
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Fig. 6. FPO’s ability to correct suboptimal behaviors. (Top) The SFT baseline policy consistently fails the task due to a suboptimal grasping approach inherited from the imitation prior. (Bottom) After online finetuning with FPO, the policy discovers a novel and successful trajectory from the same initial state, showcasing effective online correction. "
+                    }
+                ],
+                "image_footnote": []
+            },
+            "sub_type": "text_image",
+            "bbox": [
+                509,
+                686,
+                911,
+                726
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "D. Ablation Studies "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                506,
+                816,
+                643,
+                830
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To assess which components drive FPO’s performance, we conduct ablations on the LIBERO-90 task pick up the butter and put it in the tray. Table II reports final success rate (%) after training. Each variant disables exactly one component while keeping the training budget, architectures, and hyperparameters fixed. We consider four interventions: substituting the CFM-based ratio with an SAC-style latent-space update, removing PPO-style clipping, reducing exploration to singlestep integration, and replacing the critic ensemble with a single critic. All ablations degrade performance relative to the complete method: replacing the CFM-based ratio causes the most substantial drop, removing clipping also leads to a marked reduction, limiting exploration depth yields a smaller but consistent decline, and using a single critic has the least impact yet remains non-negligible. Taken together, these results indicate that all components are consequential—the structure-aligned ratio and trust-region control account for a large portion of the gains, while exploration depth and value ensembling contribute additional stability and data efficiency. "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                835,
+                913,
+                926
+            ]
+        }
+    ],
+    [
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/0ee8015de91dfabec6140e1e9c589856e6c132b3396f5dc6afef484a1b46a5a1.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "TABLE II ABLATIONS ON LIBERO-90 TASK pick up the butter and put it in the tray. NUMBERS ARE FINAL SUCCESS RATE (%). EACH ROW REMOVES ONE COMPONENT FROM FPO. "
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>Method</td><td>Success Rate (%)</td></tr><tr><td>FPO (complete)</td><td>78.5</td></tr><tr><td>- without CFM ratio proxy</td><td>32.4</td></tr><tr><td>- without PPO clipping</td><td>45.1</td></tr><tr><td>- single-step integration (K=1)</td><td>61.7</td></tr><tr><td>- single critic (without ensemble)</td><td>71.2</td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                91,
+                127,
+                480,
+                222
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                81,
+                250,
+                490,
+                445
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "text_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "a) Importance of the CFM-based Ratio Proxy.: Replacing the CFM-based policy ratio proxy with standard Soft Actor-Critic (SAC) in the latent space significantly reduced the success rate from 78.5% to 32.4%. This indicates that FPO’s performance depends critically on the structurally-aware update rule that leverages the generative loss. Conventional RL in latent space is insufficient to achieve comparable results. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "b) Effect of PPO-style Clipping.: Removing PPO-style clipping caused instability and reduced success to 45.1% (- 33.4%). This confirms the role of clipping as a trust-region mechanism [12], preventing uncontrolled updates from the strong CFM signal and avoiding policy collapse. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "c) Role of Multi-step Exploration.: Disabling multi-step Euler integration (K = 1) lowered success to 61.7% (-16.8%). This shows the benefit of generating temporally correlated latent trajectories, which improve the discovery of viable action sequences and enable stable execution in contact-rich tasks. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "d) Contribution of the Q-Ensemble.: Using a single critic instead of a Q-ensemble reduced success to 71.2%. Although the effect is smaller (-7.2%), the ensemble improves stability by providing more reliable advantage estimates, which is particularly useful in sparse-reward settings. "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                446,
+                491,
+                792
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "E. Latent Space Characteristics of Successful Policies "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                83,
+                801,
+                450,
+                816
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To examine latent space characteristics distinguishing successful from failed policy executions, we conducted a statistical analysis of latent action chunks from the untrained imitation prior, failed rollouts after partial training, and successful rollouts after extended training. Fig. 7 summarizes the statistical differences across these groups. The t-SNE and PCA projections (Fig. 7a,b) show that successful trajectories occupy a compact and well-defined region of the latent space, whereas actions from the initial policy and failed rollouts are more dispersed. This separation indicates that FPO guides the policy toward a higher-performing latent subspace. "
+                    }
+                ]
+            },
+            "bbox": [
+                81,
+                820,
+                490,
+                926
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                504,
+                65,
+                913,
+                126
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Analysis of action magnitudes (Fig. 7c) reveals that successful trajectories fall within a narrower range, suggesting avoidance of extreme actions and convergence toward an effective magnitude. The per-dimension variance plot (Fig. 7d) further shows reduced variance across most dimensions, confirming that successful policies act with greater precision by suppressing unnecessary exploratory noise and focusing capacity on reliable execution. This transition reflects effective skill acquisition in the latent space. "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                126,
+                913,
+                262
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Quantitatively, successful rollouts exhibit higher silhouette scores and larger Mahalanobis distance to the success centroid, alongside lower within-cluster variance and reduced first-order temporal differences, indicating concentration of probability mass in a stable high-value latent region. "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                263,
+                913,
+                339
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/733b5c69d9e0976ab01e8675b7c7baa9e08df48939fd917586b3483485ed986b.jpg"
+                },
+                "content": "",
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Fig. 7. Latent space analysis on initial policy, failed and successful Trajectories. The t-SNE and PCA plots (top row) demonstrate that successful trajectories (green) converge to a distinct, highly structured region of the latent space, sharply contrasting with the diffuse distributions of the initial policy (blue) and failed attempts (red). The action magnitude distribution (bottom-left) shows successful trajectories favoring a narrower, optimal range of action norms. Critically, the per-dimension variance plot (bottomright) reveals significantly lower variance across most latent dimensions for successful trajectories, indicating learned precision and intentionality. "
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                506,
+                349,
+                910,
+                566
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "V. CONCLUSION "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                638,
+                708,
+                781,
+                722
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "This work introduced a FPO algorithm for online finetuning of flow-matching VLA policies. FPO resolves the incompatibility with conventional policy-gradient methods by replacing explicit likelihood ratios with a likelihood-free proxy derived from per-sample changes in the conditional flow-matching objective, thereby enabling PPO-style clipped updates without Jacobian or density evaluation. The method incorporates structure-aware credit assignment in the latent space, a clipped surrogate objective, multi-step latent exploration, and a Q-ensemble, enabling stable and efficient optimization in sparse-reward and contact-rich environments. Experiments on the LIBERO benchmark and the ALOHA Transfer Cube task demonstrate that "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 } { \\mathrm { - F P O } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "consistently outperforms imitation-trained priors and strong baselines, including OpenVLA, Octo, Diffusion Policy, GRAPE, and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pi _ { 0 } { \\mathrm { - F A S T } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Ablation experiments and latent space dynamics analysis not only confirm the efficacy of individual FPO components, but also demonstrate enhanced mitigation of recurring failure patterns through qualitative assessment. In the future, we will further enhance the few-shot adaptation capability based on limited online interactions, enabling faster learning and transfer while minimizing additional data requirements. "
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                729,
+                913,
+                926
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                86,
+                66,
+                488,
+                215
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "ACKNOWLEDGMENT "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                200,
+                229,
+                372,
+                242
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "This study is supported by the Strategic Priority Research Program of the Chinese Academy of Sciences (Grant No. XDB1010302), the State Key Laboratory of Brain Cognition and Brain-inspired Intelligence Technology (Grant No. JS202401), the funding from Institute of Automation, Chinese Academy of Sciences (Grant No. E411230101), the Postdoctoral Fellowship Program of CPSF (Grant No. GZC20232994), and the Beijing Natural Science Foundation (Grant No. 4252052). "
+                    }
+                ]
+            },
+            "bbox": [
+                86,
+                251,
+                490,
+                385
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "REFERENCES "
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                240,
+                401,
+                331,
+                412
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[1] A. S. Xie et al., “OpenVLA: An Open-Source Vision-Language-Action Policy,” arXiv:2406.09246, 2024. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[2] Octo Model Team, D. Ghosh, H. Walke, K. Pertsch, K. Black, O. Mees, S. Dasari, J. Hejna, T. Kreiman, C. Xu, et al., “Octo: An Open-Source Generalist Robot Policy,” arXiv:2405.12213, 2024. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[3] K. Black, N. Brown, D. Driess, A. Esmail, M. Equi, C. Finn, N. Fusai, L. Groom, K. Hausman, B. Ichter, et al., “π0: A Vision-Language-Action Flow Model for General Robot Control,” arXiv:2410.24164, 2024. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[4] Y. Lipman, R. T. Q. Chen, H. Ben-Hamu, M. Nickel, and M. Le, “Flow Matching for Generative Modeling,” arXiv:2210.02747, 2022. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[5] A. Tong, E. Chatzipantazis, F. Lindsten, J. Umenberger, M. Zwicker, A. Taghvaei, and C. J. Maddison, “Improving and Generalizing Flow-based Generative Models with Conditional Flow Matching,” arXiv:2501.03192, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[6] G. Lu, W. Guo, C. Zhang, Y. Zhou, H. Jiang, Z. Gao, Y. Tang, and Z. Wang, “VLA-RL: Towards Masterful and General Robotic Manipulation with Scalable Reinforcement Learning,” arXiv:2505.18719, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[7] Y. Guo, J. Zhang, X. Chen, X. Ji, Y.-J. Wang, Y. Hu, and J. Chen, “Improving Vision-Language-Action Model with Online Reinforcement Learning,” ICRA, 2025.arXiv:2501.16664 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[8] T. Zhang, C. Yu, S. Su, and Y. Wang, “ReinFlow: Finetuning Flow Matching Policy with Online Reinforcement Learning,” arXiv:2505.22094, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[9] A. Z. Ren, J. Lidard, L. L. Ankile, A. Simeonov, P. Agrawal, A. Majumdar, B. Burchfiel, H. Dai, and M. Simchowitz, “Diffusion Policy Policy Optimization,” arXiv:2409.00588, 2024. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[10] D. Hafner, T. Lillicrap, I. Fischer, R. Villegas, D. Ha, H. Lee, and J. Davidson, “Dream to Control: Learning Behaviors by Latent Imagination,” arXiv:1912.01603, 2019. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[11] A. Yarats, R. Ferm, D. Hafner, and L. Zisserman, “DreamerPro: Reconstruction-Free Model-Based Reinforcement Learning with Prototypical Representations,” arXiv:2110.14565, 2021. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[12] J. Schulman, F. Wolski, P. Dhariwal, A. Radford, and O. Klimov, “Proximal Policy Optimization Algorithms,” arXiv:1707.06347, 2017. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[13] L. Chen, R. Paleja, and M. Gombolay, “Learning from Suboptimal Demonstration via Self-Supervised Reward Regression,” arXiv:2010.11723, 2020. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[14] M. U. D. Waseem Akram, L. S. Saoud, J. Rosell, and I. Hussain, “Vision Language Action Models in Robotic Manipulation: A Systematic Review,” arXiv:2507.10672, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[15] L. Ouyang et al., “Training Language Models to Follow Instructions with Human Feedback,” arXiv:2203.02155, 2022. "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                84,
+                417,
+                495,
+                928
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[16] Y. Bai et al., “Training a Helpful and Harmless Assistant with Reinforcement Learning from Human Feedback,” arXiv:2204.05862, 2022. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[17] N. Stiennon et al., “Learning to Summarize from Human Feedback,” NeurIPS, 2020.arXiv:2009.01325 "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[18] J. Schulman, S. Levine, P. Moritz, M. I. Jordan, and P. Abbeel, “Trust Region Policy Optimization,” Proceedings of the 32nd International Conference on Machine Learning (ICML), PMLR 37:1889–1897, 2015. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[19] R. T. Q. Chen, Y. Rubanova, J. Bettencourt, and D. Duvenaud, “Neural Ordinary Differential Equations,” in Advances in Neural Information Processing Systems (NeurIPS), 2018. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[20] W. Grathwohl, R. T. Q. Chen, J. Bettencourt, I. Sutskever, and D. Duvenaud, “FFJORD: Free-form Continuous Dynamics for Scalable Reversible Generative Models,” arXiv:1810.01367, 2018. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[21] B. Liu, Y. Zhu, C. Gao, Y. Feng, Q. Liu, Y. Zhu, and P. Stone, “LIBERO: Benchmarking Knowledge Transfer for Lifelong Robot Learning,” in NeurIPS Datasets & Benchmarks Track, 2023. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[22] T. Z. Zhao, J. Tompson, D. Driess, P. Florence, K. Ghasemipour, C. Finn, and A. Wahid, “ALOHA Unleashed: A Simple Recipe for Robot Dexterity,” arXiv:2410.13126, 2024. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[23] David McAllister et al., “Flow Matching Policy Gradients,” arXiv:2507.21053, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[24] A. Wagenmaker , “Steering Your Diffusion Policy with Latent Space Reinforcement Learning,” in CoRL, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[25] S. H. Lee, M. Salimans, Y. Guo, et al., “Stochastic Latent Actor-Critic: Deep RL in the Model’s Learned Latent Space,” in NeurIPS, 2020. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[26] H. Wang, S. Lin, and J. Zhang, “Adaptive Ensemble Q-learning: Minimizing Estimation Bias via Error Feedback,” in NeurIPS, 2021. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[27] A. An , “Q-Ensemble for Offline RL: Don’t Scale the Ensemble,” in NeurIPS Workshop on Offline RL, 2022. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[28] C. Chi, Z. Xu, S. Feng, E. Cousineau, Y. Du, B. Burchfiel, R. Tedrake, and S. Song, “Diffusion Policy: Visuomotor Policy Learning via Action Diffusion,” in Robotics: Science and Systems (RSS), 2023. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[29] K. Pertsch, K. Stachowicz, B. Ichter, D. Driess, S. Nair, Q. Vuong, O. Mees, C. Finn, and S. Levine, “FAST: Efficient Action Tokenization for Vision-Language-Action Models,” arXiv:2501.09747, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[30] Z. Zhang, K. Zheng, Z. Chen, J. Jang, Y. Li, S. Han, C. Wang, M. Ding, D. Fox, and H. Yao, “GRAPE: Generalizing Robot Policy via Preference Alignment,” arXiv:2411.19309, 2024. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[31] Y. Wang, H. He, C. Wen, X. Tan,et al., “Truly Proximal Policy Optimization,” in UAI (PMLR), 2020. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[32] G. Chen, Y. Peng, and M. Zhang, “An Adaptive Clipping Approach for Proximal Policy Optimization,” arXiv:1804.06461, 2018. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[33] J. Schulman, P. Moritz, S. Levine, M. I. Jordan, and P. Abbeel, “High-Dimensional Continuous Control Using Generalized Advantage Estimation,” arXiv:1506.02438, 2015. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[34] R. Agarwal, M. Schwarzer, P. S. Castro, A. C. Courville, and M. G. Bellemare, “Reincarnating Reinforcement Learning: Reusing Prior Computation to Accelerate Progress,” in NeurIPS 2022, pp. 28955–28971. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[35] T. Haarnoja, A. Zhou, P. Abbeel, and S. Levine, “Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor,” in Proceedings of the 35th International Conference on Machine Learning (ICML), 2018. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[36] S. Pfrommer, Y. Huang, and S. Sojoudi, “Reinforcement Learning for Flow-Matching Policies,” arXiv:2507.15073, 2025. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[37] J. Liu, G. Liu, J. Liang, et al., “Flow-GRPO: Training Flow Matching Models via Online RL,” arXiv:2505.05470, 2025. First work integrating GRPO into flow matching via ODE-to-SDE conversion "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[38] A. Wagenmaker, M. Nakamoto, Y. Zhang, S. Park, W. Yagoub, A. Nagabandi, A. Gupta, and S. Levine, “Steering Your Diffusion Policy with Latent Space Reinforcement Learning (DSRL),” CoRL, 2025. Enables sample-efficient steering of diffusion policies via RL over latent noise "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[39] E. J. Hu, Y. Shen, P. Wallis, Z. Allen-Zhu, Y. Li, S. Wang, L. Wang, and W. Chen, “LoRA: Low-Rank Adaptation of Large Language Models,” in ICLR, 2022. Introduced LoRA for parameter-efficient fine-tuning in large pretrained models. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[40] J. Ho and T. Salimans, “Denoising Diffusion Probabilistic Models,” in Advances in Neural Information Processing Systems (NeurIPS), 2020. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[41] Y. Song, J. Sohl-Dickstein, D. P. Kingma, A. Kumar, S. Ermon, and B. Poole, “Score-Based Generative Modeling through Stochastic Differential Equations,” in International Conference on Learning Representations (ICLR), 2021. "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                63,
+                919,
+                928
+            ]
+        }
+    ],
+    [
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[42] Open X-Embodiment Collaboration, “Open X-Embodiment: Robotic Learning Datasets and RT-X Models,” arXiv:2310.08864, 2023. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[43] R. Rafailov, A. Sharma, E. Mitchell, C. D. Manning, S. Ermon, and C. Finn, “Direct Preference Optimization: Your Language Model is Secretly a Reward Model,” in Advances in Neural Information Processing Systems (NeurIPS), 2023. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[44] P. F. Christiano, J. Leike, T. B. Brown, M. Martic, S. Legg, and D. Amodei, “Deep Reinforcement Learning from Human Preferences,” arXiv:1706.03741, 2017. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[45] B. T. Polyak and A. B. Juditsky, “Acceleration of Stochastic Approximation by Averaging,” SIAM Journal on Control and Optimization, 30(4):838–855, 1992. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[46] T. P. Lillicrap, J. J. Hunt, A. Pritzel, et al., “Continuous Control with Deep Reinforcement Learning,” arXiv:1509.02971, 2015. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[47] S. Fujimoto, H. van Hoof, and D. Meger, “Addressing Function Approximation Error in Actor-Critic Methods,” in Proceedings of the 35th International Conference on Machine Learning (ICML), PMLR 80:1587–1596, 2018. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[48] I. Osband, C. Blundell, A. Pritzel, and B. Van Roy, “Deep Exploration via Bootstrapped DQN,” in Advances in Neural Information Processing Systems (NeurIPS), 2016. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[49] B. Lakshminarayanan, A. Pritzel, and C. Blundell, “Simple and Scalable Predictive Uncertainty Estimation using Deep Ensembles,” in Advances in Neural Information Processing Systems (NeurIPS), 2017. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[50] A. Brohan et al., “RT-1: Robotics Transformer for Real-World Control at Scale,” arXiv:2212.06817, 2022. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[51] A. Brohan et al., “RT-2: Vision-Language-Action Models Transfer Web Knowledge to Robotic Control,” arXiv:2307.15818, 2023. "
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[52] E. Jang, A. Irpan, M. Khansari, D. Kappler, F. Ebert, C. Lynch, S. Levine, and C. Finn, “BC-Z: Zero-Shot Task Generalization with Robotic Imitation Learning,” in CoRL, 2022. "
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                84,
+                66,
+                488,
+                420
+            ]
+        }
+    ]
+]

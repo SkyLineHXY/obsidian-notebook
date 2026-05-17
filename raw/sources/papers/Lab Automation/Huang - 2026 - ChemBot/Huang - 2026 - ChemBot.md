@@ -1,0 +1,391 @@
+# Long-Term Memory for VLA-based Agents in Open-World Task Execution
+
+Xu Huang1, \*, Weixin Mao2, \*, Yinhao Li2, Hua Chen2, †, and Jiabao Zhao1, †
+
+\*Equal Contribution; †Corresponding author
+
+1Nanjing University
+
+2LimX Dynamics
+
+Abstract— Vision-Language-Action (VLA) models have demonstrated significant potential for embodied decisionmaking; however, their application in complex chemical laboratory automation remains restricted by limited longhorizon reasoning and the absence of persistent experience accumulation. Existing frameworks typically treat planning and execution as decoupled processes, often failing to consolidate successful strategies, which results in inefficient trial-and-error in multi-stage protocols. In this paper, we propose ChemBot, a dual-layer, closed-loop framework that integrates an autonomous AI agent with a progress-aware VLA model (Skill-VLA) for hierarchical task decomposition and execution. ChemBot utilizes a dual-layer memory architecture to consolidate successful trajectories into retrievable assets, while a Model Context Protocol (MCP) server facilitates efficient sub-agent and tool orchestration. To address the inherent limitations of VLA models, we further implement a future-state-based asynchronous inference mechanism to mitigate trajectory discontinuities. Extensive experiments on collaborative robots demonstrate that ChemBot achieves superior operational safety, precision, and task success rates compared to existing VLA baselines in complex, long-horizon chemical experimentation.
+
+# I. INTRODUCTION
+
+Embodied AI is revolutionizing scientific discovery by enabling robots to automate hazardous and repetitive laboratory tasks [1], [2], [3], [4], as shown in Fig. 1. However, achieving full autonomy in chemical laboratories remains challenging, as these experiments demand strict adherence to rigid, long-horizon, multi-stage protocols. The core bottleneck lies in grounding abstract natural language instructions into robust action sequences that account for dynamic environmental states. Recently, Vision-Language-Action (VLA) models have emerged as a powerful solution, leveraging the reasoning capabilities of Large Language Models (LLMs) [5], [6] to bridge the gap between linguistic intent and physical execution [7], [8], [9].
+
+Large Language Models (LLMs) have significantly advanced high-level planning for long-horizon robotic tasks [10], [11], [12]. Extensive training equips these models with the ability to follow human instructions and perform complex reasoning [13]. Existing approaches, such as RoboMatrix [14] and RoboChemist [15], represent milestones in skillcentric hierarchical planning and visual-semantic robot control. However, these frameworks often treat planning and execution as decoupled processes, struggling to maintain the rigorous, state-dependent closed-loop reasoning required for complex chemical protocols. Furthermore, they operate in an isolated manner, lacking mechanisms to consolidate successful execution patterns into a persistent, retrievable longterm memory. Consequently, the robot fails to learn from past experiences or accumulate knowledge across different experiments. While AI agents like OpenClaw [16] have demonstrated success in continuous, tool-use-based operation for desktop tasks [17], [18], they fundamentally lack the embodied dexterity and physical grounding necessary to interact with the real-world laboratory environment.
+
+Traditional Manual Experimentation   
+![](images/5db9d170a34f9c8ae0381cc4163e961ea9892eb54329ac671acfe3fb98b57c00.jpg)  
+Chemist
+
+![](images/9d5f3a1f944d8f9ffff7ac5a8963bb4973c594dc9b5dfce66d5ca943e3d6e3fb.jpg)
+
+![](images/c80c84fd48e5e3baaa05fd9be0b9f596fad121de96bbd540915bd467d78aa17a.jpg)  
+Environment   
+Agent-Driven Experimentation   
+Fig. 1. Paradigm Shift from Traditional Manual to Agent-Driven Experimentation via Embodied AI
+
+To address these challenges, we introduce ChemBot, a closed-loop framework integrating an autonomous AI agent with a progress-aware VLA model (Skill-VLA), as illustrated in Fig. 2. Leveraging a Model Context Protocol (MCP) server for tool management, ChemBot features a dual-layer memory architecture: long-term memory to consolidate successful trajectories as retrievable assets, and short-term memory to structure real-time scene perception and task states. For execution, Skill-VLA generates continuous actions while simultaneously monitoring subtask progress. Finally, we implement a future-state-based asynchronous inference mechanism to mitigate trajectory discontinuities, ensuring operational safety and precision in complex chemical environments.
+
+We demonstrate the efficacy of our framework through extensive real world experiments on collaborative robots. The main contributions of this work are summarized as follows:
+
+• ChemBot Framework: An agentic system for laboratory automation that integrates chain-backtracking task decomposition with a dual-layer memory mechanism, enabling robust, long-horizon reasoning.
+
+![](images/18f42bcf975200dde232dbc0b5ca86de4fb6bafb5da849487589219443e2e3c8.jpg)
+
+<details>
+<summary>flowchart</summary>
+
+```mermaid
+graph TD
+    A["User"] --> B["Task"]
+    B --> C["Agent"]
+    C --> D["Short-Term Memory"]
+    D --> E["Long-Term Memory"]
+    E --> F["Agent workflow"]
+    F --> G["Subtask Generator"]
+    G --> H["MCP Servers"]
+    H --> I["Public Providers"]
+    I --> J["VLA"]
+    J --> K["Progress"]
+    K --> L["Skill Bank"]
+    L --> M["Transfer <reagent>"]
+    L --> N["Heat <obj>"]
+    F --> O["Custom Vision Tools"]
+    O --> P["Pick up <vessel>"]
+    O --> Q["Grasp <obj>"]
+```
+</details>
+
+Fig. 2. Architecture of ChemBot, a closed-loop framework for chemical task decomposition and action execution, centered on an AI agent integrating chain-backtracking subtask generation and dual-layer memory mechanisms, with a progress-aware Vision-Language-Action Model for low-level execution.
+
+• Skill-VLA Module: An augmented VLA architecture featuring a progress-prediction head and a continuous inference pipeline, which enables real-time state monitoring and adaptation.   
+• Empirical Performance: ChemBot outperforms VLA baselines in both decomposition and long-horizon execution, achieving a significantly higher overall success rate (SR).
+
+# II. RELATED WORK
+
+LLM-based Embodied Agents. Traditional robotic pipelines relying on hard-coded vision and control modules [19] encounter difficulties in handling edge cases and generalizing across diverse environments. Consequently, large language models serve as high-level planners to decompose complex tasks into executable primitives [20], [21], [22], [10]. To enhance reasoning efficiency, researchers employ search algorithms [21] optimized by world models [23] alongside cognitive prompting strategies for tool utilization [24], problem abstraction [25], and subgoal decomposition [22]. [26] proposed a multi-agent vision-language model framework for zero-shot robotic planning. Furthermore, Being-0 [27] adopts a dual-framework design comprising a foundation model for task planning and a connector combined with a skill library for execution. Ultimately, these components coalesce into comprehensive AI agent systems that integrate interactive planning and self-improving skill libraries [10] to achieve robust physical exploration.
+
+Vision-Language-Action Models. Recent advances in Vision-Language-Action (VLA) models, including RT2 [28], π0.5 [29], and GR00T [8], leverage large-scale pre-training to establish general robot policies [7], [30]. By integrating vision encoders with LLMs, these frameworks execute natural language instructions across diverse tasks and embodiments. To enhance robustness, CLAP [31] incorporates a critic module for closed-loop reasoning, while RoboMatrix [14] employs a skill-centric hierarchical structure for scalable task planning. Despite these strides, most VLAs still lack sophisticated reasoning for complex sequences. We address this by proposing an AI agent-based hierarchical system that enables autonomous planning and execution of chemical experiments.
+
+Autonomous Chemical Systems. Chemical laboratory automation has transitioned from mechanical workstations executing basic operations [1] to autonomous platforms employing machine learning for standardized synthesis and material discovery [2], [3], [4]. The recent integration of large language models and autonomous agents introduces natural language programming and advanced reasoning to chemical research [32]. Systems like Co-scientist [33] and CLARIFY [34] convert human instructions into executable protocols while minimizing hallucinations. Improving physical execution, frameworks including ORGANA [11] and RoboChemist [15] utilize visual language models and task planning to manipulate complex materials safely. Finally, multiagent systems such as ChemAgents [12] distribute literature review, experimental design, and robotic operation across specialized agents, enabling fully autonomous laboratory workflows.
+
+# III. METHOD
+
+Overview. To address the critical demand from “AI for Science” for automated chemistry experiments, we propose a hierarchical embodied intelligence architecture termed “Agent-as-Planner, VLA-as-Skill”. The high-level layer governs global planning: by leveraging the comprehension capabilities of LLMs alongside specialized task-decomposition sub-agents and a dual-tier memory mechanism, it precisely deconstructs complex experimental protocols (the detailed workflow is illustrated in Fig. 3). For low-level execution, unlike small-scale, single-task models such as ACT [35], our VLA module orchestrates a diverse set of motor skills within a unified network guided by natural language instructions. Ultimately, the VLA serves as a vital bridge, translating the logical reasoning of the AI agent into robust physical manipulations in the real world.
+
+# A. Multi-Agent Incremental Task Planning
+
+Scene Describer. Before planning, the agent must establish a precise structural comprehension of the current experimental environment. Therefore, we design the Scene Describer module, which autonomously invokes custom tools to parse the experimental bench image into a structured scene representation, providing a visual grounding foundation for subsequent incremental subtask planning, as shown in Fig. 4. It initially employs Set-of-Mark Prompting [36] to mark and enumerate objects within the image, identifying task-relevant equipment and reagents. The module then schedules visual assistance tools to systematically analyze object properties across multiple dimensions. It evaluates the interaction state of each object, such as container openness and occlusion. It assesses object affordances, including graspability, pourability, and available control mechanisms. The analysis additionally extracts spatial positions, collision constraints, causal connections, operational logic, and physical commonsense among the items.
+
+![](images/2dfd2edafabe5d17ba53450d880676a97b6a28fb6f99aae620fb25388306064b.jpg)
+
+<details>
+<summary>flowchart</summary>
+
+```mermaid
+graph TD
+    A["User"] -->|send user query| B["System"]
+    B -->|perceive| C["Iterative Process of Task Decomposition"]
+    C --> D["SubTask Generator"]
+    D --> E["Memory"]
+    E --> F["Memory"]
+    F --> G["Subtask Generator"]
+    G --> H["Subtask List"]
+    H --> I["Do not run"]
+    I --> J["Continue..."]
+    J --> K["Is the final subtask?"]
+    K --> L["Return subtask list"]
+    L --> M["Request confirmation to run subtasks sequentially"]
+    M --> N["User"]
+    N --> O["System"]
+    O --> P["Scene Describer"]
+    P --> Q["Subject Descriptor"]
+    Q --> R["SubTask Generator"]
+    R --> S["Memory"]
+    S --> T["Memory"]
+    T --> U["Subtask Generator"]
+    U --> V["Subtask List"]
+    V --> W["Document 1: xxx (planned)"]
+    V --> X["Document 2: xxx (planning)"]
+    V --> Y["Document 3: Generating..."]
+    V --> Z["Document 4: Reflecting..."]
+    V --> AA["Document 5: Continue..."]
+    V --> AB["Document 6: Do not run"]
+```
+</details>
+
+Fig. 3. Sequence diagram of iterative task decomposition via multiagent collaboration, illustrating a closed-loop workflow where an agent incrementally generates, validates, and refines subtasks through tool invocation and dual-layer memory retrieval until sequence completion.
+
+![](images/15ea7d5b4dfb51bbaa419e24b85944ee5c35abf8632d935f5b759f1d882a2e27.jpg)
+
+<details>
+<summary>text_image</summary>
+
+Lab equipment photo showing a chemical experiment setup with labeled glassware and a test tube, including a magnified inset of the glassware.
+</details>
+
+Overall Task: To purify crude salt by removing insoluble impurities via dissolution, filtration, and evaporation, and to test for residual soluble impurities using chemical reagents.   
+Current Scene: Lab setup for salt purification.   
+Task-related Items:   
+Item No. Item Name Bounding Box State 1 Alcohol [65, 271, 161, 238] Closed and   
+- Affordance: Has a glass body with a wick and cap; can be lit with a match or lighter to provide heat for evaporation; the cap must be removed before use; currently closed and ready for activation   
+- Relevance Reason: Essential for the evaporation step in crude salt purification. Must be lit before heating the filtrate to obtain pure salt crystals. Its position near the filtration setup suggests it will be used immediately after filtration.   
+Item Relationship: Sequential workflow: dissolve → filter → evaporate → test impurities. All items are spatially organized for efficient handling. No overlapping or obstruction between major tools except potential fire hazard from alcohol lamp near chemicals.
+
+Fig. 4. Structured scene representation generated by the Scene Describer. The module leverages Set-of-Mark prompting to parse raw lab images into a structured memory dashboard, detailing task-related items, their interactable states, affordances, and spatial relationships to provide visual grounding for subsequent task planning.
+
+Subtask Generator. The Subtask Reasoner and Reflector constitute an incremental planning and reflection validation loop. The Subtask Reasoner incorporates the Dashboard into the context, generating a single atomic subtask per iteration. The Reflector subsequently evaluates this subtask for feasibility, rationality, and non-redundancy. A valid subtask is appended to the execution queue, whereas an invalid one is marked for deletion, with feedback propagated back to the Reasoner to trigger backtracking and replanning. This iterative process continues until the Reflector determines that the task sequence is complete.
+
+# B. Dual-Layer Memory Mechanism
+
+Short-Term Working Memory. Considering the capacity limitations and ephemeral storage characteristics of the model context, we propose a structured representation mechanism named Dashboard to maximize information utilization efficiency. This mechanism achieves context compression while dynamically tracking core states such as the experimental phase, current reagents, and pending objectives. The Dashboard operates through the collaboration of three modules. The scene information module serves as a structured representation of the scene generated by the Scene Describer. The tool index module converts massive information generated during tool utilization, such as images and retrieved content, into storage paths for lightweight representation, and it minimizes context window occupation through an ondemand loading strategy. Furthermore, the task state module continuously records the experimental planning progress to provide a macroscopic global perspective for incremental planning. The Dashboard adopts an immediate overwrite strategy where the system directly updates or appends specific field values upon environmental changes or task completion.
+
+Episodic Long-Term Memory. This component persistently preserves historical dialogues between experimenters and agents across distinct sessions. It enables semantic retrieval to leverage past episodic traces for new tasks, thereby facilitating the rapid planning and verification of novel experiments. Additionally, the system periodically extracts operational preference profiles and experimental archives from dialogue records to achieve long-term personalized adaptation.
+
+# C. Progress-Aware VLA
+
+VLA Policy. We adopt GR00T [8] as our base VLA policy (Fig. 5). At environment step t, the model predicts an action chunk $A _ { t } = [ a _ { t } , \dotsc , a _ { t + H - 1 } ]$ , where H is the action chunk size and each element $a _ { i }$ denotes an individual robot action. This prediction is conditioned on context $c = ( O _ { t } , L _ { t } , S _ { t } )$ comprising visual observations, a language instruction, and the robot state. To generate $A _ { t } ,$ , a Diffusion Transformer (DiT) trained via Flow Matching maps Gaussian noise $x _ { 0 } \sim$ $\mathcal { N } ( 0 , I )$ to the target action distribution $x _ { 1 } = A _ { t }$ . Acting as a velocity estimator $v _ { \theta }$ (with parameters θ) conditioned on $c ,$ the DiT is optimized via:
+
+$$
+\mathcal {L} _ {f l o w} = \mathbb {E} _ {\tau , x _ {0}, x _ {1}} \left[ \| v _ {\theta} (x _ {\tau}, \tau , c) - (x _ {1} - x _ {0}) \| ^ {2} \right]
+$$
+
+where $\tau \in [ 0 , 1 ]$ is the flow timestep and $x _ { \tau }$ is the intermediate noisy state. During inference, $A _ { t }$ is generated by iteratively denoising pure noise via standard Euler integration.
+
+![](images/a76fede647dcce9e5649b8ac26e5bb52c58552f98e4d747765e9bf9355e0ef51.jpg)
+
+<details>
+<summary>flowchart</summary>
+
+```mermaid
+graph TD
+    A["Observation, Ot"] --> B["SigLIP"]
+    B --> C["Noise"]
+    C --> D["Denoise"]
+    D --> E["Continuous Robot Actions"]
+    F["Language, Lt"] --> G["Tokenizer"]
+    G --> H["Vision-Language Model"]
+    H --> I["Latent Bus"]
+    I --> J["Action Head (Diffusion Transformer)"]
+    J --> K["Progress Head"]
+    K --> L["Task Progress"]
+    M["State, St"] --> N["MLP"]
+    N --> O["Output"]
+    style A fill:#d4edda,stroke:#333
+    style F fill:#d4edda,stroke:#333
+    style M fill:#d4edda,stroke:#333
+    style D fill:#ffcccc,stroke:#333
+    style J fill:#ffcccc,stroke:#333
+    style K fill:#ffcccc,stroke:#333
+    style L fill:#ffffff,stroke:#333
+```
+</details>
+
+(a) Architecture of Skill-VLA
+
+![](images/f073a5ff8157bb046f7c75a699ab52f307f330eae6c8fdb5d5f344b5fbdb57a9.jpg)
+
+<details>
+<summary>flowchart</summary>
+
+```mermaid
+graph TD
+    A["Robot State, s_t"] --> B["Encoder"]
+    C["VLM Features"] --> D["Multi-Head Cross Attention"]
+    D --> E["Layer Norm"]
+    E --> F["MLP"]
+    F --> G["Sigmoid σ(·)"]
+    G --> H["Groud Truth g_t"]
+    H --> I["MSE Loss"]
+    I --> J["+"]
+    J --> D
+    D --> K["KV"]
+    K --> L["Q"]
+    L --> D
+```
+</details>
+
+(b) Structure of the Progress Head   
+Fig. 5. Detailed network architecture of Skill-VLA. (a) The main VLA model for continuous action generation and subtask progress prediction. The state of the robotic arm and the hidden state of the VLM are provided as inputs to the Action Head and the Progress Head, respectively. (b) Internal structure of the Progress Head, an auxiliary module for the estimation of task progress.
+
+Progress Head. To estimate real-time subtask execution progress, we attach a lightweight neural network module to the VLA policy (Fig. 5b). This module employs a crossattention architecture: the robot state $S _ { t }$ is linearly projected to serve as the query, while the final hidden representations from Eagle VLM (the VLM backbone of GR00T) act as the keys and values. The attention output is fused with the query via a residual connection and Layer Normalization, followed by a two-layer MLP with a Sigmoid activation to yield a continuous progress scalar $p _ { t } \in [ 0 , 1 ]$ .
+
+This head is trained jointly with the VLA policy using a Mean Squared Error (MSE) loss, where ground-truth progress labels are computed as the normalized time-step position within the annotated subtask horizon. During inference, once the predicted progress $p _ { t }$ exceeds a predefined completion threshold, the system signals the AI agent to terminate the current VLA skill and initiate the next subtask. This establishes a closed-loop, autonomous execution cycle without relying on human intervention or fixed time-step switching.
+
+# D. Agent-as-Planner, VLA-as-Skill
+
+Closed-Loop Chemical Manipulation. To achieve seamless interoperability between the high-level planner and the low-level executor, we standardize the inference process of the VLA model into an Application Programming Interface (API) using the Model Context Protocol (MCP), an opensource standard connecting AI applications with external systems. Within this framework, the fine-tuned VLA model is encapsulated as a standardized atomic action tool. The tool receives disambiguated subtask instructions from the AI agent alongside continuous visual observations to drive the robotic arm in executing high-precision operations such as grasping and pouring. It synchronously returns binary execution states and diagnostic logs to facilitate closed-loop visual verification by the agent. The interface also integrates the previously described Progress Head mechanism to provide fine-grained execution state feedback. When the predicted execution progress exceeds a predefined threshold, the system automatically marks the current task as complete and triggers the agent to transition to the subsequent subtask. This dynamic termination mechanism circumvents the rigid reliance on fixed time steps typical of traditional control methods, thereby improving the smoothness and autonomy of long-horizon experimental operations.
+
+# IV. EXPERIMENT
+
+# A. Chemical Task Decomposition
+
+Dataset. Prior works, such as the CLARIFY dataset [34], provide a strong foundation by translating 108 chemical research and development (R&D) protocols into the structured $\chi \mathrm { D I }$ format [37]. We extend this text-based dataset by applying the Back-Instruct method [38] to summarize overarching task objectives as inputs. Furthermore, we extract the requisite equipment and reagents to simulate scene perception, effectively compensating for the lack of visual information in text-only scenarios. To support multimodal inputs, we construct a vision-enhanced dataset using a standardized visual corpus of pedagogical demonstrations from foundational chemistry curricula. Following audio transcript extraction, we employ a collaborative pipeline—combining Vision-Language Model (VLM) assistance with human expert annotation—to structure video keyframes and their corresponding execution steps. Ultimately, this pipeline yields 92 newly curated, high-quality, multimodal-aligned samples that serve as a reliable validation testbed for the AI agent’s perception and reasoning capabilities.
+
+Evaluation Metrics. To evaluate task decomposition, we employ three complementary metrics. First, the ROUGE family [39] (ROUGE-1, ROUGE-2, and ROUGE-L) uses lexical overlap to measure word coverage and sequential logic matching between generated and reference steps. Second, BERTScore [40] calculates cosine similarity via pre-trained contextual embeddings to capture synonym substitutions and sentence-level semantic consistency. Finally, to address the strong sequence dependency of chemical experiments, we propose an improved Levenshtein Distance (Edit Distance) [41]. It integrates step-level semantic alignment $s _ { i j }$ with a positional penalty $\begin{array} { r } { \mathrm { P o s } ( i , j ) = \exp \left( - \frac { 1 } { \sigma } \left| \frac { i } { M - 1 } - \frac { j } { N - 1 } \right| \right) } \end{array}$ to ensure temporal consistency between the generated sequence of length M and the reference sequence of length N. The normalized edit distance is defined as:
+
+$$
+d _ {\mathrm{edit}} = \frac {\sum_ {i = 1} ^ {M} (1 - \tilde {s} _ {i} ^ {*}) + (N - | \mathcal {M} |)}{M}
+$$
+
+where $\tilde { s } _ { i } ^ { * } = s _ { i j } \cdot \mathrm { P o s } ( i , j )$ represents the position-weighted similarity of matched steps, and |M| is the total count of successful matches. This fine-grained quantification of omissions, deviations, and redundancies at the physical execution level successfully overcomes the limitations of traditional text metrics in assessing structural completeness.
+
+Performance Comparison of Base Models. The visual and logical reasoning capabilities of the underlying base models directly determine the granularity and accuracy of chemical task decomposition. To this end, we evaluate three representative VLMs (Qwen3-VL-Flash [42], Qwen3-VL-Plus, and Doubao-1.6 [43]) on complex chemical instructions. As detailed in Table I, our evaluation framework spans three core dimensions: text generation quality (via ROUGE and BERTScore), step-level structural alignment (via our improved Edit Distance), and overall decomposition efficiency. Notably, the elevated execution latency observed for Doubao-1.6 is primarily attributed to cloud-based API response delays and network overhead during the evaluation period. Future work will involve local deployment of these models to obtain more deterministic inference speed metrics.
+
+Ablation Studies. We designed a comprehensive set of ablation experiments (Table II) to systematically isolate the contributions of each core component within ChemBot against the full-pipeline baseline (Setting 1). At the perception and planning level, removing the Scene Describer (Setting 2) eliminates initial visual analysis, demonstrating the necessity of multimodal scene understanding for accurate task initialization. Degrading the SubtaskAgent to a direct generation mode (Setting 3) isolates the impact of explicit chain reasoning on the decomposition accuracy of complex sequential tasks. To evaluate system robustness, eliminating the ReflectorAgent (Setting 4) disables self-correction, quantifying this module’s critical role in preventing cascaded error diffusion. Finally, ablating the dual-layer memory mechanism (Setting 5) validates its efficacy in reducing context overhead and mitigating hallucinations during long-horizon operations.
+
+We present the quantitative ablation results in Table III, detailing the specific impact of each core module on overall task decomposition performance. As demonstrated by the degraded metrics across all variant settings, the complete ChemBot architecture remains indispensable for balancing reasoning accuracy and execution robustness in complex chemical scenarios.
+
+# B. Real-World Evaluation
+
+We deploy the ChemBot system on a single-arm UR3 robotic platform to validate its real-world performance. These physical experiments are systematically designed to evaluate the system across three core dimensions: (1) Accuracy, defined as the success rate in completing precise chemical manipulation tasks; (2) Efficiency, quantified by the overall task execution time; and (3) Versatility, assessing the system’s capability to robustly execute diverse combinations of chemical experimental procedures.
+
+Chemical Manipulation Dataset. We present a multimodal dataset for chemical experiments, collected using a UR3 collaborative robot to support manipulation policy learning in real-world environments. Data is acquired via a teleoperation paradigm utilizing VIVE controllers for precise end-effector pose mapping. Each trajectory comprises synchronized top-down and wrist-mounted video streams, alongside robot states $S _ { t }$ and actions $a _ { t }$ .
+
+To ensure high-quality supervision, we establish rigorous annotation guidelines by decomposing each experiment into predefined semantic subtasks. Annotators segment the topdown videos by recording the start and end frame indices for each subtask; trajectories failing to meet the complete specified sequence or containing execution errors are explicitly excluded from the training set. Within each subtask, finegrained progress labels $p _ { t } \in [ 0 , 1 ]$ are generated via linear interpolation of frame indices. Our dataset encompasses 12 categories of foundational chemical procedures, such as test tube water bath heating and solid powder weighing. This process yields 5,459 expert trajectories (averaging 872.2 frames) and 51,580 atomic action segments, as detailed in Fig. 6.
+
+![](images/a24874760ba0cdada6ea0dc69ead4ca009538864d05c100f2e103b4223e925eb.jpg)
+
+<details>
+<summary>bar_stacked</summary>
+
+| Category                  | Place  | Grasp  | Transfer / Pour | Other | Stir  | Shake | Ignite / Heat | Push |
+| ------------------------- | ------ | ------ | --------------- | ----- | ----- | ----- | ------------- | ---- |
+| Heating to Dissolve       | 2200   | 1300   | 800             | 0     | 500   | 0     | 0             | 700  |
+| Solid Dissolution         | 1400   | 1100   | 1200            | 300   | 200   | 0     | 0             | 0    |
+| Water Bath Heating        | 1800   | 1000   | 500             | 0     | 100   | 0     | 500           | 0    |
+| Acid-base Neutralization  | 800    | 700    | 900             | 500   | 100   | 200   | 0             | 0    |
+| Centrifuge Tube Transfer  | 1200   | 1100   | 700             | 400   | 100   | 300   | 0             | 0    |
+| Reagent Combination       | 1100   | 1100   | 700             | 0     | 100   | 200   | 0             | 0    |
+| Phenolphthalein          | 1100   | 1100   | 600             | 0     | 100   | 200   | 0             | 0    |
+| Solid Weighing           | 50     | 50     | 50              | 500   | 10    | 10    | 1      | 1    |
+| Water Bath Cooling        | 750    | 450    | 350             | 250   | 15    | 15    | 1      | 1    |
+| Test Tube Heating        | 650    | 450    | 350             | 250   | 15    | 15    | 350           | 1    |
+| CuSO₄ + Na-CO₃            | 550    | 650    | 450             | 250   | 15    | 15    | 15            | 1    |
+| Test Tube Shaking         | 450    | 650    | 350             | 250   | 15    | 25    | 15            | 1    |
+</details>
+
+Fig. 6. Action composition of the top 12 chemical experiments. This chart illustrates the quantitative distribution of fine-grained chemical manipulation primitives decomposed from complex expert trajectories to address longhorizon experimental challenges.
+
+Evaluation Metrics. Traditional binary evaluation metrics [9] often fail to capture the granular execution details and
+
+TABLE I
+
+Performance comparison of different base models on chemical experiment task decomposition. Evaluated metrics include normalized edit distance (Edit Dist.), BERTScore (P, R, F1), and ROUGE scores comparing generated task descriptions against ground-truth steps. Efficiency is assessed through total execution time, average time per step, and tool invocation count.
+
+<table><tr><td rowspan="2">Model</td><td rowspan="2">Edit Dist.↓</td><td colspan="3">BERTScore</td><td colspan="3">ROUGE</td><td colspan="3">Efficiency</td></tr><tr><td>P↑</td><td>R↑</td><td>F1↑</td><td>R-1↑</td><td>R-2↑</td><td>R-L↑</td><td>Time (s)↓</td><td>Time/Step↓</td><td>Calls↓</td></tr><tr><td>Qwen3-VL-Flash</td><td>0.766</td><td>0.753</td><td>0.693</td><td>0.694</td><td>0.435</td><td>0.202</td><td>0.324</td><td>98.8</td><td>16</td><td>2.3</td></tr><tr><td>Qwen3-VL-Plus</td><td>0.733</td><td>0.749</td><td>0.789</td><td>0.744</td><td>0.542</td><td>0.366</td><td>0.471</td><td>298.8</td><td>42</td><td>5.3</td></tr><tr><td>Doubao-1.6</td><td>1.364</td><td>0.531</td><td>0.804</td><td>0.606</td><td>0.406</td><td>0.206</td><td>0.327</td><td>960.0</td><td>139</td><td>8.3</td></tr></table>
+
+TABLE II Ablation Settings of Different Modules in the ChemBot (Base Model: Qwen3-VL-Flash) 
+
+<table><tr><td>Setting No.</td><td>Describer</td><td>Subtask (Chain)</td><td>Reflector</td><td>Memory</td></tr><tr><td>1</td><td>√</td><td>√</td><td>√</td><td>√</td></tr><tr><td>2</td><td>✗</td><td>√</td><td>√</td><td>√</td></tr><tr><td>3</td><td>√</td><td>✗</td><td>√</td><td>√</td></tr><tr><td>4</td><td>√</td><td>√</td><td>✗</td><td>√</td></tr><tr><td>5</td><td>√</td><td>√</td><td>√</td><td>✗</td></tr></table>
+
+specific failure nodes inherent in long-horizon chemical tasks. To address this, we introduce a multi-level quantitative scoring mechanism and conduct 16 independent realworld trials for each task. The system assigns points based on a hierarchical success structure: (i) one point for each successful basic action (atomic success); (ii) one point for each completed logical action sequence (subtask success); and (iii) a final point for an error-free, end-to-end workflow (task success). The overall Success Rate (SR) is defined as $S R = ( \sum { S _ { o b s } } / \sum { S _ { m a x } } ) \times 1 0 0 \%$ , where $S _ { o b s }$ denotes the accumulated score and $S _ { m a x }$ is the theoretical maximum.
+
+Experimental Setup. All models are trained on the complete Chemical Manipulation Dataset. Since the fulltrajectory baseline lacks the capability to autonomously maintain the execution sequence, we evaluate it within a 120s window per trial. In contrast, Skill-VLA achieves autonomous closed-loop execution via the progress head, requiring no manual intervention or time limits. For both approaches, the Success Rate (SR) is quantified by the number of successfully completed subtasks as verified by human experts.
+
+We evaluate this mechanism across three representative chemical experiments. The 11-step Precipitation task involves unsealing reagent bottles and transferring acid/base solutions via graduated cylinders into a flask for agitation. The 7-step Heat and Dissolution task requires precise manipulation of an alcohol lamp to facilitate the water bath heating of a test tube. Finally, the 6-step Neutralization task entails the controlled mixing of sodium carbonate and copper sulfate from separate test tubes.
+
+Implementation Details. We fine-tune the skill-VLA policy, which integrates the GR00T architecture with the proposed progress head, on our Chemical Manipulation Dataset. The training process spans 40,000 steps per task across eight NVIDIA A100 GPUs. We configure the action horizon to 50 and set the loss weight for the progress head to 0.1. All inference experiments are conducted on a mobile workstation equipped with an NVIDIA RTX 5090 GPU.
+
+![](images/811db455e3800ddafc0191e622e55719cf3e520fd316985bd851f2106f6e10a7.jpg)
+
+<details>
+<summary>line</summary>
+
+| Time step | Progress |
+| --------- | -------- |
+| 0         | 0.0      |
+| 38        | 0.5      |
+| 76        | 0.5      |
+| 114       | 0.5      |
+| 152       | 1.0      |
+</details>
+
+Fig. 7. A visualization of the predicted task progress for opening a widemouth bottle.
+
+![](images/f8a3a24e9835fa843fc13380298bba51ccaa163337cf084c52fed791b212e1f7.jpg)
+
+<details>
+<summary>bar</summary>
+
+| Category          | GR00T(full) | π₀.₅(full) | Skill-VLA(subtask) |
+| ----------------- | ----------- | ---------- | ------------------ |
+| Precipitation     | 0.26        | 0.16       | 0.72               |
+| Heat & Dissolution| 0.18        | 0.23       | 0.54               |
+| Neutralization    | 0.21        | 0.32       | 0.54               |
+</details>
+
+Fig. 8. Bar chart of success rates for three chemistry tasks (error bars show 68% Wilson score intervals). Skill-VLA with subtask-level training outperforms the full-trajectory baselines (π0.5, GR00T) across all tasks, validating its advantage in long-horizon tasks.
+
+Results. The results in Fig. 8 demonstrate that our complete strategy of integrating subtask decomposition with progress prediction (shown in Fig. 7) achieves significantly higher success rates across all evaluated tasks compared to alternative baselines. The baseline using full trajectories suffers severely from distribution shifts over long horizons and compounding errors. It frequently drifts from the intended trajectory during the intermediate and terminal stages of the tasks, which yields the lowest overall performance. Constrained by the memoryless nature of standard VLA models, this baseline is incapable of implicitly tracking task progress. For instance, given largely identical inputs, repetitive grasping and releasing actions frequently occur, causing the system to skip intermediate steps. In contrast, the incorporation of progress prediction empowers the system to dynamically assess subtask completion in real time utilizing multimodal features, thereby effectively eliminating the reliance on fixed execution steps. Ultimately, this autonomous closed loop of planning, execution, and perception substantially mitigates the inherent deficiencies in basic execution.
+
+TABLE III Ablation Study of Different Modules in ChemBot (Base Model: Qwen3-VL-Flash) 
+
+<table><tr><td rowspan="2">Model Variant</td><td rowspan="2">Edit Dist.↓</td><td colspan="3">BERTScore</td><td colspan="3">ROUGE Score</td><td rowspan="2">Time (s)↓</td><td rowspan="2">Token Length↓</td></tr><tr><td>P↑</td><td>R↑</td><td>F1↑</td><td>R-1↑</td><td>R-2↑</td><td>R-L↑</td></tr><tr><td>Full Model</td><td>0.766</td><td>0.753</td><td>0.693</td><td>0.694</td><td>0.435</td><td>0.202</td><td>0.324</td><td>98.8</td><td>22401</td></tr><tr><td>w/o SceneDescriber</td><td>0.915</td><td>0.680</td><td>0.510</td><td>0.556</td><td>0.365</td><td>0.143</td><td>0.268</td><td>63.6</td><td>19945</td></tr><tr><td>w/o Subtask Chain</td><td>1.195</td><td>0.573</td><td>0.825</td><td>0.646</td><td>0.412</td><td>0.201</td><td>0.301</td><td>43.1</td><td>21417</td></tr><tr><td>w/o Reflector</td><td>0.881</td><td>0.679</td><td>0.721</td><td>0.671</td><td>0.446</td><td>0.219</td><td>0.332</td><td>48.6</td><td>11686</td></tr><tr><td>w/o Memory</td><td>0.791</td><td>0.748</td><td>0.643</td><td>0.657</td><td>0.448</td><td>0.214</td><td>0.325</td><td>99.1</td><td>28064</td></tr></table>
+
+# C. Asynchronous Continuous Inference
+
+Asynchronous Inference. To prevent hazardous control pauses and potential chemical spills, we decouple model inference from the control loop to enable asynchronous execution. Given an inference delay $d ,$ an execution horizon $s ,$ and an action horizon H $( d \leq s < H )$ , a cycle initiated at step t concludes at $t + d ,$ where we proactively truncate the first d expired actions from the new sequence $A _ { n e w }$ and overwrite the remaining unexecuted portion of $A _ { o l d }$ . To mitigate trajectory jumps during this latency, we employ Training-time RTC [44] by fixing the flow matching timestep to 1.0 for the initial $d$ actions, effectively masking the prefix and focusing denoising optimization on the sequence suffix. Building upon this, we incorporate the predicted future state $s _ { t + d }$ as the boundary constraint and decision anchor instead of the current state $s _ { t } .$ , ensuring that generated actions align precisely with the robot’s physical configuration at the moment of execution to maintain spatial continuity and smooth asynchronous control.
+
+As illustrated in Fig. 9, the optimized trajectories exhibit substantially greater smoothness compared to those of the baseline. In real-world deployments, such characteristics effectively reduce end-effector jitter and enable continuous motion execution with minimal fluctuations.
+
+# V. CONCLUSIONS
+
+This paper presented ChemBot, a hierarchical framework that decouples high-level reasoning from low-level execution to advance autonomous chemical experimentation. By integrating MCP-based skill encapsulation, a progress-aware inference pipeline, and asynchronous closed-loop control, ChemBot achieves superior robustness compared to endto-end VLA systems. Despite these advancements, limitations persist regarding LLM-driven planning reliability, visual perception of transparent laboratory glassware, and generalization across novel scenes. Future work will address these constraints by scaling to cross-device manipulation and enhancing agentic reasoning, ultimately aiming to realize fully autonomous scientific assistants capable of end-to-end experiment orchestration and analysis.
+
+![](images/6c6c90d77f180123a6f057318ffdfd8d5c0b726262ba41eac5bd36d072317bd3.jpg)  
+Fig. 9. Comparison of motion trajectories for Joint 4 of the UR robot between synchronous and asynchronous inference. Asynchronous inference results in smoother trajectories and reduced execution time.
+
+# REFERENCES
+
+[1] R. Jiang, W. Lin, S. Wen, F. Zhu, T. Luan, and G. Ouyang, “Development of a full automation solid phase microextraction method for investigating the partition coefficient of organic pollutant in complex sample,” Journal of Chromatography A, vol. 1406, pp. 27–33, 2015.   
+[2] S. Steiner, J. Wolf, S. Glatzel, A. Andreou, J. M. Granda, G. Keenan, T. Hinkley, G. Aragon-Camarasa, P. J. Kitson, D. Angelone et al., “Organic synthesis in a modular robotic system driven by a chemical programming language,” Science, vol. 363, no. 6423, p. eaav2211, 2019.   
+[3] B. Burger, P. M. Maffettone, V. V. Gusev, C. M. Aitchison, Y. Bai, X. Wang, X. Li, B. M. Alston, B. Li, R. Clowes et al., “A mobile robotic chemist,” Nature, vol. 583, no. 7815, pp. 237–241, 2020.   
+[4] Q. Zhu, F. Zhang, Y. Huang, H. Xiao, L. Zhao, X. Zhang, T. Song, X. Tang, X. Li, G. He et al., “An all-round ai-chemist with a scientific mind,” National Science Review, vol. 9, no. 10, p. nwac190, 2022.   
+[5] G. R. Team, S. Abeyruwan, J. Ainslie, J.-B. Alayrac, M. G. Arenas, T. Armstrong, A. Balakrishna, R. Baruch, M. Bauza, M. Blokzijl et al., “Gemini robotics: Bringing ai into the physical world,” arXiv preprint arXiv:2503.20020, 2025.   
+[6] J. Achiam, S. Adler, S. Agarwal, L. Ahmad, I. Akkaya, F. L. Aleman, D. Almeida, J. Altenschmidt, S. Altman, S. Anadkat et al., “Gpt-4 technical report,” arXiv preprint arXiv:2303.08774, 2023.   
+[7] K. Black, N. Brown, D. Driess, A. Esmail, M. Equi, C. Finn, N. Fusai, L. Groom, K. Hausman, B. Ichter, S. Jakubczak, T. Jones, L. Ke, S. Levine, A. Li-Bell, M. Mothukuri, S. Nair, K. Pertsch, L. X. Shi,
+
+J. Tanner, Q. Vuong, A. Walling, H. Wang, and U. Zhilinsky, “π0: A vision-language-action flow model for general robot control,” 2024.   
+[8] NVIDIA, J. Bjorck, N. C. Fernando Castaneda, X. Da, R. Ding, L. J. ˜ Fan, Y. Fang, D. Fox, F. Hu, S. Huang, J. Jang, Z. Jiang, J. Kautz, K. Kundalia, L. Lao, Z. Li, Z. Lin, K. Lin, G. Liu, E. Llontop, L. Magne, A. Mandlekar, A. Narayan, S. Nasiriany, S. Reed, Y. L. Tan, G. Wang, Z. Wang, J. Wang, Q. Wang, J. Xiang, Y. Xie, Y. Xu, Z. Xu, S. Ye, Z. Yu, A. Zhang, H. Zhang, Y. Zhao, R. Zheng, and Y. Zhu, “GR00T N1: An open foundation model for generalist humanoid robots,” in ArXiv Preprint, March 2025.   
+[9] M. Shukor, D. Aubakirova, F. Capuano, P. Kooijmans, S. Palma, A. Zouitine, M. Aractingi, C. Pascal, M. Russi, A. Marafioti et al., “Smolvla: A vision-language-action model for affordable and efficient robotics,” arXiv preprint arXiv:2506.01844, 2025.   
+[10] G. Wang, Y. Xie, Y. Jiang, A. Mandlekar, C. Xiao, Y. Zhu, L. Fan, and A. Anandkumar, “Voyager: An open-ended embodied agent with large language models,” arXiv preprint arXiv:2305.16291, 2023.   
+[11] K. Darvish, M. Skreta, Y. Zhao, N. Yoshikawa, S. Som, M. Bogdanovic, Y. Cao, H. Hao, H. Xu, A. Aspuru-Guzik et al., “Organa: A robotic assistant for automated chemistry experimentation and characterization,” Matter, vol. 8, no. 2, 2025.   
+[12] T. Song, M. Luo, X. Zhang, L. Chen, Y. Huang, J. Cao, Q. Zhu, D. Liu, B. Zhang, G. Zou et al., “A multiagent-driven robotic ai chemist enabling autonomous chemical research on demand,” Journal of the American Chemical Society, vol. 147, no. 15, pp. 12 534–12 545, 2025.   
+[13] D. Guo, D. Yang, H. Zhang, J. Song, P. Wang, Q. Zhu, R. Xu, R. Zhang, S. Ma, X. Bi et al., “Deepseek-r1: Incentivizing reasoning capability in llms via reinforcement learning,” arXiv preprint arXiv:2501.12948, 2025.   
+[14] W. Mao, W. Zhong, Z. Jiang, D. Fang, Z. Zhang, Z. Lan, H. Li, F. Jia, T. Wang, H. Fan et al., “Robomatrix: A skill-centric hierarchical framework for scalable robot task planning and execution in openworld,” arXiv preprint arXiv:2412.00171, 2024.   
+[15] Z. Zhang, C. Yue, H. Xu, M. Liao, X. Qi, H. Gao, Z. Wang, and H. Zhao, “Robochemist: Long-horizon and safety-compliant robotic chemical experimentation,” CoRR, vol. abs/2509.08820, 2025. [Online]. Available: https://doi.org/10.48550/arXiv.2509.08820   
+[16] P. Steinberger and OpenClaw Contributors, “Openclaw: Your own personal AI assistant,” GitHub repository, 2026, version 2026.3.1. Accessed: 2026-03-02. [Online]. Available: https://github.com/openclaw/openclaw   
+[17] W. Tan, W. Zhang, X. Xu, H. Xia, Z. Ding, B. Li, B. Zhou, J. Yue, J. Jiang, Y. Li et al., “Cradle: Empowering foundation agents towards general computer control,” arXiv preprint arXiv:2403.03186, 2024.   
+[18] C. Zhang, H. Huang, C. Ni, J. Mu, S. Qin, S. He, L. Wang, F. Yang, P. Zhao, C. Du et al., “Ufo2: The desktop agentos,” arXiv preprint arXiv:2504.14603, 2025.   
+[19] H.-S. Fang, C. Wang, H. Fang, M. Gou, J. Liu, H. Yan, W. Liu, Y. Xie, and C. Lu, “Anygrasp: Robust and efficient grasp perception in spatial and temporal domains,” IEEE Transactions on Robotics, vol. 39, no. 5, pp. 3929–3945, 2023.   
+[20] A. Brohan, Y. Chebotar, C. Finn, K. Hausman, A. Herzog, D. Ho, J. Ibarz, A. Irpan, E. Jang, R. Julian et al., “Do as i can, not as i say: Grounding language in robotic affordances,” in Conference on robot learning. PMLR, 2023, pp. 287–318.   
+[21] A. Zhou, K. Yan, M. Shlapentokh-Rothman, H. Wang, and Y.-X. Wang, “Language agent tree search unifies reasoning acting and planning in language models,” 2023.   
+[22] X. Zhu, Y. Chen, H. Tian, C. Tao, W. Su, C. Yang, G. Huang, B. Li, L. Lu, X. Wang et al., “Ghost in the minecraft: Generally capable agents for open-world environments via large language models with text-based knowledge and memory,” arXiv preprint arXiv:2305.17144, 2023.   
+[23] S. Hao, Y. Gu, H. Ma, J. Hong, Z. Wang, D. Wang, and Z. Hu, “Reasoning with language model is planning with world model,” in Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing, 2023, pp. 8154–8173.   
+[24] M. Xu, P. Huang, W. Yu, S. Liu, X. Zhang, Y. Niu, T. Zhang, F. Xia, J. Tan, and D. Zhao, “Creative robot tool use with large language models,” arXiv preprint arXiv:2310.13065, 2023.   
+[25] H. S. Zheng, S. Mishra, X. Chen, H.-T. Cheng, E. H. Chi, Q. V. Le, and D. Zhou, “Take a step back: Evoking reasoning via abstraction in large language models,” in International Conference on Learning
+
+Representations, B. Kim, Y. Yue, S. Chaudhuri, K. Fragkiadaki, M. Khan, and Y. Sun, Eds., vol. 2024, 2024, pp. 20 279–20 316.   
+[26] Z. Wang, R. Shen, and B. Stadie, “Wonderful team: Zero-shot physical task planning with visual llms,” arXiv preprint arXiv:2407.19094, 2024.   
+[27] H. Yuan, Y. Bai, Y. Fu, B. Zhou, Y. Feng, X. Xu, Y. Zhan, B. F. Karlsson, and Z. Lu, “Being-0: A humanoid robotic agent with vision-language models and modular skills,” arXiv preprint arXiv:2503.12533, 2025.   
+[28] B. Zitkovich, T. Yu, S. Xu, P. Xu, T. Xiao, F. Xia, J. Wu, P. Wohlhart, S. Welker, A. Wahid et al., “Rt-2: Vision-language-action models transfer web knowledge to robotic control,” in Conference on Robot Learning. PMLR, 2023, pp. 2165–2183.   
+[29] P. Intelligence, K. Black, N. Brown, J. Darpinian, K. Dhabalia, D. Driess, A. Esmail, M. Equi, C. Finn, N. Fusai et al., “π0.5: a vision-language-action model with open-world generalization,” arXiv preprint arXiv:2504.16054, 2025.   
+[30] M. J. Kim, K. Pertsch, S. Karamcheti, T. Xiao, A. Balakrishna, S. Nair, R. Rafailov, E. P. Foster, P. R. Sanketi, Q. Vuong, T. Kollar, B. Burchfiel, R. Tedrake, D. Sadigh, S. Levine, P. Liang, and C. Finn, “Openvla: An open-source visionlanguage-action model,” in Proceedings of The 8th Conference on Robot Learning, ser. Proceedings of Machine Learning Research, P. Agrawal, O. Kroemer, and W. Burgard, Eds., vol. 270. PMLR, 06–09 Nov 2025, pp. 2679–2713. [Online]. Available: https://proceedings.mlr.press/v270/kim25c.html   
+[31] M. Li, Y. Dong, Y. Zhou, and C. Yang, “Clap: A closed-loop diffusion transformer action foundation model for robotic manipulation,” in 2025 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). IEEE, 2025, pp. 9808–9815.   
+[32] M. C. Ramos, C. J. Collison, and A. D. White, “A review of large language models and autonomous agents in chemistry,” Chemical science, 2025.   
+[33] D. A. Boiko, R. MacKnight, B. Kline, and G. Gomes, “Autonomous chemical research with large language models,” Nature, vol. 624, no. 7992, pp. 570–578, 2023.   
+[34] N. Yoshikawa, M. Skreta, K. Darvish, S. Arellano-Rubach, Z. Ji, L. Bjørn Kristensen, A. Z. Li, Y. Zhao, H. Xu, A. Kuramshin et al., “Large language models for chemistry robotics,” Autonomous Robots, vol. 47, no. 8, pp. 1057–1086, 2023.   
+[35] T. Z. Zhao, V. Kumar, S. Levine, and C. Finn, “Learning fine-grained bimanual manipulation with low-cost hardware,” arXiv preprint arXiv:2304.13705, 2023.   
+[36] J. Yang, H. Zhang, F. Li, X. Zou, C. Li, and J. Gao, “Set-of-mark prompting unleashes extraordinary visual grounding in gpt-4v,” arXiv preprint arXiv:2310.11441, 2023.   
+[37] S. H. M. Mehr, M. Craven, A. I. Leonov, G. Keenan, and L. Cronin, “A universal system for digitization and automatic execution of the chemical synthesis literature,” Science, vol. 370, no. 6512, pp. 101– 108, 2020.   
+[38] E. Slaughter, W. Wu, Y. Fu, L. Brandenburg, N. Garcia, W. Kautz, E. Marx, K. S. Morris, Q. Cao, G. Bosilca et al., “Task bench: A parameterized benchmark for evaluating parallel runtime performance,” in SC20: International Conference for High Performance Computing, Networking, Storage and Analysis. IEEE, 2020, pp. 1–15.   
+[39] C.-Y. Lin, “Rouge: A package for automatic evaluation of summaries,” in Text summarization branches out, 2004, pp. 74–81.   
+[40] T. Zhang, V. Kishore, F. Wu, K. Q. Weinberger, and Y. Artzi, “Bertscore: Evaluating text generation with bert,” arXiv preprint arXiv:1904.09675, 2019.   
+[41] L. Yujian and L. Bo, “A normalized levenshtein distance metric,” IEEE transactions on pattern analysis and machine intelligence, vol. 29, no. 6, pp. 1091–1095, 2007.   
+[42] A. Yang, A. Li, B. Yang, B. Zhang, B. Hui, B. Zheng, B. Yu, C. Gao, C. Huang, C. Lv et al., “Qwen3 technical report,” arXiv preprint arXiv:2505.09388, 2025.   
+[43] ByteDance, “Doubao-1.6 large language model,” 2025, accessed: 2026-03-04. [Online]. Available: https://www.volcengine.com/product/doubao   
+[44] K. Black, A. Z. Ren, M. Equi, and S. Levine, “Training-time action conditioning for efficient real-time chunking,” arXiv preprint arXiv:2512.05964, 2025.

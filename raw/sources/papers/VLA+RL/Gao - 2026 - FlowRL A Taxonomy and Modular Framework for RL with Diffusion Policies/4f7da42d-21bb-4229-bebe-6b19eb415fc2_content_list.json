@@ -1,0 +1,2308 @@
+[
+    {
+        "type": "text",
+        "text": "FLOWRL: A Taxonomy and Modular Framework for Reinforcement Learning with Diffusion Policies ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            108,
+            825,
+            160
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Chenxiao Gao1, Edward Chen1, Tianyi Chen1, Bo Dai1 ",
+        "bbox": [
+            174,
+            184,
+            633,
+            202
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "{cgao,echen324,tchen667,bodai@gatech.edu} ",
+        "bbox": [
+            174,
+            204,
+            575,
+            219
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "1Georgia Institute of Technology ",
+        "bbox": [
+            173,
+            234,
+            403,
+            251
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Abstract ",
+        "text_level": 1,
+        "bbox": [
+            459,
+            296,
+            537,
+            313
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Thanks to their remarkable flexibility, diffusion models and flow models have emerged as promising candidates for policy representation. However, efficient reinforcement learning (RL) upon these policies remains a challenge due to the lack of explicit logprobabilities for vanilla policy gradient estimators. While numerous attempts have been proposed to address this, the field lacks a unified perspective to reconcile these seemingly disparate methods, thus hampering ongoing development. In this paper, we bridge this gap by introducing a comprehensive taxonomy for RL algorithms with diffusion/flow policies. To support reproducibility and agile prototyping, we introduce a modular, JAX-based open-source codebase that leverages JIT-compilation for high-throughput training. Finally, we provide systematic and standardized benchmarks across Gym-Locomotion, DeepMind Control Suite, and IsaacLab, offering a rigorous side-by-side comparison of diffusion-based methods and guidance for practitioners to choose proper algorithms based on the application. Our work establishes a clear foundation for understanding and algorithm design, a high-efficiency toolkit for future research in the field, and an algorithmic guideline for practitioners in generative models and robotics. Our code is available at https://github.com/typoverflow/flow-rl. ",
+        "bbox": [
+            210,
+            325,
+            785,
+            566
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "1 Introduction ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            599,
+            313,
+            616
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Deep Reinforcement Learning (RL) has traditionally relied on simple distributions (Haarnoja et al., 2018; Fujimoto et al., 2018; Christodoulou, 2019), such as the diagonal Gaussian distribution or Dirac delta distribution for policy parameterization. The appeal of such simple distributions lies in their mathematical convenience: they permit easy log-probability computation, rapid sampling, and tractable reparameterization, making them compatible with various optimization paradigms. Despite these computational benefits, simple distributions often fail to capture complex and multi-modal action distributions encountered in high-dimensional control (Wang et al., 2022; Hansen-Estruch et al., 2023; Chen et al., 2022). This limitation becomes increasingly evident in recent work, when more efforts are dedicated to training generalist policies that are capable of capturing diverse human behaviors (Black et al., 2024; Kim et al., 2024). ",
+        "bbox": [
+            169,
+            633,
+            826,
+            785
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Recently, diffusion models (DMs) (Ho et al., 2020; Song et al., 2020) and flow models (FMs) (Albergo et al., 2025; Lipman et al., 2022) have emerged as powerful alternatives for policy representation (Wang et al., 2022; Chen et al., 2022). They both employ an iterative sampling process and therefore offer greater flexibility in distribution modeling. However, integrating DMs and FMs into the RL optimization loop is non-trivial. Traditional RL workflows rely on policy gradient (Schulman et al., 2017; 2015) or the reparameterization trick (Fujimoto et al., 2018), both of which are notoriously difficult for DMs and FMs (Song et al., 2020). While in RL, the target action distribution is typically defined implicitly through the utilities measured by value functions or return functions (Haarnoja et al., 2017; Peng et al., 2019), from which direct samples are not available (Pan et al., 2024), making vanilla diffusion/flow model training losses intractable. ",
+        "bbox": [
+            169,
+            791,
+            826,
+            914
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "aside_text",
+        "text": "arXiv:2603.27450v1 [cs.LG] 29 Mar 2026 ",
+        "bbox": [
+            22,
+            273,
+            60,
+            724
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "page_number",
+        "text": "1 ",
+        "bbox": [
+            493,
+            936,
+            504,
+            948
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            169,
+            92,
+            823,
+            122
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "To address these challenges, recent literature has proposed various solutions for diffusion policybased Reinforcement Learning (DPRL). Existing methods span disparate scenarios, including offline (Wang et al., 2022; Fang et al., 2024; Gao et al., 2025), online (Psenka et al., 2024; Wang et al., 2024; Ma et al., 2025), and offline-to-online RL (Huang et al., 2025). Besides, they often involve confounding factors such as differences in noise schedules (Chen, 2023), network architectures (Hansen-Estruch et al., 2023; Celik et al., 2025; Nauman et al., 2024; Lee et al., 2024), and evaluation protocols. These discrepancies make it difficult to isolate the true drivers of the algorithmic performance. ",
+        "bbox": [
+            169,
+            128,
+            826,
+            251
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Therefore, in this paper, we aim to systematize the landscape of DPRL, providing a unified perspective to study these methods. Specifically, our contributions are threefold: ",
+        "bbox": [
+            169,
+            258,
+            823,
+            289
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "1) We summarize and categorize modern DPRL algorithms based on their guidance mechanism and choice of reference policy. This taxonomy allows us to study these methods from first principles and expose the underlying mathematical relationships between them. ",
+            "2) Leveraging JIT-compilation provided by JAX (Bradbury et al., 2018) and its ecosystem (Deep-Mind et al., 2020; Heek et al., 2024), we provide a modular, open-source codebase for representative DPRL algorithms with high-throughput training and inference. Furthermore, the library’s modular design allows researchers to swap environments and algorithmic components with minimal effort, significantly reducing the migration cost and barrier for RL research. ",
+            "3) Based on our systematic taxonomy and high-performance algorithm library, we conduct a largescale comparative study of DPRL algorithms across three diverse continuous control suites: Gym-Locomotion, DeepMind Control (DMC), and IsaacLab. Our results establish rigorous baselines and provide practitioners with actionable insights tailored to specific application requirements. "
+        ],
+        "bbox": [
+            169,
+            296,
+            823,
+            492
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Comparison to existing surveys. Several surveys examine diffusion models in RL from different angles. Zhu et al. (2023) and Xu et al. (2025) provide broad taxonomies of diffusion roles (planners, synthesizers, policies) but lack a deep dive into the underlying policy optimization process. Wolf et al. (2025) and Li et al. (2025) shift the focus on specific applications like robotics and broader decision-making tasks. The closest work to ours is Choi et al. (2026), which reviews online diffusion policy algorithms. However, their categorization focuses only on guidance mechanisms, whereas we additionally investigate DPRL methods with different regularization objectives, thereby providing a more comprehensive overview of DPRL across different settings. ",
+        "bbox": [
+            169,
+            500,
+            826,
+            619
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "2 Background ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            645,
+            308,
+            662
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Reinforcement Learning is based on the framework of Markov Decision Process (MDP) $\\langle S , A , T , R , \\gamma , d _ { 0 } \\rangle$ (Sutton et al., 1998), where S is the state space, A is the action space, $T ( s ^ { \\prime } | s , a )$ denotes the transition function, $R ( s , a )$ is a bounded reward function, γ is the discount factor and $d _ { 0 } ( s _ { 0 } )$ denotes the initial state distribution. The agent aims to learn a policy $\\pi : { \\mathcal { S } }  \\Delta ( { \\mathcal { A } } )$ to maximize the expected discounted return $\\textstyle \\mathbb { E } _ { \\pi } [ \\sum _ { t = 0 } ^ { \\infty ^ { - } } \\gamma ^ { t } R ( s _ { t } , a _ { t } ) ]$ . In online RL, the agent can interact with the environment to gather experiences for policy optimization, while in offline RL, the agent is provided with an offline dataset $\\boldsymbol { \\mathcal { D } } = \\{ ( s _ { t } , a _ { t } , s _ { t + 1 } , r _ { t } ) \\}$ , where $s _ { t + 1 } \\sim T ( \\cdot | s _ { t } , a _ { t } )$ and $r _ { t } = R ( s _ { t } , a _ { t } ) \\in \\mathbb { R }$ . We define the value functions as the expected reward of executing a certain policy π: ",
+        "bbox": [
+            169,
+            681,
+            826,
+            816
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "equation",
+        "text": "$$\nQ ^ {\\pi} (s, a) = \\mathbb {E} _ {\\pi} \\left[ \\sum_ {t = 0} ^ {\\infty} \\gamma^ {t} r _ {t} | s _ {0} = s, a _ {0} = a \\right], V ^ {\\pi} (s) = \\mathbb {E} _ {\\pi} \\left[ \\sum_ {t = 0} ^ {\\infty} \\gamma^ {t} r _ {t} | s _ {0} = s \\right], \\tag {1}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            236,
+            832,
+            823,
+            851
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "which satisfy the Bellman equation ",
+        "bbox": [
+            171,
+            866,
+            406,
+            881
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "equation",
+        "text": "$$\nQ ^ {\\pi} (s, a) = R (s, a) + \\gamma \\mathbb {E} _ {s ^ {\\prime} \\sim T} \\left[ V (s ^ {\\prime}) \\right]. \\tag {2}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            366,
+            897,
+            823,
+            914
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "page_number",
+        "text": "2 ",
+        "bbox": [
+            493,
+            936,
+            504,
+            948
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "With value functions defined, we can define the policy optimization objective (Wu et al., 2019; Geist et al., 2019): ",
+        "bbox": [
+            169,
+            92,
+            823,
+            121
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\max _ {\\pi \\in \\Pi} \\mathbb {E} _ {\\pi} [ Q ^ {\\pi} (s, a) ] - \\lambda D _ {\\mathrm{KL}} (\\pi \\| \\nu), \\tag {3}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            379,
+            122,
+            823,
+            143
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "where $D _ { \\mathrm { K L } } ( \\pi \\Vert \\nu )$ is introduced to shape the behavior of the final policy. The optimal solution to (3) can be obtained by the KKT conditions, i.e., ",
+        "bbox": [
+            169,
+            151,
+            823,
+            181
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\pi^ {*} (a | s) \\propto \\nu (a | s) \\exp (Q (s, a) / \\lambda). \\tag {4}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            380,
+            194,
+            825,
+            212
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Existing RL algorithms can be roughly categorized based on how the gradient is computed: 1), Policy Gradient methods (Sutton et al., 1999; Schulman et al., 2015; 2017), which uses the reinforce trick to derive the gradient of (3) as $\\begin{array} { r l } { \\nabla _ { \\theta } \\left( \\mathbb { E } _ { \\pi _ { \\theta } } \\left[ Q ( s , a ) \\right] - \\lambda D ( \\pi _ { \\theta } \\| \\nu ) \\right) } & { = } \\end{array}$ ${ \\mathbb E } _ { \\pi _ { \\theta } } [ Q ( s , a ) \\nabla _ { \\theta }$ log $\\pi _ { \\boldsymbol { \\theta } } ( a | s ) ] - \\lambda \\nabla _ { \\boldsymbol { \\theta } } D ( \\pi _ { \\boldsymbol { \\theta } } \\| \\nu )$ , and 2) Reparameterization-based methods (Fujimoto et al., 2018; Haarnoja et al., 2018), which keeps the gradients through sampling and computes the gradients as $\\mathbb { E } _ { \\pi _ { \\theta } } [ \\nabla _ { a _ { \\theta } } Q ( s , a _ { \\theta } ) \\nabla _ { \\theta } a _ { \\theta } ] - \\lambda \\nabla _ { \\theta } D ( \\pi _ { \\theta } \\| \\nu )$ . ",
+        "bbox": [
+            169,
+            231,
+            823,
+            323
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Diffusion Models (DMs) and Flow Models (FMs) approximate data distributions by gradually perturbing clean data $x ^ { 0 } \\sim q _ { 0 } = p _ { \\mathrm { d a t a } }$ with isotropic Gaussian noise according to a forward process (Song et al., 2020; Albergo et al., 2025): ",
+        "bbox": [
+            169,
+            329,
+            823,
+            375
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "text": "$$\nx ^ {(t)} = \\alpha_ {t} x ^ {(0)} + \\sigma_ {t} \\epsilon , \\quad \\epsilon \\sim \\mathcal {N} (0, I), \\tag {5}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            374,
+            385,
+            823,
+            404
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "which emits the condition distribution $q _ { t | 0 } ( x ^ { ( t ) } | x ^ { ( 0 ) } ) = \\mathcal { N } ( x ^ { ( t ) } ; \\alpha _ { t } x ^ { ( 0 ) } , \\sigma _ { t } ^ { 2 } )$ . It then learns the score function $s _ { \\theta } ( x ^ { ( t ) } , t )$ or velocity function $v _ { \\theta } ( x ^ { ( t ) } , t )$ to reverse this process to sample from the target distribution $p _ { \\mathrm { d a t a } }$ . Since DMs and FMs mainly differ in the noise schedules $\\left( \\alpha _ { t } , \\sigma _ { t } \\right)$ and their network predictions $s _ { t }$ and $v _ { t }$ can be reparameterized interchangeably (Li & He, 2025; Lu & Song, 2024), we will discuss with DMs for simplicity, but we emphasize the proposed taxonomy can also be applicable to FMs. The target for the score function is to match the marginal score field, ",
+        "bbox": [
+            169,
+            415,
+            825,
+            508
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "text": "$$\ns _ {t} \\left(x ^ {(t)}\\right) = \\mathbb {E} _ {x ^ {(0)} \\sim p _ {0 | t} (\\cdot | x ^ {(t)})} \\left[ s _ {t | 0} \\left(x ^ {(t)} \\mid x ^ {(0)}\\right) \\right], \\tag {6}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            341,
+            518,
+            825,
+            546
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "where $p _ { 0 \\mid t }$ is the posterior distribution defined via Bayes’ theorem as $\\begin{array} { r l } { p _ { 0 | t } ( x ^ { ( 0 ) } | x ^ { ( t ) } ) } & { { } = } \\end{array}$ ${ q _ { t | 0 } ( x ^ { ( t ) } | \\dot { x ^ { ( 0 ) } } ) q _ { 0 } ( x ^ { ( 0 ) } ) } / { q _ { t } ( x ^ { ( t ) } ) }$ , and ",
+        "bbox": [
+            169,
+            556,
+            823,
+            590
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "text": "$$\ns _ {t | 0} (x ^ {(t)} | x ^ {(0)}) = \\nabla_ {x ^ {(t)}} \\log p _ {t | 0} (x ^ {(t)} | x ^ {(0)}) = - (x ^ {(t)} - \\alpha_ {t} x ^ {(0)}) / \\sigma_ {t} ^ {2}. \\tag {7}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            276,
+            603,
+            825,
+            623
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "However, the posterior is not accessible. In practice, we employ conditional score matching, which also yields the same target score: ",
+        "bbox": [
+            169,
+            633,
+            823,
+            664
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathcal {L} (\\theta) = \\mathbb {E} _ {x ^ {(0)}, x ^ {(t)}} \\left[ \\| s _ {\\theta} (x ^ {(t)}, t) - s _ {t | 0} (x ^ {(t)}, x ^ {(0)}) \\| ^ {2} \\right]. \\tag {8}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            321,
+            676,
+            825,
+            702
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "After training, sampling is done by solving a stochastic or ordinary differential equation (SDE/ODE). For example, ",
+        "bbox": [
+            169,
+            712,
+            823,
+            743
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathrm{d} x ^ {(t)} = \\left[ \\frac {\\dot {\\alpha} _ {t}}{\\alpha_ {t}} x ^ {(t)} - \\sigma_ {t} ^ {2} \\left(\\frac {\\dot {\\sigma} _ {t}}{\\sigma_ {t}} - \\frac {\\dot {\\alpha} _ {t}}{\\alpha_ {t}}\\right) s _ {\\theta} (x ^ {(t)}, t) - \\eta s _ {\\theta} (x ^ {(t)}, t) \\right] \\mathrm{d} t + \\sqrt {2 \\eta} \\mathrm{d} \\bar {w}, \\tag {9}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            243,
+            753,
+            825,
+            787
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "where $\\eta \\geqslant 0$ controls the stochasticity and w¯ is the Brownian motion in reverse time (Albergo et al., 2025; Albergo & Vanden-Eijnden, 2022). ",
+        "bbox": [
+            169,
+            797,
+            823,
+            828
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Diffusion Policies (Chi et al., 2025; Wang et al., 2022; Kang et al., 2023; Ren et al., 2025) have been developed by exploiting conditional diffusion models for generating action a conditioned on a time t and k to denote the environment time. Under this terminology, given state s. In this paper, we use $\\pi _ { t }$ to denote the distribution of intermediate samples at diffusion $a _ { k } ^ { ( t ) }$ denotes the intermediate action sample at $s _ { k }$ and diffusion step t. ",
+        "bbox": [
+            169,
+            835,
+            825,
+            912
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "page_number",
+        "text": "3 ",
+        "bbox": [
+            493,
+            936,
+            503,
+            948
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "3 Taxonomy of RL with Diffusion Policies ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            90,
+            539,
+            107
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "At its core, RL optimizes the regularized objective iteratively defined in (3), whose optimal policy takes the form $\\pi ( a | s ) \\propto \\nu ( a | s ) \\exp ( Q ( s , a ) )$ , where ν is a reference policy and $Q ( s , a )$ is the value function from policy evaluation. The choice of $\\nu ( a | s )$ determines the algorithm’s behavior across different learning paradigms: ",
+        "bbox": [
+            169,
+            125,
+            823,
+            184
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "• Maximum Entropy RL: When $\\nu = \\operatorname { U n i f } ( A )$ , the KL divergence reduces to the policy entropy up to some constant, which is a standard approach in online RL to encourage exploration; ",
+            "• Policy Mirror Descent: When $\\nu = \\pi ^ { k - 1 }$ (the policy checkpoint from the last iteration), this ensures safe exploitation by constraining updates to the proximity of the current policy; ",
+            "• Behavior Regularized RL: When $\\nu = \\pi _ { \\mathcal { D } }$ (the dataset’s behavior policy), this restricts the policy to the support of the offline data D, ensuring stable optimization in offline settings. "
+        ],
+        "bbox": [
+            169,
+            191,
+            823,
+            292
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Consequently, implementing RL for diffusion policies requires addressing two concurrent challenges: ",
+        "bbox": [
+            169,
+            300,
+            823,
+            330
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "1. How to effectively guide diffusion policy optimization using the value function $Q ( s , a )$ , and ",
+        "bbox": [
+            171,
+            337,
+            790,
+            354
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "2. How to enforce proximity to the chosen reference policy ν. ",
+        "bbox": [
+            171,
+            357,
+            578,
+            373
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Therefore, we examine existing literature through the lens of guidance method and reference policy, respectively. Table 1 provides a categorization of existing DPRL methods based on our taxonomy. ",
+        "bbox": [
+            169,
+            380,
+            823,
+            411
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "table",
+        "img_path": "images/1f3e813c7b7c840bce040153268b399775a908bd199d19e9fb6dde26084ecf2b.jpg",
+        "table_caption": [
+            "Table 1: Summarization of existing DPRL algorithms, based on their guidance mechanism and reference policy. "
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Guidance Method</td><td>Reference Policy</td><td>Algorithm Name</td></tr><tr><td>BoN Sampling</td><td> $\\pi_{\\mathcal{D}}$ </td><td>IDQL (Hansen-Estruch et al., 2023), SfBC (Chen et al., 2022)</td></tr><tr><td rowspan=\"2\">Q-value Guidance</td><td>Unif( $\\mathcal{A}$ )</td><td>QSM (Psenka et al., 2024), iDEM (Akhound-Sadegh et al., 2024), DPS (Jain et al., 2024)</td></tr><tr><td> $\\pi_{\\mathcal{D}}$ </td><td>DAC (Fang et al., 2024), QGPO (Lu et al., 2023), Diffusion-DICE (Mao et al., 2024)</td></tr><tr><td rowspan=\"3\">Weighted Matching</td><td>Unif( $\\mathcal{A}$ )</td><td>SDAC (Ma et al., 2025), MaxEntDP (Dong et al., 2025), QVPO (Ding et al., 2024)</td></tr><tr><td> $\\pi^{k-1}$ </td><td>DPMD (Ma et al., 2025), FPMD (Chen et al., 2025)</td></tr><tr><td> $\\pi_{\\mathcal{D}}$ </td><td>QIPO (Zhang et al., 2024)</td></tr><tr><td rowspan=\"2\">Reparameterization</td><td>Unif( $\\mathcal{A}$ )</td><td>DACER (Wang et al., 2024), DACERv2 (Wang et al., 2025), DIME (Celik et al., 2025)</td></tr><tr><td> $\\pi_{\\mathcal{D}}$ </td><td>D-QL (Wang et al., 2022), BDPO (Gao et al., 2025), EDP (Kang et al., 2023), FQL (Park et al., 2025)</td></tr><tr><td>Policy Gradient</td><td> $\\pi^{k-1}$ </td><td>FPO (McAllister et al., 2025), GenPO (Ding et al., 2025), DPPO (Ren et al., 2025)</td></tr></table>",
+        "bbox": [
+            173,
+            467,
+            823,
+            672
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "3.1 Best-of-N (BoN) Sampling ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            699,
+            397,
+            715
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "The simplest approach is pretraining a diffusion policy to approximate the reference distribution $\\nu ( a | s )$ and refining it at inference time via Best-of-N sampling: ",
+        "bbox": [
+            169,
+            727,
+            823,
+            758
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "text": "$$\na ^ {*} = \\underset {a _ {i} \\in \\{a _ {1}, \\dots , a _ {N} \\}} {\\operatorname{argmax}} Q (s, a _ {i}), \\quad \\text { where } a _ {i} \\sim \\nu (\\cdot | s). \\tag {10}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            328,
+            768,
+            823,
+            796
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "This approach was first proposed in offline settings by Chen et al. (2022) and Hansen-Estruch et al. (2023), where a diffusion model is trained to represent the offline data distribution and actions are subsequently refined using a learned critic $Q ( s , a )$ . Today, BoN sampling is increasingly used in the evaluation of modern DPRL methods. Because diffusion policies exhibit superior coverage across the action space, applying BoN sampling at inference enables the agent to select the highestvalued actions within the distribution, effectively trading additional inference-time computation for improved performance. ",
+        "bbox": [
+            169,
+            806,
+            825,
+            912
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "page_number",
+        "text": "4 ",
+        "bbox": [
+            493,
+            936,
+            504,
+            948
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "3.2 Q-value Guidance ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            92,
+            341,
+            107
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Drawing inspiration from classifier guidance (Dhariwal & Nichol, 2021), sampling from a $Q -$ weighted distribution $\\pi ^ { * } ( a | s ) \\propto \\nu ( a | s ) \\exp ( Q ( s , a ) / \\lambda )$ can be achieved by injecting action gradients $\\nabla _ { a } Q ( s , a )$ into the sampling process. This is due to the following score function relationship: ",
+        "bbox": [
+            169,
+            119,
+            823,
+            166
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\nabla_ {a} \\log \\pi^ {*} (a | s) = \\nabla_ {a} \\log \\nu (a | s) + \\nabla_ {a} Q (s, a) / \\lambda . \\tag {11}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            325,
+            178,
+            823,
+            194
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Some algorithms utilize an explicit policy optimization step to internalize this guidance, while others inject the action gradient directly during sampling. For example, in the offline RL setting, DAC (Fang et al., 2024) performs diffusion matching over offline dataset samples combined with the action gradient; in online RL, where $\\nu = \\operatorname { U n i f } ( A )$ , QSM (Psenka et al., 2024) directly regresses the score network towards the action gradients. ",
+        "bbox": [
+            169,
+            207,
+            823,
+            282
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Unfortunately, directly using the action gradient is biased due to imprecise score mixing at intermediate diffusion steps. The precise score of diffusion step t is given by ",
+        "bbox": [
+            169,
+            290,
+            823,
+            321
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\nabla_ {a ^ {(t)}} \\log \\pi_ {t} ^ {*} (a ^ {(t)} | s) = \\nabla_ {a ^ {(t)}} \\log \\nu_ {t} (a | s) + \\nabla_ {a ^ {(t)}} \\underbrace {\\eta \\log \\mathbb {E} _ {a ^ {(0)} \\sim p _ {0 | t}} [ \\exp (Q (s , a ^ {(0)}) / \\eta) ]} _ {Q _ {t} (s, a ^ {(t)})}. \\tag {12}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            202,
+            332,
+            825,
+            375
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "QGPO (Lu et al., 2023) first formalizes this mismatch in offline scenarios where $\\nu = \\pi _ { \\mathcal { D } }$ , and introduces a contrastive learning objective to construct the intermediate $Q _ { t }$ -functions. Similarly, Diffusion-DICE (Mao et al., 2024) leverages Gumbel regression to estimate the intermediate $Q _ { t } .$ functions. In online scenarios where $\\pi ^ { * } ( a | s ) \\propto \\exp ( Q ( s , a ) )$ , rather than learning the $Q _ { t }$ -function explicitly, iDEM (Akhound-Sadegh et al., 2024) and DPS (Jain et al., 2024) propose an importancesampling approach to estimate the intermediate scores: ",
+        "bbox": [
+            169,
+            385,
+            825,
+            476
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\nabla_ {a ^ {(t)}} \\log \\pi_ {t} ^ {*} (a ^ {(t)} | s) = \\frac {\\mathbb {E} _ {\\hat {a} ^ {(0)} \\sim p _ {t | 0}} [ \\exp (Q (s , \\hat {a} ^ {(0)})) \\nabla_ {a ^ {(t)}} Q (s , \\hat {a} ^ {(0)}) ]}{\\mathbb {E} _ {\\hat {a} ^ {(0)} \\sim p _ {t | 0}} [ \\exp (Q (s , \\hat {a} ^ {(0)})) ]} \\tag {13}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            267,
+            487,
+            825,
+            527
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "where the RHS can be approximated by Monte-Carlo samples and reweighting. The resulting smoothing of the action gradients helps alleviate the slow mixing issue in Langevin-style sampling. ",
+        "bbox": [
+            169,
+            539,
+            823,
+            570
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "3.3 Reparameterization ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            588,
+            354,
+            603
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Similar to reparameterization-based methods like SAC (Haarnoja et al., 2018) and TD3 (Fujimoto et al., 2018), recent work explores reparameterizing the diffusion sampling process, and optimizing the network by maximizing Q-values of the generated samples. A common approach is Backpropagation Through Time (BPTT) (Wang et al., 2022; 2024; 2025; Celik et al., 2025), which computes and backpropagates the gradients across the entire sampling chain: ",
+        "bbox": [
+            169,
+            614,
+            823,
+            691
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\max _ {\\theta} \\mathbb {E} _ {a ^ {(0: T)} \\sim \\pi_ {\\theta}} [ Q (s, a _ {\\theta} ^ {(0)}) ]. \\tag {14}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            400,
+            702,
+            823,
+            729
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "However, BPTT incurs significant memory and computational overhead due to the need to preserve the computational graph across all diffusion timesteps. To mitigate this, several methods aim to amortize or bypass the sampling cost. For example, BDPO (Gao et al., 2025) constructs step-level value functions $Q ( s , a , t )$ for each diffusion step t, and optimizes only for single-step transitions maxθ $\\mathbb { E } _ { a ^ { ( t ) } \\sim \\pi _ { t \\mid t + 1 , \\theta } } \\left[ Q ( s , a _ { \\theta } ^ { ( t ) } , t ) \\right]$ . EDP (Kang et al., 2023) leverages the posterior mean estimate $\\hat { a } ^ { ( 0 ) }$ via the identity $\\hat { a } ^ { ( 0 ) } = \\mathbb { E } _ { a ^ { ( 0 ) } \\sim p _ { 0 | t } } [ a ^ { ( 0 ) } ] \\approx ( a ^ { ( t ) } + \\sigma _ { t } ^ { 2 } \\epsilon _ { \\theta } ) / \\alpha _ { t }$ t and turns to optimize an efficient yet biased objective: ",
+        "bbox": [
+            169,
+            739,
+            825,
+            851
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\max _ {\\theta} \\mathbb {E} _ {a ^ {(t)}, \\hat {a} _ {\\theta} ^ {(0)} = (a ^ {(t)} + \\sigma_ {t} ^ {2} \\epsilon_ {\\theta}) / \\alpha_ {t}} [ Q (s, \\hat {a} _ {\\theta} ^ {(0)}) ]. \\tag {15}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            357,
+            851,
+            823,
+            876
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Another line of research, exemplified by FQL (Park et al., 2025), employs distillation to compress multi-step diffusion into single-step models, enabling efficient reparameterization in a single pass. ",
+        "bbox": [
+            169,
+            882,
+            823,
+            914
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "page_number",
+        "text": "5 ",
+        "bbox": [
+            493,
+            936,
+            503,
+            948
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Nevertheless, a fundamental challenge for this guidance style is how to ensure the policy respects the regularization. Since the log-probability of actions is difficult to compute, these methods typically require additional loss terms for regularization. One approach is to sample from the reference distribution and apply a standard diffusion loss on these samples to anchor the policy. For example, D-QL (Wang et al., 2022) applies a score matching objective on samples from the offline dataset D to prevent the diffusion policy from deviating. Alternatively, BDPO formulates the KL constraint across the entire diffusion path and enforces the constraint at every denoising step by decomposing the pathwise KL. Similarly, DIME (Celik et al., 2025) derives a tractable lower bound for action entropy, which enables optimizing the diffusion policy with the maximum entropy framework. ",
+        "bbox": [
+            169,
+            92,
+            823,
+            229
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "3.4 Weighted Matching ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            244,
+            349,
+            260
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Weighted matching methods optimize diffusion policies by reframing policy improvement as a weighted supervised learning task. These methods reweight the diffusion training objective using functions derived from the Q-function or advantage function to bias the learned policy toward highvalue actions. Zhang et al. (2024) and Ma et al. (2025) demonstrate that the weighted score/flow matching objective yields an optimal policy that exactly matches the closed-form expression in (4), providing formal guarantees for policy improvement. ",
+        "bbox": [
+            169,
+            273,
+            823,
+            364
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "In its general form, the weighted matching objective is defined as: ",
+        "bbox": [
+            171,
+            371,
+            607,
+            385
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\min _ {\\theta} \\mathbb {E} _ {a ^ {(0)}, a ^ {(t)} \\sim \\tilde {p} _ {0, t}} \\left[ \\exp \\left(\\frac {Q (s , a ^ {(0)})}{\\lambda}\\right) \\left\\| s _ {\\theta} (a ^ {(t)}; s, t) - s _ {t | 0} (a ^ {(t)} | a ^ {(0)}) \\right\\| ^ {2} \\right], \\tag {16}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            236,
+            396,
+            823,
+            431
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "where $\\tilde { p } _ { 0 , t }$ represents a proposal distribution for the coupling $( a ^ { ( 0 ) } , a ^ { ( t ) } )$ , and the choice of this distribution varies by setting. In offline RL where $\\nu = \\pi _ { \\mathcal { D } }$ , QIPO (Zhang et al., 2024) proves that sampling $a ^ { ( 0 ) } \\sim \\mathcal { D } , \\overset { \\cdot } { a } ^ { ( t ) } \\sim \\overset { \\cdot } { q } _ { t | 0 }$ recovers the optimal policy (4). For mirror descent where $\\nu = \\pi ^ { k - 1 }$ , methods such as DPMD (Ma et al., 2025) and FPMD (Chen et al., 2025) sample $a ^ { ( 0 ) } \\sim \\pi ^ { k - 1 }$ and $a ^ { ( t ) } \\sim q _ { t | 0 }$ , which also recovers the optimal policy in (4). In online RL, QVPO (Ding et al., 2024) samples $a ^ { ( 0 ) }$ from a mixture of the uniform distribution and the last policy checkpoint; while SDAC (Ma et al., 2025) and MaxEntDP (Dong et al., 2025) concurrently propose reverse sampling, where $a ^ { ( 0 ) }$ is drawn by reversing the forward perturbation kernel $q _ { t | 0 }$ given $a ^ { ( t ) }$ . ",
+        "bbox": [
+            169,
+            441,
+            823,
+            568
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "3.5 Policy Gradient ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            584,
+            323,
+            598
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Policy gradient methods optimize the policy by estimating the gradients of the objective in (3) via the policy gradient theorem. A prominent example is Proximal Policy Optimization (PPO) (Schulman et al., 2017), which stabilizes training by applying proximal regularization relative to the previous iteration’s policy, $\\pi ^ { k - 1 }$ . The training objective is ",
+        "bbox": [
+            169,
+            611,
+            823,
+            672
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\max _ {\\theta} \\mathbb {E} _ {a \\sim \\pi^ {k - 1}} \\left[ \\min \\left(r (\\theta) \\hat {A}, \\operatorname{clip} (r (\\theta), 1 - \\epsilon^ {\\text { clip }}, 1 + \\epsilon^ {\\text { clip }}) \\hat {A}\\right) \\right], \\tag {17}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            279,
+            681,
+            823,
+            708
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "where ϵclip is a clipping threshold to avoid large updates and r(θ) = πθ(a|s)πk−1(a|s) $\\epsilon ^ { \\mathrm { c l i p } }$ $\\begin{array} { r } { r ( \\theta ) = \\frac { \\pi _ { \\theta } ( a | s ) } { \\pi ^ { k - 1 } ( a | s ) } } \\end{array}$ is the policy ratio. ",
+        "bbox": [
+            169,
+            719,
+            807,
+            739
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "The primary obstacle in applying policy gradient methods to diffusion policies is that computing the ratio $r ( \\theta )$ requires the exact log-likelihood log $\\pi ( a | s )$ , which is intractable due to the iterative generation process. By discretizing the generative SDE, DPPO (Ren et al., 2025) treats the denoising process as a Markov Decision Process (MDP) where each transition step is tractable. This allows extending PPO directly to the denoising steps. GenPO (Ding et al., 2025) constructs an invertible diffusion model by introducing dummy actions and uses the change-of-variables theorem to compute the action likelihood. However, this is computationally expensive. Finally, FPO (McAllister et al., 2025) employs the conditional flow matching (CFM) loss as an approximation of the evidence lower bound (ELBO), and estimates the policy ratio as: ",
+        "bbox": [
+            169,
+            744,
+            825,
+            881
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\hat {r} _ {\\mathrm{FPO}} (\\theta) = \\exp \\left(\\hat {L} _ {\\mathrm{CFM}, \\theta^ {k - 1}} (a) - \\hat {L} _ {\\mathrm{CFM}, \\theta} (a)\\right), \\tag {18}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            328,
+            891,
+            823,
+            917
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "page_number",
+        "text": "6 ",
+        "bbox": [
+            493,
+            936,
+            503,
+            948
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "image",
+        "img_path": "images/58b2ee38f29b87fcd89f33ad3b51837fcf263a400e0839ce6411fcd8490f245a.jpg",
+        "image_caption": [
+            "Figure 1: The overview of FLOWRL. "
+        ],
+        "image_footnote": [],
+        "content": "```mermaid\ngraph LR\n    A[\"(1) Network Architectures\"] --> B[\"(2) Models\"]\n    B --> C[\"(3) Algorithms\"]\n    C --> D[\"(4) Workflow\"]\n\n    A --> A1[\"MLP\"]\n    A --> A2[\"SimBa\"]\n    A --> A3[\"BroNet\"]\n\n    B --> B1[\"Diffusion/Flow<br>• DDPM • EDM<br>• CNF • ALD<br>...\"]\n    B --> B2[\"Actor • DMs/FMs • Scalar<br>• Gaussian • Dist.\"]\n    B --> B3[\"Critic\"]\n    C --> C1[\"On-Policy<br>• DPPO • FPO<br>...\"]\n    C --> C2[\"Off-Policy<br>• SDAC • DACER<br>...\"]\n    C --> C3[\"Offline<br>• DAC • D-QL<br>...\"]\n\n    D --> D1[\"Hydra-based Config\"]\n    D --> D2[\"Multi-backend Logging\"]\n    D --> D3[\"Benchmarks\"]\n    D --> D4[\"Checkpointing\"]\n```",
+        "sub_type": "flowchart",
+        "bbox": [
+            254,
+            88,
+            743,
+            229
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "where the CFM loss is estimated via Monte Carlo samples: ",
+        "bbox": [
+            171,
+            277,
+            563,
+            292
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\hat {L} _ {\\mathrm{CFM}, \\theta} (a) = \\frac {1}{N} \\sum_ {i = 1} ^ {N} \\left\\| s _ {\\theta} \\left(a ^ {(t)}, t\\right) - s _ {t | 0} \\left(a ^ {(t)}, a ^ {(0)}\\right) \\right\\| ^ {2}. \\tag {19}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            305,
+            306,
+            823,
+            348
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "4 Design of FLOWRL ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            369,
+            372,
+            386
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "4.1 Design Principles ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            404,
+            334,
+            419
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "To support the large-scale comparative study and facilitate future research, our codebase, FLOWRL, is designed according to the following principles: ",
+        "bbox": [
+            169,
+            431,
+            823,
+            463
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Modularity and Composability. The library decouples RL algorithms into orthogonal, reusable components, such as neural network architectures, actor/critic variants, generative models (flow and diffusion), and training infrastructure. Each component adheres to a shared interface, allowing researchers to combine them flexibly. ",
+        "bbox": [
+            169,
+            470,
+            823,
+            531
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Computational Efficiency. FLOWRL is built around JAX and its ecosystem. Since diffusion models require multiple iterations to sample a single action, JAX’s Just-In-Time compilation provides a significant speedup in training and inference over PyTorch-based alternatives. Additionally, JAX’s functional paradigm enables the native use of transformations like vmap (used, e.g., for critic ensembles) and lax.scan (for the iterative denoising loop in diffusion). ",
+        "bbox": [
+            169,
+            537,
+            826,
+            614
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "4.2 Architecture Overview ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            633,
+            372,
+            648
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Figure 1 provides a semantic overview of FLOWRL. The system is organized into four layers, described below from bottom to top. ",
+        "bbox": [
+            169,
+            662,
+            823,
+            694
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "(1) Network Architecture Layer. While traditional RL often relies on simple backbones like Multi-Layer Perceptrons (MLPs) with ReLU activations, recent evidence suggests that RL performance scales significantly with more sophisticated architectures and increased parameter counts. Accordingly, we support a diverse suite of backbones, including standard MLP, as well as modern alternatives such as SimBa (Lee et al., 2024) and BroNet (Nauman et al., 2024). ",
+            "(2) Model Layer. We implement DMs, FMs, and standard RL components with a common interface. For DMs, we support both discrete and continuous-time DDPM; for FMs, we support Continuous Normalizing Flows (CNFs). We also include annealed Langevin dynamics (ALD) due to its connection to DMs and FMs. The actor-critic framework supports actors parameterized by any of the aforementioned generative models or by standard deterministic and probabilistic distributions. For critics, both scalar and distributional critics are supported. All these models can utilize any architecture from the previous layer as their backbones. "
+        ],
+        "bbox": [
+            169,
+            712,
+            826,
+            912
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "page_number",
+        "text": "7 ",
+        "bbox": [
+            493,
+            936,
+            504,
+            948
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/2e36f38915c908507766253f116fd77c73d5362e1592df1f9838b1f029d73166.jpg",
+        "image_caption": [
+            "MuJoCo (Gymnasium) ",
+            "InvertedPendulum ",
+            "Reacher "
+        ],
+        "image_footnote": [],
+        "content": "Two abstract geometric shapes: a yellow stick on a purple line and a pink square with a small blue dot (no text or symbols)",
+        "sub_type": "natural_image",
+        "bbox": [
+            197,
+            107,
+            383,
+            180
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/c602e693f830ad1a58777c2bc2d19896e16b93e38337efbae6866b4eb7355d5a.jpg",
+        "image_caption": [
+            "DMC ",
+            "Cheetah-run ",
+            "Hopper-Stand "
+        ],
+        "image_footnote": [],
+        "content": "Two orange 3D human figures in dynamic poses on a checkered floor against a starry blue background (no text or symbols)",
+        "sub_type": "natural_image",
+        "bbox": [
+            395,
+            107,
+            580,
+            180
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/02013603b3fb30078b99a3d0e46fed007ed3b6855d81bb1dfdb87e68acdc1153.jpg",
+        "image_caption": [
+            "IsaacLab ",
+            "Ant "
+        ],
+        "image_footnote": [],
+        "content": "",
+        "bbox": [
+            593,
+            107,
+            687,
+            180
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/d00fc621b186fe35992631f945fa03012e758192f4fff1be699e5091348ed9f0.jpg",
+        "image_caption": [
+            "Humanoid "
+        ],
+        "image_footnote": [],
+        "content": "",
+        "bbox": [
+            694,
+            107,
+            787,
+            180
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/04b25c26a1fd2ff77ab17d101c615cd5f703272f122130754632ddfb69cab656.jpg",
+        "image_caption": [
+            "Swimmer "
+        ],
+        "image_footnote": [],
+        "content": "3D-rendered scene with a striped orange object on a black-and-white checkered floor, next to a purple curved object on a curved surface (no text or symbols)",
+        "sub_type": "natural_image",
+        "bbox": [
+            197,
+            196,
+            383,
+            271
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/b7d659f9911fa745a3015eabcdc60cec104e730c30abbacc59d427eb5751cf75.jpg",
+        "image_caption": [
+            "Walker-walk "
+        ],
+        "image_footnote": [],
+        "content": "Two 3D human figure models in motion poses against a starry blue background (no text or symbols)",
+        "sub_type": "natural_image",
+        "bbox": [
+            395,
+            196,
+            580,
+            271
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/59083f7a4d85966c154233ea8a2914be725346edf2ab17602abd8c4385a120a5.jpg",
+        "image_caption": [
+            "Lift-Cube-Franka "
+        ],
+        "image_footnote": [],
+        "content": "",
+        "bbox": [
+            593,
+            196,
+            687,
+            271
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/fa837aaa4f1441a927ac93b775867d08c85c6e2f372cf8dab62a9825bd26f917.jpg",
+        "image_caption": [
+            "Velocity-Flat-Anymal-D ",
+            "Figure 2: Representative tasks across three continuous-control suites. Left: MuJoCo Gymnasium. Middle: DeepMind Control Suite. Right: IsaacLab. "
+        ],
+        "image_footnote": [],
+        "content": "",
+        "bbox": [
+            694,
+            196,
+            787,
+            271
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "(3) Algorithm Layer. Algorithms are implemented as subclasses of a BaseAgent. To implement a new algorithm, the user only needs to define three components: 1) the initialization logic, which assembles tools and models from previous layers; 2) the update logic, which is JIT-compiled to maximize computational throughput; and 3) sampling logic, which is greatly simplified, as the underlying DMs and FMs already provide samplers that work out-of-the-box. ",
+            "(4) Workflow Layer. The workflow layer orchestrates all components through a main script. Specifically, a Hydra-based configuration system merges algorithm-specific YAMLs with shared settings, providing hierarchical hyperparameter management and command-line overrides. The main script also instantiates the environment, data buffer, and agent, then enters a loop alternating among environment interaction, dataset sampling, and compiled agent updates. The logging system supports simultaneous writes to multiple backends, including TensorBoard, Weights & Biases, and CSV files, while Orbax handles checkpointing. Finally, we support a diverse range of tasks, spanning 2D visualization datasets, classic locomotion benchmarks such as Gym-MuJoCo and the DeepMind Control Suite, high-dimensional control tasks like HumanoidBench, and IsaacLab, which enables large-scale, hardware-accelerated simulation across multiple embodiments. "
+        ],
+        "bbox": [
+            169,
+            356,
+            823,
+            599
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "5 Benchmarking RL with Diffusion Policies ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            618,
+            553,
+            633
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "5.1 Experiment Setup ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            651,
+            339,
+            666
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "Benchmarks. We select three complementary continuous control benchmarks that collectively span a wide range of task complexities and action dimensionalities. Gym-Locomotion (Towers et al., 2025) and DeepMind Control Suite (DMC) (Tassa et al., 2018) are both powered by the Mu-JoCo physics engine (Todorov et al., 2012) and provide standard locomotion and balancing tasks widely used in the RL literature. IsaacLab (NVIDIA et al., 2025) provides GPU-accelerated robotic environments that support massively parallel simulation across diverse embodiments, including locomotion and manipulation tasks. We use Gym-Locomotion and DMC for off-policy and offline settings, and IsaacLab for on-policy settings. The full list of tasks is provided in the Appendix A.1. ",
+        "bbox": [
+            169,
+            671,
+            823,
+            791
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "Algorithms. We evaluate representative DPRL methods from each guidance category in our taxonomy against strong Gaussian baselines. For online off-policy RL, we compare QSM (Psenka et al., 2024), DACER (Wang et al., 2024), DPMD (Ma et al., 2025), SDAC (Ma et al., 2025), and QVPO (Ding et al., 2024) against SAC (Haarnoja et al., 2018). For online on-policy RL, we compare DPPO (Ren et al., 2025), GenPO (Ding et al., 2025), and FPO (McAllister et al., 2025) against PPO (Schulman et al., 2017). For offline RL, we compare Diffusion-QL (Wang et al., 2022), FQL (Park et al., 2025), DAC (Fang et al., 2024), and BDPO (Gao et al., 2025) against IQL (Hansen-Estruch ",
+        "bbox": [
+            169,
+            806,
+            823,
+            912
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "page_number",
+        "text": "8 ",
+        "bbox": [
+            493,
+            936,
+            503,
+            948
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "chart",
+        "img_path": "images/8a6b7dedf89a02f41556b9cf6fe201403b1be4162161f3ffea36884b0af7aa63.jpg",
+        "content": "| Environment Frames | Eval Return (Line 1) | Eval Return (Line 2) | Eval Return (Line 3) | Eval Return (Line 4) | Eval Return (Line 5) |\n| ------------------ | -------------------- | -------------------- | -------------------- | -------------------- | -------------------- |\n| 0.00               | 0                    | 0                    | 0                    | 0                    | 0                    |\n| 0.25               | ~1000                | ~1500                | ~2000                | ~2500                | ~3000                |\n| 0.50               | ~2000                | ~2500                | ~3000                | ~3500                | ~4000                |\n| 0.75               | ~3000                | ~3500                | ~4000                | ~4500                | ~5000                |\n| 1.00               | ~4000                | ~4500                | ~5000                | ~5500                | ~6000                |",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "sub_type": "line",
+        "bbox": [
+            205,
+            90,
+            405,
+            183
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "chart",
+        "img_path": "images/b39b61eef5b3d62d3248fa0423c3f83d13d0ce458002a2086c73581e6640b168.jpg",
+        "content": "| Environment Frames | Line 1 | Line 2 | Line 3 | Line 4 |\n| ------------------ | ------ | ------ | ------ | ------ |\n| 0.00               | 0      | 0      | 0      | 0      |\n| 0.25               | 5000   | 6000   | 7000   | 8000   |\n| 0.50               | 7000   | 8000   | 9000   | 10000  |\n| 0.75               | 8000   | 9000   | 10000  | 11000  |\n| 1.00               | 9000   | 10000  | 11000  | 12000  |",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "sub_type": "line",
+        "bbox": [
+            408,
+            90,
+            596,
+            183
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "chart",
+        "img_path": "images/a1b0e7e21fedeb1cee0cde06bbc9fb833444be8ab02d98a1d1a70f7cd03c55cf.jpg",
+        "content": "| Environment Frames | Hopper-v5 |\n| ------------------ | --------- |\n| 0.00               | 0         |\n| 0.25               | ~2000     |\n| 0.50               | ~3000     |\n| 0.75               | ~3500     |\n| 1.00               | ~3800     |",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "sub_type": "line",
+        "bbox": [
+            604,
+            90,
+            787,
+            183
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "chart",
+        "img_path": "images/439f383ed0f719c4cfb30aaea2faf6ea1d3a321515bd49253eb27c67c73f28e3.jpg",
+        "content": "| Environment Frames | Eval Return (Line 1) | Eval Return (Line 2) | Eval Return (Line 3) | Eval Return (Line 4) |\n| ------------------ | -------------------- | -------------------- | -------------------- | -------------------- |\n| 0.00               | 0                    | 0                    | 0                    | 0                    |\n| 0.25               | ~2000                | ~3000                | ~4000                | ~5000                |\n| 0.50               | ~4000                | ~5000                | ~5500                | ~6000                |\n| 0.75               | ~5000                | ~5500                | ~5800                | ~6000                |\n| 1.00               | ~5500                | ~5800                | ~6000                | ~6200                |",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "sub_type": "line",
+        "bbox": [
+            207,
+            186,
+            405,
+            277
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "chart",
+        "img_path": "images/72e56c080250a6d46a6be4099ff00fabd43f3a72e3d3e39010eb2c11cee6768b.jpg",
+        "content": "| Environment Frames | Series 1 | Series 2 | Series 3 | Series 4 | Series 5 |\n| ------------------ | -------- | -------- | -------- | -------- | -------- |\n| 0.00               | 0        | 0        | 0        | 0        | 0        |\n| 0.25               | 50       | 55       | 60       | 65       | 70       |\n| 0.50               | 75       | 80       | 85       | 90       | 95       |\n| 0.75               | 90       | 95       | 100      | 105      | 110      |\n| 1.00               | 100      | 105      | 110      | 115      | 120      |",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "sub_type": "line",
+        "bbox": [
+            418,
+            186,
+            596,
+            277
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "chart",
+        "img_path": "images/91708f148fb77ce7129e702cc2fe63b95df2587bc30060e1c46bb377f743b8be.jpg",
+        "content": "| Environment Frames | Series 1 | Series 2 | Series 3 | Series 4 | Series 5 | Series 6 | Series 7 |\n| ------------------ | -------- | -------- | -------- | -------- | -------- | -------- | -------- |\n| 0.00               | 0        | 0        | 0        | 0        | 0        | 0        | 0        |\n| 0.25               | 2000     | 2500     | 3000     | 3500     | 4000     | 4500     | 5000     |\n| 0.50               | 3000     | 3500     | 4000     | 4500     | 5000     | 5500     | 6000     |\n| 0.75               | 3500     | 4000     | 4500     | 5000     | 5500     | 6000     | 6500     |\n| 1.00               | 4000     | 4500     | 5000     | 5500     | 6000     | 6500     | 7000     |",
+        "chart_caption": [],
+        "chart_footnote": [
+            "SAC QSM DACER SDAC QVPO DPMD "
+        ],
+        "sub_type": "line",
+        "bbox": [
+            604,
+            186,
+            787,
+            277
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "chart",
+        "img_path": "images/0b586bf1bb5fa90667a82038e5d285e6408eefd2b26352b2b126ab69ca9ab512.jpg",
+        "content": "| Environment Frames | Eval Return (Red) | Eval Return (Purple) | Eval Return (Green) | Eval Return (Blue) |\n| ------------------ | ----------------- | -------------------- | ------------------- | ------------------ |\n| 0                  | ~30               | ~25                  | ~20                 | ~10                |\n| 20                 | ~80               | ~60                  | ~40                 | ~20                |\n| 40                 | ~95               | ~75                  | ~55                 | ~25                |\n| 60                 | ~105              | ~85                  | ~65                 | ~30                |\n| 80                 | ~110              | ~90                  | ~70                 | ~30                |\n| 100                | ~115              | ~95                  | ~75                 | ~30                |",
+        "chart_caption": [
+            "Figure 4: Training curves of several off-policy DPRL algorithms across Gym-Locomotion tasks. "
+        ],
+        "chart_footnote": [],
+        "sub_type": "line",
+        "bbox": [
+            174,
+            329,
+            341,
+            412
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "chart",
+        "img_path": "images/fe12511eb55f13270138c2a48e57b8bc46a967d229891ea6322e18f1de3ad607.jpg",
+        "content": "| Environment Frames | Humanoid-v0 |\n| ------------------ | ----------- |\n| 0                  | 0           |\n| 20                 | 50          |\n| 40                 | 100         |\n| 60                 | 100         |\n| 80                 | 100         |\n| 100                | 100         |",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "sub_type": "line",
+        "bbox": [
+            344,
+            329,
+            500,
+            412
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "chart",
+        "img_path": "images/21aeca43e371588f396e8c4d17a9fec8b62ca0a4c503aa5a6500b44e136d1707.jpg",
+        "content": "| Environment Frames | Red Line | Green Line | Purple Line | Blue Line |\n| ------------------ | -------- | ---------- | ----------- | --------- |\n| 0                  | 0        | 0          | 0           | 0         |\n| 20                 | 80       | 40         | 30          | -20       |\n| 40                 | 90       | 60         | 50          | -30       |\n| 60                 | 95       | 70         | 60          | -35       |\n| 80                 | 98       | 80         | 70          | -38       |\n| 100                | 100      | 90         | 80          | -40       |",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "sub_type": "line",
+        "bbox": [
+            504,
+            329,
+            660,
+            412
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "chart",
+        "img_path": "images/bddafc6f64b5888aa181ce5371133570183d0dd5d910f1dc2eb1f61ff24ed451.jpg",
+        "content": "| Environment Frames (1e6) | Velocity (Blue) | Velocity (Red) | Velocity (Green) |\n| ------------------------ | --------------- | -------------- | ---------------- |\n| 0                        | -35             | 0              | 0                |\n| 20                       | -10             | 5              | 5                |\n| 40                       | 0               | 10             | 10               |\n| 60                       | 5               | 15             | 15               |\n| 80                       | 10              | 20             | 20               |\n| 100                      | 15              | 25             | 25               |",
+        "chart_caption": [],
+        "chart_footnote": [
+            "PPO DPPO FPO GenPO "
+        ],
+        "sub_type": "line",
+        "bbox": [
+            663,
+            329,
+            820,
+            412
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "Figure 5: Training curves of on-policy DPRL algorithms on IsaacLab tasks. ",
+        "bbox": [
+            246,
+            439,
+            746,
+            455
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "et al., 2023). We also include reference scores of IDQL (Hansen-Estruch et al., 2023), QGPO (Lu et al., 2023), EDP (Kang et al., 2023) as a comparison. ",
+        "bbox": [
+            169,
+            474,
+            823,
+            506
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "Evaluation Setup. To ensure a fair comparison, all methods within each benchmark follow a standardized workflow. For offline settings, we keep the hyperparameters and network designs identical to their original papers. We use the D4RL datasets for training and report the average performance of the last policy checkpoint. For the online off-policy settings, each method is trained for 1M environment frames and evaluated every 10K frames across a span of 10 episodes. No observation or reward normalization is applied in this setting. Unless an algorithm explicitly designates a specific architectural choice as a core contribution, we align all hyperparameters, network structures, and diffusion model implementations across base-",
+        "bbox": [
+            169,
+            521,
+            583,
+            700
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "chart",
+        "img_path": "images/e9b9fdd171bd63957e94fbf68e3070837a8c61fc844477ca5ddbf08919bd93de.jpg",
+        "content": "| Threshold τ (normalized score) | SAC   | QSM   | DACER | SDAC  | QVPO  | DPMD  |\n| ------------------------------- | ----- | ----- | ----- | ----- | ----- | ----- |\n| 0.5                             | 0.95  | 0.92  | 0.88  | 0.94  | 0.96  | 0.93  |\n| 0.6                             | 0.88  | 0.85  | 0.82  | 0.90  | 0.92  | 0.89  |\n| 0.7                             | 0.80  | 0.78  | 0.75  | 0.85  | 0.87  | 0.84  |\n| 0.8                             | 0.70  | 0.68  | 0.65  | 0.75  | 0.77  | 0.74  |\n| 0.9                             | 0.50  | 0.48  | 0.45  | 0.55  | 0.57  | 0.54  |\n| 1.0                             | 0.10  | 0.08  | 0.05  | 0.15  | 0.17  | 0.14  |",
+        "chart_caption": [
+            "Figure 3: Performance profile on Gym-Locomotion tasks. "
+        ],
+        "chart_footnote": [],
+        "sub_type": "line",
+        "bbox": [
+            594,
+            525,
+            821,
+            656
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "lines. For IsaacLab, the training pipeline follows the standard PPO rollout pipeline, utilizing 1024 parallel simulations for a total of 100M frames. For all environments, we report the undiscounted episodic return, visualized using the mean (solid line) and one standard deviation (shaded region). Detailed per-algorithm hyperparameters are provided in the Appendix A. ",
+        "bbox": [
+            169,
+            702,
+            823,
+            763
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "5.2 General Performance ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            780,
+            364,
+            794
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "Gym-Locomotion. Learning curves for the Gym-Locomotion environments are shown in Figure 4. In Figure 3, we further present the performance profiles of each algorithm by normalizing the evaluation returns and computing the fraction of runs that achieve performance above different thresholds τ . Comparing the area under the curve in Figure 3, SDAC, DACER, and DPMD deliver the strongest overall results and outperform the Gaussian baseline SAC. That said, no single DPRL algorithm dominates across all environments, and SAC remains competitive on the majority of tasks. QSM and QVPO underperform and show noticeable instability during training. ",
+        "bbox": [
+            169,
+            806,
+            826,
+            914
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "page_number",
+        "text": "9 ",
+        "bbox": [
+            493,
+            936,
+            504,
+            948
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "table",
+        "img_path": "images/619b39c0f3b7f4dba40a44ddb6e02a2f6cc80a1c8317bc639bf32f905e0b823f.jpg",
+        "table_caption": [
+            "Table 2: Normalized returns of the final policy checkpoint for offline DPRL methods. Methods marked with † denote results reported in the original paper. Results are averaged over five independent runs of 10 evaluation episodes each. Numbers within 95% of the highest scores are bolded. "
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Dataset</td><td>IQL</td><td>IDQL $^{\\dagger}$ </td><td>QGPO $^{\\dagger}$ </td><td>QIPO $^{\\dagger}$ </td><td>Diffusion-QL</td><td>DAC</td><td>BDPO</td></tr><tr><td>halfcheetah-m</td><td>47.4</td><td>51.0</td><td>54.1</td><td>54.2±1.3</td><td>50.7±0.7</td><td>59.1±0.6</td><td>71.2±0.9</td></tr><tr><td>hopper-m</td><td>66.3</td><td>65.4</td><td>98.0</td><td>94.0±13.3</td><td>80.4±15.7</td><td>103.5±0.3</td><td>100.6±0.7</td></tr><tr><td>walker2d-m</td><td>78.3</td><td>82.5</td><td>86.0</td><td>87.6±1.5</td><td>86.7±1.6</td><td>97.9±0.9</td><td>93.4±0.5</td></tr><tr><td>halfcheetah-m-r</td><td>44.2</td><td>45.9</td><td>47.6</td><td>48.0±0.8</td><td>47.4±0.6</td><td>55.4±0.5</td><td>58.9±0.9</td></tr><tr><td>hopper-m-r</td><td>94.7</td><td>92.1</td><td>96.9</td><td>101.3±2.2</td><td>101.0±0.3</td><td>103.1±0.1</td><td>101.4±0.5</td></tr><tr><td>walker2d-m-r</td><td>73.9</td><td>85.1</td><td>84.4</td><td>75.6±25.1</td><td>95.7±1.4</td><td>98.4±0.5</td><td>95.5±1.6</td></tr><tr><td>halfcheetah-m-e</td><td>86.7</td><td>95.9</td><td>93.5</td><td>94.5±0.5</td><td>96.0±0.7</td><td>100.1±0.7</td><td>108.7±0.9</td></tr><tr><td>hopper-m-e</td><td>91.5</td><td>108.6</td><td>108.0</td><td>108.0±5.2</td><td>106.9±11.7</td><td>112.3±1.0</td><td>111.3±0.2</td></tr><tr><td>walker2d-m-e</td><td>109.6</td><td>112.7</td><td>110.7</td><td>110.9±1.0</td><td>108.7±0.2</td><td>115.3±7.5</td><td>115.6±0.4</td></tr></table>",
+        "bbox": [
+            212,
+            147,
+            782,
+            303
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "IsaacLab. In Figure 5, we plot the return curves of three on-policy DPRL methods together with the baseline method, PPO. Overall, PPO delivers the best and most stable performance across the four tasks. Among the DPRL methods, GenPO achieves the strongest performance. However, its training cost is significantly higher due to Jacobian computation. We also observe that FPO occasionally collapses during training. After careful inspection, we find that this instability arises because, for samples with negative advantage, optimizing (17) with (18) effectively leads to an unbounded optimization problem. ",
+        "bbox": [
+            169,
+            330,
+            823,
+            435
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "D4RL. In Table 2, we find that DPRL methods, especially those leveraging RL to train the diffusion policy, significantly outperform traditional offline RL algorithms such as IQL and inferencetime refinement methods such as IDQL. These results demonstrate the efficacy of diffusion models not only as expressive priors for capturing complex, multi-modal offline distributions, but also as promising policy representations for offline RL. ",
+        "bbox": [
+            169,
+            453,
+            823,
+            529
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "5.3 Empirical Analysis ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            549,
+            346,
+            565
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "Effect of Action Dimensionality. A key distinction among different guidance methods is how each utilizes the Q-function: both Q-value guidance and reparameterization methods exploit first-order gradients $\\nabla _ { a } Q$ for optimization, while weighted matching methods rely on function evaluations $Q ( s , a )$ to reweight sampled actions, which is less efficient and prone to higher variance in high-dimensional action spaces. In Figure 6, we select three representative methods, QSM (from Sec 3.2), DACER (from Sec 3.3), and SDAC (from Sec 3.4), and compare their performance relative to SAC with tasks of increasing action dimensionality. ",
+        "bbox": [
+            169,
+            577,
+            485,
+            787
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "We find that while QSM and DACER remain competitive, the performance of SDAC degrades significantly as dimensionality grows. This suggests that for weighted matching methods to remain effective, the proposal distribution must be meticulously designed to ensure high-valued actions can be sampled and reinforced during training. ",
+        "bbox": [
+            169,
+            789,
+            823,
+            849
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "Effect of Diffusion Steps. Since diffusion models refine samples through an iterative denoising process, a natural question is how the number of diffusion steps affects each algorithm. We again select QSM, DACER and SDAC and vary the number of diffusion steps in Figure 7. We discover that both QSM and SDAC improve monotonically with more diffusion steps, while SDAC works significantly better even with fewer diffusion steps. In contrast, DACER exhibits the opposite trend, with its performance degrading when the number of steps exceeds five. We attribute this behavior to the nature of reparameterization-based methods, which rely on techniques such as BPTT to optimize the diffusion policy. Increasing the number of diffusion steps complicates the optimization problem, making the training process more indirect and susceptible. ",
+        "bbox": [
+            169,
+            867,
+            823,
+            914
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "chart",
+        "img_path": "images/eaedf3251bb69b37e276645b96abe35202cd3d6069668ebbef9f6ba7ba8ad548.jpg",
+        "content": "| Action Dimensionality | QSM   | DACER | SDAC  | SAC   |\n| --------------------- | ----- | ----- | ----- | ----- |\n| cartpole-balance       | 1.00  | 1.00  | 1.00  | 1.00  |\n| hopper-stand          | 0.80  | 1.00  | 0.90  | 1.00  |\n| cheetah-run           | 1.10  | 0.80  | 1.05  | 1.05  |\n| quadruped-run         | 1.00  | 0.85  | 0.40  | 1.00  |\n| humanoid-walk         | 1.00  | 1.40  | 0.05  | 1.00  |",
+        "chart_caption": [
+            "Figure 6: Effect of Action Dimensionality. Performance is normalized by SAC across tasks of increasing action dimension. "
+        ],
+        "chart_footnote": [],
+        "sub_type": "line",
+        "bbox": [
+            498,
+            582,
+            821,
+            718
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "page_number",
+        "text": "10 ",
+        "bbox": [
+            490,
+            936,
+            508,
+            949
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "image",
+        "img_path": "images/8ef82ea709df0b538e5eabefb721a4a46da8d2a3b5ccd9c4cd3c88c6425b43f2.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "content": "",
+        "bbox": [
+            223,
+            89,
+            777,
+            204
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "chart",
+        "img_path": "images/d62343401030ebef132454872bf52446f5a383b51ab722c64f51cc84e3de8516.jpg",
+        "content": "| Environment Frames | Eval Return (Line 1) | Eval Return (Line 2) | Eval Return (Line 3) |\n| ------------------ | -------------------- | -------------------- | -------------------- |\n| 0.00               | 0                    | 0                    | 0                    |\n| 0.25               | 750                  | 750                  | 250                  |\n| 0.50               | 875                  | 875                  | 500                  |\n| 0.75               | 900                  | 900                  | 750                  |\n| 1.00               | 925                  | 925                  | 750                  |",
+        "chart_caption": [
+            "Figure 7: Effect of diffusion steps on performance. Performance of QSM, SDAC, and DACER when varying the number of diffusion steps (2, 5, 10, and 50). Returns are normalized by taskspecific maximum scores and averaged across Ant, HalfCheetah, Humanoid, and Walker2d. "
+        ],
+        "chart_footnote": [],
+        "sub_type": "line",
+        "bbox": [
+            174,
+            270,
+            344,
+            353
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "chart",
+        "img_path": "images/a9c5957e02cb9281cb64bac2f12a37a948a051b3467125e6af2f0991a6678a2d.jpg",
+        "content": "| Environment Frames | Line 1 | Line 2 |\n| ------------------ | ------ | ------ |\n| 0.00               | 0      | 0      |\n| 0.25               | 50     | 30     |\n| 0.50               | 100    | 60     |\n| 0.75               | 150    | 90     |\n| 1.00               | 180    | 120    |",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "sub_type": "line",
+        "bbox": [
+            348,
+            271,
+            501,
+            353
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "chart",
+        "img_path": "images/be1e765a3448da02b7ea14f4c940f73238915b533140ebdf842396795a74f217.jpg",
+        "content": "| Environment Frames | Humanoid-stand |\n| ------------------ | -------------- |\n| 0.00               | 0              |\n| 0.25               | 250            |\n| 0.50               | 500            |\n| 0.75               | 750            |\n| 1.00               | 1000           |",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "sub_type": "line",
+        "bbox": [
+            504,
+            271,
+            661,
+            353
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "chart",
+        "img_path": "images/52ea339d63a058cf3a398302d95cb3334d69219dce14af659fc58e094fe1e297.jpg",
+        "content": "| Environment Frames | Dog-run (Line 1) | Dog-run (Line 2) |\n| ------------------ | ---------------- | ---------------- |\n| 0.00               | 0                | 0                |\n| 0.25               | ~150             | ~50              |\n| 0.50               | ~300             | ~100             |\n| 0.75               | ~450             | ~150             |\n| 1.00               | ~500             | ~200             |",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "sub_type": "line",
+        "bbox": [
+            666,
+            272,
+            820,
+            354
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "image",
+        "img_path": "images/3ae5f6499e252834cd67db0d8f9595e616cfdd2a0053a7560948f8a1efa5372e.jpg",
+        "image_caption": [
+            "Figure 8: Effect of network architecture. Comparison between MLP and SimBa backbones for QSM (blue) and DACER (green) on DMControl hard tasks. Solid lines denote MLP policies and dashed lines denote Simba policies. "
+        ],
+        "image_footnote": [],
+        "content": "",
+        "bbox": [
+            315,
+            354,
+            681,
+            367
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            169,
+            446,
+            823,
+            537
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "Effect of Network Backbone. Recent studies (Lee et al., 2024; Nauman et al., 2024) have demonstrated that network architecture is a significant confounding factor in online Reinforcement Learning performance, yet their effects are often left unexamined in the existing literature. The modular design of FLOWRL enables users to seamlessly swap between neural network backbones. In Figure 8, we select the most difficult tasks from DMC and change the network architecture from MLP to SimBa. We find that all evaluated algorithms achieve significant performance gains on tasks previously considered challenging. These results highlight the importance of controlling for architecture when evaluating algorithmic improvements. ",
+        "bbox": [
+            169,
+            555,
+            823,
+            676
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "Effect of Noise Schedule. Prior work on DMs has shown that the choice of noise schedules can affect sample quality (Ho et al., 2020; Song et al., 2022). We investigate whether these design choices carry over to the RL setting by replacing the default cosine schedule with a linear schedule. As shown in Figure 9, switching to a linear noise schedule has minimal impact on performance across all three methods. ",
+        "bbox": [
+            169,
+            691,
+            823,
+            767
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "6 Closing Remarks ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            789,
+            349,
+            806
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "In this paper, we presented a systematic study of diffusion policy-based Reinforcement Learning. We first proposed a unified taxonomy that categorizes existing DPRL algorithms along two axes: diffusion policy optimization guidance and regularization objective. Building upon this taxonomy, we developed a modular, JAX-based library that enables high-throughput training and fair comparison of DPRL algorithms. Our standardized benchmark results across Gym-Locomotion, DeepMind Control Suite, and IsaacLab provide rigorous performance references and practical guidelines for ",
+        "bbox": [
+            169,
+            823,
+            823,
+            912
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "page_number",
+        "text": "11 ",
+        "bbox": [
+            490,
+            936,
+            506,
+            948
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "image",
+        "img_path": "images/281c7984170d1aedfc33eb9d24319baab12cd526f5979fdc86d54d169ef3c8f4.jpg",
+        "image_caption": [],
+        "image_footnote": [
+            "Cosine Noise Schedule Linear Noise Schedule "
+        ],
+        "content": "",
+        "bbox": [
+            223,
+            89,
+            777,
+            204
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "Figure 9: Effect of noise schedule. Performance of SDAC, QSM, and DACER with a cosine (black) or linear noise schedule. ",
+        "bbox": [
+            169,
+            215,
+            823,
+            246
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "selecting algorithm configurations. Important open questions remain in the field of DPRL, including designing algorithms robust to diverse environment characteristics, scaling to long-horizon and sparse-reward tasks, and developing a thorough understanding of the diffusion policy optimization landscape. We believe our proposed taxonomy and library provide a solid foundation for future research and practical applications in this direction. ",
+        "bbox": [
+            169,
+            267,
+            823,
+            343
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "References ",
+        "text_level": 1,
+        "bbox": [
+            173,
+            364,
+            267,
+            380
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "Tara Akhound-Sadegh, Jarrid Rector-Brooks, Avishek Joey Bose, Sarthak Mittal, Pablo Lemos, Cheng-Hao Liu, Marcin Sendera, Siamak Ravanbakhsh, Gauthier Gidel, Yoshua Bengio, et al. Iterated denoising energy matching for sampling from boltzmann densities. arXiv preprint arXiv:2402.06121, 2024. ",
+            "Michael Albergo, Nicholas M Boffi, and Eric Vanden-Eijnden. Stochastic interpolants: A unifying framework for flows and diffusions. Journal of Machine Learning Research, 26(209):1–80, 2025. ",
+            "Michael S Albergo and Eric Vanden-Eijnden. Building normalizing flows with stochastic interpolants. arXiv preprint arXiv:2209.15571, 2022. ",
+            "Kevin Black, Noah Brown, Danny Driess, Adnan Esmail, Michael Equi, Chelsea Finn, Niccolo Fusai, Lachy Groom, Karol Hausman, Brian Ichter, et al. π0: A vision-language-action flow model for general robot control. arXiv preprint arXiv:2410.24164, 2024. ",
+            "James Bradbury, Roy Frostig, Peter Hawkins, Matthew James Johnson, Chris Leary, Dougal Maclaurin, George Necula, Adam Paszke, Jake VanderPlas, Skye Wanderman-Milne, and Qiao Zhang. JAX: composable transformations of Python+NumPy programs, 2018. URL http://github.com/jax-ml/jax. ",
+            "Onur Celik, Zechu Li, Denis Blessing, Ge Li, Daniel Palenicek, Jan Peters, Georgia Chalvatzaki, and Gerhard Neumann. Dime: Diffusion-based maximum entropy reinforcement learning. In International Conference on Machine Learning, pp. 6958–6977. PMLR, 2025. ",
+            "Huayu Chen, Cheng Lu, Chengyang Ying, Hang Su, and Jun Zhu. Offline reinforcement learning via high-fidelity generative behavior modeling. arXiv preprint arXiv:2209.14548, 2022. ",
+            "Tianyi Chen, Haitong Ma, Na Li, Kai Wang, and Bo Dai. One-step flow policy mirror descent. arXiv preprint arXiv:2507.23675, 2025. ",
+            "Ting Chen. On the importance of noise scheduling for diffusion models. arXiv preprint arXiv:2301.10972, 2023. ",
+            "Cheng Chi, Zhenjia Xu, Siyuan Feng, Eric Cousineau, Yilun Du, Benjamin Burchfiel, Russ Tedrake, and Shuran Song. Diffusion policy: Visuomotor policy learning via action diffusion. The International Journal of Robotics Research, 44(10-11):1684–1704, 2025. "
+        ],
+        "bbox": [
+            166,
+            385,
+            828,
+            916
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "page_number",
+        "text": "",
+        "bbox": [
+            490,
+            936,
+            508,
+            949
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "Wonhyeok Choi, Shutong Ding, Minwoo Choi, Jungwan Woo, Kyumin Hwang, Jaeyeul Kim, Ye Shi, and Sunghoon Im. A review of online diffusion policy rl algorithms for scalable robotic control. arXiv preprint arXiv:2601.06133, 2026. ",
+            "Petros Christodoulou. Soft actor-critic for discrete action settings. arXiv preprint arXiv:1910.07207, 2019. ",
+            "DeepMind, Igor Babuschkin, Kate Baumli, Alison Bell, Surya Bhupatiraju, Jake Bruce, Peter Buchlovsky, David Budden, Trevor Cai, Aidan Clark, Ivo Danihelka, Antoine Dedieu, Claudio Fantacci, Jonathan Godwin, Chris Jones, Ross Hemsley, Tom Hennigan, Matteo Hessel, Shaobo Hou, Steven Kapturowski, Thomas Keck, Iurii Kemaev, Michael King, Markus Kunesch, Lena Martens, Hamza Merzic, Vladimir Mikulik, Tamara Norman, George Papamakarios, John Quan, Roman Ring, Francisco Ruiz, Alvaro Sanchez, Laurent Sartran, Rosalia Schneider, Eren Sezener, Stephen Spencer, Srivatsan Srinivasan, Miloš Stanojevic, Wojciech Stokowiec, ´ Luyu Wang, Guangyao Zhou, and Fabio Viola. The DeepMind JAX Ecosystem, 2020. URL http://github.com/google-deepmind. ",
+            "Prafulla Dhariwal and Alexander Nichol. Diffusion models beat gans on image synthesis. Advances in neural information processing systems, 34:8780–8794, 2021. ",
+            "Shutong Ding, Ke Hu, Zhenhao Zhang, Kan Ren, Weinan Zhang, Jingyi Yu, Jingya Wang, and Ye Shi. Diffusion-based reinforcement learning via q-weighted variational policy optimization. Advances in Neural Information Processing Systems, 37:53945–53968, 2024. ",
+            "Shutong Ding, Ke Hu, Shan Zhong, Haoyang Luo, Weinan Zhang, Jingya Wang, Jun Wang, and Ye Shi. Genpo: Generative diffusion models meet on-policy reinforcement learning. arXiv preprint arXiv:2505.18763, 2025. ",
+            "Xiaoyi Dong, Jian Cheng, and Xi Sheryl Zhang. Maximum entropy reinforcement learning with diffusion policy. arXiv preprint arXiv:2502.11612, 2025. ",
+            "Linjiajie Fang, Ruoxue Liu, Jing Zhang, Wenjia Wang, and Bingyi Jing. Diffusion actor-critic: Formulating constrained policy iteration as diffusion noise regression for offline reinforcement learning. In The Thirteenth International Conference on Learning Representations, 2024. ",
+            "Scott Fujimoto, Herke Hoof, and David Meger. Addressing function approximation error in actorcritic methods. In International conference on machine learning, pp. 1587–1596. PMLR, 2018. ",
+            "Chen-Xiao Gao, Chenyang Wu, Mingjun Cao, Chenjun Xiao, Yang Yu, and Zongzhang Zhang. Behavior-regularized diffusion policy optimization for offline reinforcement learning. In Fortysecond International Conference on Machine Learning, 2025. ",
+            "Matthieu Geist, Bruno Scherrer, and Olivier Pietquin. A theory of regularized markov decision processes. In International conference on machine learning, pp. 2160–2169. PMLR, 2019. ",
+            "Tuomas Haarnoja, Haoran Tang, Pieter Abbeel, and Sergey Levine. Reinforcement learning with deep energy-based policies. In International conference on machine learning, pp. 1352–1361. PMLR, 2017. ",
+            "Tuomas Haarnoja, Aurick Zhou, Kristian Hartikainen, George Tucker, Sehoon Ha, Jie Tan, Vikash Kumar, Henry Zhu, Abhishek Gupta, Pieter Abbeel, et al. Soft actor-critic algorithms and applications. arXiv preprint arXiv:1812.05905, 2018. ",
+            "Philippe Hansen-Estruch, Ilya Kostrikov, Michael Janner, Jakub Grudzien Kuba, and Sergey Levine. Idql: Implicit q-learning as an actor-critic method with diffusion policies. arXiv preprint arXiv:2304.10573, 2023. ",
+            "Jonathan Heek, Anselm Levskaya, Avital Oliver, Marvin Ritter, Bertrand Rondepierre, Andreas Steiner, and Marc van Zee. Flax: A neural network library and ecosystem for JAX, 2024. URL http://github.com/google/flax. "
+        ],
+        "bbox": [
+            166,
+            87,
+            831,
+            917
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "page_number",
+        "text": "",
+        "bbox": [
+            490,
+            936,
+            506,
+            948
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffusion probabilistic models. Advances in neural information processing systems, 33:6840–6851, 2020. ",
+            "Xiao Huang, Xu Liu, Enze Zhang, Tong Yu, and Shuai Li. Offline-to-online reinforcement learning with classifier-free diffusion generation. arXiv preprint arXiv:2508.06806, 2025. ",
+            "Vineet Jain, Tara Akhound-Sadegh, and Siamak Ravanbakhsh. Sampling from energy-based policies using diffusion. arXiv preprint arXiv:2410.01312, 2024. ",
+            "Bingyi Kang, Xiao Ma, Chao Du, Tianyu Pang, and Shuicheng Yan. Efficient diffusion policies for offline reinforcement learning. Advances in Neural Information Processing Systems, 36:67195– 67212, 2023. ",
+            "Moo Jin Kim, Karl Pertsch, Siddharth Karamcheti, Ted Xiao, Ashwin Balakrishna, Suraj Nair, Rafael Rafailov, Ethan Foster, Grace Lam, Pannag Sanketi, et al. Openvla: An open-source vision-language-action model. arXiv preprint arXiv:2406.09246, 2024. ",
+            "Hojoon Lee, Dongyoon Hwang, Donghu Kim, Hyunseung Kim, Jun Jet Tai, Kaushik Subramanian, Peter R Wurman, Jaegul Choo, Peter Stone, and Takuma Seno. Simba: Simplicity bias for scaling up parameters in deep reinforcement learning. arXiv preprint arXiv:2410.09754, 2024. ",
+            "Tianhong Li and Kaiming He. Back to basics: Let denoising generative models denoise. arXiv preprint arXiv:2511.13720, 2025. ",
+            "Yinchuan Li, Xinyu Shao, Jianping Zhang, Haozhi Wang, Leo Maxime Brunswic, Kaiwen Zhou, Jiqian Dong, Kaiyang Guo, Xiu Li, Zhitang Chen, et al. Generative models in decision making: A survey. arXiv preprint arXiv:2502.17100, 2025. ",
+            "Yaron Lipman, Ricky TQ Chen, Heli Ben-Hamu, Maximilian Nickel, and Matt Le. Flow matching for generative modeling. arXiv preprint arXiv:2210.02747, 2022. ",
+            "Cheng Lu and Yang Song. Simplifying, stabilizing and scaling continuous-time consistency models. arXiv preprint arXiv:2410.11081, 2024. ",
+            "Cheng Lu, Huayu Chen, Jianfei Chen, Hang Su, Chongxuan Li, and Jun Zhu. Contrastive energy prediction for exact energy-guided diffusion sampling in offline reinforcement learning. In International Conference on Machine Learning, pp. 22825–22855. PMLR, 2023. ",
+            "Haitong Ma, Tianyi Chen, Kai Wang, Na Li, and Bo Dai. Efficient online reinforcement learning for diffusion policy. In Forty-second International Conference on Machine Learning, 2025. ",
+            "Liyuan Mao, Haoran Xu, Xianyuan Zhan, Weinan Zhang, and Amy Zhang. Diffusion-dice: Insample diffusion guidance for offline reinforcement learning. Advances in Neural Information Processing Systems, 37:98806–98834, 2024. ",
+            "David McAllister, Songwei Ge, Brent Yi, Chung Min Kim, Ethan Weber, Hongsuk Choi, Haiwen Feng, and Angjoo Kanazawa. Flow matching policy gradients. arXiv preprint arXiv:2507.21053, 2025. ",
+            "Michal Nauman, Mateusz Ostaszewski, Krzysztof Jankowski, Piotr Miłos, and Marek Cygan. Big- ´ ger, regularized, optimistic: scaling for compute and sample efficient continuous control. Advances in neural information processing systems, 37:113038–113071, 2024. ",
+            "NVIDIA, :, Mayank Mittal, Pascal Roth, James Tigue, Antoine Richard, Octi Zhang, Peter Du, Antonio Serrano-Muñoz, Xinjie Yao, René Zurbrügg, Nikita Rudin, Lukasz Wawrzyniak, Milad Rakhsha, Alain Denzler, Eric Heiden, Ales Borovicka, Ossama Ahmed, Iretiayo Akinola, Abrar Anwar, Mark T. Carlson, Ji Yuan Feng, Animesh Garg, Renato Gasoto, Lionel Gulich, Yijie Guo, M. Gussert, Alex Hansen, Mihir Kulkarni, Chenran Li, Wei Liu, Viktor Makoviychuk, Grzegorz Malczyk, Hammad Mazhar, Masoud Moghani, Adithyavairavan Murali, Michael "
+        ],
+        "bbox": [
+            166,
+            87,
+            831,
+            917
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "page_number",
+        "text": "14 ",
+        "bbox": [
+            490,
+            936,
+            508,
+            948
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "Noseworthy, Alexander Poddubny, Nathan Ratliff, Welf Rehberg, Clemens Schwarke, Ritvik Singh, James Latham Smith, Bingjie Tang, Ruchik Thaker, Matthew Trepte, Karl Van Wyk, Fangzhou Yu, Alex Millane, Vikram Ramasamy, Remo Steiner, Sangeeta Subramanian, Clemens Volk, CY Chen, Neel Jawale, Ashwin Varghese Kuruttukulam, Michael A. Lin, Ajay Mandlekar, Karsten Patzwaldt, John Welsh, Huihua Zhao, Fatima Anes, Jean-Francois Lafleche, Nicolas Moënne-Loccoz, Soowan Park, Rob Stepinski, Dirk Van Gelder, Chris Amevor, Jan Carius, Jumyung Chang, Anka He Chen, Pablo de Heras Ciechomski, Gilles Daviet, Mohammad Mohajerani, Julia von Muralt, Viktor Reutskyy, Michael Sauter, Simon Schirm, Eric L. Shi, Pierre Terdiman, Kenny Vilella, Tobias Widmer, Gordon Yeoman, Tiffany Chen, Sergey Grizan, Cathy Li, Lotus Li, Connor Smith, Rafael Wiltz, Kostas Alexis, Yan Chang, David Chu, Linxi \"Jim\" Fan, Farbod Farshidian, Ankur Handa, Spencer Huang, Marco Hutter, Yashraj Narang, Soha Pouya, Shiwei Sheng, Yuke Zhu, Miles Macklin, Adam Moravanszky, Philipp Reist, Yunrong Guo, David Hoeller, and Gavriel State. Isaac lab: A gpu-accelerated simulation framework for multi-modal robot learning, 2025. URL https://arxiv.org/abs/2511.04831. ",
+            "Chaoyi Pan, Zeji Yi, Guanya Shi, and Guannan Qu. Model-based diffusion for trajectory optimization. Advances in Neural Information Processing Systems, 37:57914–57943, 2024. ",
+            "Seohong Park, Qiyang Li, and Sergey Levine. Flow q-learning, 2025. URL https://arxiv.org/abs/2502.02538. ",
+            "Xue Bin Peng, Aviral Kumar, Grace Zhang, and Sergey Levine. Advantage-weighted regression: Simple and scalable off-policy reinforcement learning. arXiv preprint arXiv:1910.00177, 2019. ",
+            "Michael Psenka, Alejandro Escontrela, Pieter Abbeel, and Yi Ma. Learning a diffusion model policy from rewards via q-score matching. In International Conference on Machine Learning, pp. 41163–41182. PMLR, 2024. ",
+            "Allen Z Ren, Justin Lidard, Lars L Ankile, Anthony Simeonov, Pulkit Agrawal, Anirudha Majumdar, Benjamin Burchfiel, Hongkai Dai, and Max Simchowitz. Diffusion policy policy optimization. In 13th International Conference on Learning Representations, ICLR 2025, pp. 58018– 58059. International Conference on Learning Representations, ICLR, 2025. ",
+            "John Schulman, Sergey Levine, Pieter Abbeel, Michael Jordan, and Philipp Moritz. Trust region policy optimization. In International conference on machine learning, pp. 1889–1897. PMLR, 2015. ",
+            "John Schulman, Filip Wolski, Prafulla Dhariwal, Alec Radford, and Oleg Klimov. Proximal policy optimization algorithms. arXiv preprint arXiv:1707.06347, 2017. ",
+            "Jiaming Song, Chenlin Meng, and Stefano Ermon. Denoising diffusion implicit models, 2022. URL https://arxiv.org/abs/2010.02502. ",
+            "Yang Song, Jascha Sohl-Dickstein, Diederik P Kingma, Abhishek Kumar, Stefano Ermon, and Ben Poole. Score-based generative modeling through stochastic differential equations. arXiv preprint arXiv:2011.13456, 2020. ",
+            "Richard S Sutton, Andrew G Barto, et al. Reinforcement learning: An introduction, volume 1. MIT press Cambridge, 1998. ",
+            "Richard S Sutton, David McAllester, Satinder Singh, and Yishay Mansour. Policy gradient methods for reinforcement learning with function approximation. Advances in neural information processing systems, 12, 1999. ",
+            "Yuval Tassa, Yotam Doron, Alistair Muldal, Tom Erez, Yazhe Li, Diego de Las Casas, David Budden, Abbas Abdolmaleki, Josh Merel, Andrew Lefrancq, Timothy Lillicrap, and Martin Riedmiller. Deepmind control suite, 2018. URL https://arxiv.org/abs/1801.00690. "
+        ],
+        "bbox": [
+            171,
+            90,
+            825,
+            912
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "page_number",
+        "text": "",
+        "bbox": [
+            490,
+            936,
+            506,
+            948
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "Emanuel Todorov, Tom Erez, and Yuval Tassa. Mujoco: A physics engine for model-based control. 2012 IEEE/RSJ International Conference on Intelligent Robots and Systems, pp. 5026–5033, 2012. URL https://api.semanticscholar.org/CorpusID:5230692. ",
+            "Mark Towers, Ariel Kwiatkowski, Jordan Terry, John U. Balis, Gianluca De Cola, Tristan Deleu, Manuel Goulão, Andreas Kallinteris, Markus Krimmel, Arjun KG, Rodrigo Perez-Vicente, Andrea Pierré, Sander Schulhoff, Jun Jet Tai, Hannah Tan, and Omar G. Younis. Gymnasium: A standard interface for reinforcement learning environments, 2025. URL https://arxiv.org/abs/2407.17032. ",
+            "Yinuo Wang, Likun Wang, Yuxuan Jiang, Wenjun Zou, Tong Liu, Xujie Song, Wenxuan Wang, Liming Xiao, Jiang Wu, Jingliang Duan, et al. Diffusion actor-critic with entropy regulator. Advances in Neural Information Processing Systems, 37:54183–54204, 2024. ",
+            "Yinuo Wang, Likun Wang, Mining Tan, Wenjun Zou, Xujie Song, Wenxuan Wang, Tong Liu, Guojian Zhan, Tianze Zhu, Shiqi Liu, et al. Enhanced dacer algorithm with high diffusion efficiency. arXiv preprint arXiv:2505.23426, 2025. ",
+            "Zhendong Wang, Jonathan J Hunt, and Mingyuan Zhou. Diffusion policies as an expressive policy class for offline reinforcement learning. arXiv preprint arXiv:2208.06193, 2022. ",
+            "Rosa Wolf, Yitian Shi, Sheng Liu, and Rania Rayyes. Diffusion models for robotic manipulation: A survey. Frontiers in Robotics and AI, 12:1606247, 2025. ",
+            "Yifan Wu, George Tucker, and Ofir Nachum. Behavior regularized offline reinforcement learning. arXiv preprint arXiv:1911.11361, 2019. ",
+            "Changfu Xu, Jianxiong Guo, Yuzhu Liang, Haiyang Huang, Haodong Zou, Xi Zheng, Shui Yu, Xiaowen Chu, Jiannong Cao, and Tian Wang. Diffusion models for reinforcement learning: Foundations, taxonomy, and development. arXiv preprint arXiv:2510.12253, 2025. ",
+            "Shiyuan Zhang, Weitong Zhang, and Quanquan Gu. Energy-weighted flow matching for offline reinforcement learning. In The Thirteenth International Conference on Learning Representations, 2024. ",
+            "Zhengbang Zhu, Hanye Zhao, Haoran He, Yichao Zhong, Shenyu Zhang, Haoquan Guo, Tingting Chen, and Weinan Zhang. Diffusion models for reinforcement learning: A survey. arXiv preprint arXiv:2311.01223, 2023. "
+        ],
+        "bbox": [
+            166,
+            87,
+            831,
+            625
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "page_number",
+        "text": "16 ",
+        "bbox": [
+            490,
+            936,
+            508,
+            949
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "A Experimental Details ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            90,
+            388,
+            108
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "A.1 Benchmark Tasks ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            123,
+            343,
+            137
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "We evaluate on the following continuous control tasks across three benchmarks. ",
+        "bbox": [
+            171,
+            150,
+            697,
+            164
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "Gym-Locomotion (6 tasks). Ant-v5, HalfCheetah-v5, Hopper-v5, Humanoid-v5, Swimmer-v5, Walker2d-v5. ",
+        "bbox": [
+            169,
+            180,
+            823,
+            210
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "DeepMind Control Suite (8 tasks). Cartpole-Balance, Hopper-Stand, Cheetah-Run, Quadruped-Run, Humanoid-Walk, Humanoid-Run, Humanoid-Stand, Dog-Run. ",
+        "bbox": [
+            169,
+            226,
+            823,
+            257
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "IsaacLab (4 tasks). Isaac-Ant-v0, Isaac-Humanoid-v0, Isaac-Lift-Cube-Franka-v0, Isaac-Velocity-Flat-Anymal-D-v0. ",
+        "bbox": [
+            169,
+            271,
+            823,
+            301
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "A.2 Shared Training Settings ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            319,
+            390,
+            335
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "table",
+        "img_path": "images/6544762ee82a3c90715335a2a3d120556ff32a6ad4b6276aa18335bae15fc138.jpg",
+        "table_caption": [
+            "Table 3: Shared training settings per benchmark. "
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Setting</td><td>Gym-Locomotion</td><td>DMC</td><td>IsaacLab</td></tr><tr><td>Training frames</td><td>1M</td><td>1M</td><td>100M</td></tr><tr><td>Batch size</td><td>256</td><td>512</td><td>6144</td></tr><tr><td>Replay buffer size</td><td> $10^6$ </td><td> $10^6$ </td><td>—</td></tr><tr><td>Discount γ</td><td>0.99</td><td>0.99</td><td>0.99</td></tr><tr><td>Warmup frames</td><td>5K</td><td>10K</td><td>—</td></tr><tr><td>Random frames</td><td>5K</td><td>10K</td><td>—</td></tr><tr><td>Eval frequency (frames)</td><td>10K</td><td>10K</td><td>5M</td></tr><tr><td>Eval episodes</td><td>10</td><td>10</td><td>10</td></tr><tr><td>Observation norm.</td><td>No</td><td>No</td><td>Yes</td></tr><tr><td>Reward norm.</td><td>No</td><td>No</td><td>No</td></tr><tr><td>Parallel envs</td><td>1</td><td>1</td><td>1024</td></tr><tr><td>Frame skip</td><td>1</td><td>2</td><td>—</td></tr></table>",
+        "bbox": [
+            264,
+            377,
+            733,
+            592
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "A.3 Algorithm-Specific Hyperparameters ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            614,
+            477,
+            630
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "Shared off-policy defaults. Unless we state otherwise, all off-policy methods follow a standard setup. For the critic, we use a 2-layer MLP (256 units, ReLU) for Gym-Locomotion tasks and a deeper 3-layer MLP (512 units, ELU) for DMC, both utilizing an ensemble size of 2 and an EMA of 0.005.The diffusion actor uses a 3-layer MLP—sized at 256 for Gym or 512 for DMC—with Mish activation and a 64-dimensional Fourier time embedding. We run this for 20 DDPM steps using a cosine noise schedule and clip actions between -1 and 1. Finally, our SAC implementation relies on a standard Gaussian actor with tanh squashing and automatic entropy tuning. ",
+        "bbox": [
+            169,
+            641,
+            826,
+            748
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "Off-policy algorithm-specific hyperparameters. All off-policy diffusion methods use actor lr 3e-4 and critic lr 3e-4, except DACER (1e-4 for both) and DPMD (actor lr 1e-4, critic lr 3e-4). QVPO and SAC use a 2-layer (256, 256) actor; all other diffusion methods use a 3-layer (256, 256, 256) actor. ",
+        "bbox": [
+            169,
+            762,
+            823,
+            821
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "QSM samples num\\_samples=10 actions per state for the score matching update, with temperature λ = 0.1. ",
+        "bbox": [
+            169,
+            830,
+            823,
+            859
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "DACER updates the actor every 2 critic steps. It uses entropy\\_num\\_samples=200 for Monte Carlo entropy estimation, noise\\_scaler=0.1 (0.15 for HalfCheetah/Humanoid) for exploration, reward\\_scale=0.2 (1.0 on DMC), and updates α every 10K steps with alpha\\_lr=0.03. ",
+        "bbox": [
+            169,
+            868,
+            823,
+            914
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "page_number",
+        "text": "17 ",
+        "bbox": [
+            490,
+            936,
+            508,
+            949
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "DPMD constrains policy updates via target\\_kl=2.5 and refreshes the reference policy every 1000 steps. It uses num\\_particles=64 for policy evaluation, additive\\_noise=0.2 (0.1 for Ant), and linear advantage reweighting. ",
+        "bbox": [
+            169,
+            92,
+            823,
+            138
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "SDAC draws num\\_reverse\\_samples=500 Monte Carlo samples during reverse diffusion for gradient estimation, with temperature λ=0.05 (0.01 on DMC). ",
+        "bbox": [
+            169,
+            145,
+            823,
+            175
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "QVPO trains with num\\_train\\_samples=64, advantage-based reweighting, entropy\\_coef=0.01, and num\\_behavior\\_samples=2 (4 for HalfCheetah, 1 for Hopper). ",
+        "bbox": [
+            169,
+            183,
+            823,
+            228
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "Shared on-policy defaults. Unless otherwise specified, all on-policy methods utilize a standardized configuration. Both the actor and critic networks are implemented as 3-layer MLPs with hidden dimensions of (256, 256, 256); the critic uses a learning rate of $1 0 ^ { - 3 }$ , while the actor uses $1 0 ^ { - 4 }$ . For PPO-specific hyperparameters, we employ Generalized Advantage Estimation (GAE) with $\\lambda = 0 . 9 5$ , a clipping parameter $\\epsilon = 0 . 2$ , and a gradient clipping norm of 1.0. Training is conducted over 4 epochs per update using 4 minibatches with advantage normalization and a rollout length of 24. The infrastructure leverages 1024 parallel environments, resulting in a total batch size of 6144. ",
+        "bbox": [
+            169,
+            244,
+            826,
+            363
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "table",
+        "img_path": "images/a0692cd3446c10da5f59bce742b8cd3145d685b058045d966e9aa58fbfcf70d6.jpg",
+        "table_caption": [
+            "Table 4: On-policy algorithm-specific hyperparameters on IsaacLab. Only parameters that differ from the shared defaults are listed. "
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td></td><td>DPPO</td><td>FPO</td><td>GenPO</td><td>PPO</td></tr><tr><td>Actor activation</td><td>Mish</td><td>SiLU</td><td>ELU</td><td>ELU</td></tr><tr><td>Critic activation</td><td>Mish</td><td>ELU</td><td>ELU</td><td>ELU</td></tr><tr><td>Denoising steps</td><td>10</td><td>10</td><td>5</td><td>—</td></tr><tr><td>Time embed dim</td><td>32</td><td>16</td><td>32</td><td>—</td></tr><tr><td>Clip ε</td><td>0.2</td><td>0.05</td><td>0.2</td><td>0.2</td></tr><tr><td>Entropy coef</td><td>—</td><td>—</td><td>0.002</td><td>1e-4</td></tr><tr><td>Compression coef</td><td>—</td><td>—</td><td>0.01</td><td>—</td></tr><tr><td>num_mc_samples</td><td>—</td><td>8</td><td>—</td><td>—</td></tr></table>",
+        "bbox": [
+            307,
+            417,
+            691,
+            570
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "table",
+        "img_path": "images/9ef3b7d7fc2b51ddf3089a3dc2e481e0e2cbf813b3caf21f1873c175563b6e58.jpg",
+        "table_caption": [
+            "Table 5: Maximum return values used for normalization in performance profiles (Figures 3 and 7). "
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Environment</td><td>Max Return</td></tr><tr><td>Ant-v5</td><td>6000</td></tr><tr><td>HalfCheetah-v5</td><td>11000</td></tr><tr><td>Hopper-v5</td><td>4000</td></tr><tr><td>Humanoid-v5</td><td>6000</td></tr><tr><td>Swimmer-v5</td><td>150</td></tr><tr><td>Walker2d-v5</td><td>6000</td></tr></table>",
+        "bbox": [
+            385,
+            632,
+            612,
+            756
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "page_number",
+        "text": "18 ",
+        "bbox": [
+            490,
+            936,
+            508,
+            949
+        ],
+        "page_idx": 17
+    }
+]
