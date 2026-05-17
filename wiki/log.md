@@ -1,4 +1,4 @@
-﻿# Wiki Log
+# Wiki Log
 
 > **Chronological, append-only record** of all wiki operations.
 > Each entry starts with `## [YYYY-MM-DD] <operation> | <title>` for easy parsing.
@@ -551,14 +551,16 @@
 **检索来源**: arXiv 直接下载（arxiv_fetch.py，bypass SOCKS 代理）
 **MinerU 模式**: vlm（5 并发），耗时 1.6 分钟
 
-**PDF 下载目录**: aw/assets/papers/Lab Automation/（新建目录）
+**PDF 下载目录**: 
+aw/assets/papers/Lab Automation/（新建目录）
 - Huang - 2026 - ChemBot.pdf（2921 KB）
 - Qiu - 2025 - BioMARS.pdf（14214 KB）
 - Zhu - 2025 - Touch in the Wild.pdf（10874 KB）
 - Zhang - 2025 - Intelligent Science Laboratory.pdf（1531 KB）
 - Zhang - 2025 - Scaling Laws Scientific Discovery.pdf（9292 KB）
 
-**Markdown 输出目录**: aw/sources/papers/Lab Automation/（新建目录）
+**Markdown 输出目录**: 
+aw/sources/papers/Lab Automation/（新建目录）
 - Huang - 2026 - ChemBot/Huang - 2026 - ChemBot.md
 - Qiu - 2025 - BioMARS/Qiu - 2025 - BioMARS.md
 - Zhu - 2025 - Touch in the Wild/Zhu - 2025 - Touch in the Wild.md
@@ -592,3 +594,13 @@
   - 扩展比较表：新增 vs Actor-Critic / PPO / AWR 四维对比
 - **更新** wiki/index.md：RL Concepts 4→12 条，AWR 新增行；CFGRL 加入 Knowledge Gaps
 - 触发来源：用户关于 AWR / CFGRL / RECAP vs 传统 RL 的三轮 Q&A 对话
+
+## [2026-05-18] update | 补充 BPTT 前置概念到 Flow Q-Learning
+- **目标文件**：`wiki/sources/rl-finetuning/2026-04-19 Flow Q-Learning.md`
+- **新增章节**：## 前置概念：BPTT (Backpropagation Through Time)
+  - 算法机制：迭代结构 + 链式法则展开公式
+  - 在 Flow / Diffusion 策略中的体现：T 步 ODE 链路穿透
+  - 四类瓶颈：显存爆炸 / 梯度病态 / 计算时间 / 数值噪声
+  - 三种应对策略对比：DPPO/ReinFlow vs FQL vs 直接 BPTT
+- **frontmatter 更新**：tags 增加 `BPTT`；updated 改为 2026-05-18
+- **触发来源**：用户在 RECAP 笔记上下文中提问 "BPTT 指的是什么"

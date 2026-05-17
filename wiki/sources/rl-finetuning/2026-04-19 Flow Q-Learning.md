@@ -1,9 +1,9 @@
-﻿---
+---
 type: source
-tags: [Flow Matching, 离线强化学习, 策略蒸馏, ICML 2025, Policy Extraction]
+tags: [Flow Matching, 离线强化学习, 策略蒸馏, ICML 2025, Policy Extraction, BPTT]
 sources: [raw/sources/papers/VLA+RL/Park 等 - 2025 - Flow Q-Learning.pdf]
 created: 2026-04-19
-updated: 2026-04-19
+updated: 2026-05-18
 ---
 
 [[Park 等 - 2025 - Flow Q-Learning.pdf]]
@@ -27,6 +27,51 @@ updated: 2026-04-19
 
 ---
 
+## 前置概念：BPTT (Backpropagation Through Time)
+
+**BPTT = 通过时间反向传播**——处理"按时间步迭代展开"的模型时的反向求导算法。最早由 Werbos (1990) 用于训练 RNN，现已成为所有**迭代结构模型**（RNN、ODE 求解器、Diffusion / Flow 生成模型）梯度求导的通用术语。
+
+### 算法机制
+
+对于一个 $T$ 步迭代过程：
+
+$$h_t = f_\theta(h_{t-1}, x_t), \quad t = 1, \ldots, T$$
+
+最终损失 $\mathcal{L}(h_T)$ 对参数 $\theta$ 的梯度需沿整条链路展开：
+
+$$\frac{\partial \mathcal{L}}{\partial \theta} = \sum_{t=1}^{T} \frac{\partial \mathcal{L}}{\partial h_T} \cdot \underbrace{\prod_{k=t+1}^{T} \frac{\partial h_k}{\partial h_{k-1}}}_{\text{穿透 }T-t\text{ 步}} \cdot \frac{\partial h_t}{\partial \theta}$$
+
+实现上要求**保存所有中间激活 $\{h_1, \ldots, h_T\}$**，反向时按时间倒序逐步累积梯度。
+
+### 在 Flow / Diffusion 策略中的体现
+
+Flow Matching 策略生成一个动作需要 $T$ 步 ODE 积分（典型 $T = 4 \sim 50$）：
+
+$$a^{(0)} \sim \mathcal{N}(0, I) \xrightarrow{\;f_\theta\;} a^{(1)} \xrightarrow{\;f_\theta\;} \cdots \xrightarrow{\;f_\theta\;} a^{(T)} = a$$
+
+若想用 $Q(s, a^{(T)})$ 反向更新 $\theta$，必须**穿透整条 ODE 链路**——这就是"对 Flow 策略做 BPTT"。
+
+### 为什么 BPTT 在 Flow 策略上昂贵且不稳定
+
+| 问题       | 原因                                       |
+| -------- | ---------------------------------------- |
+| **显存爆炸** | 需保存 $T$ 步中间激活，显存随 $T$ 线性增长（VLA 大模型尤为严重） |
+| **梯度病态** | 梯度沿 $T$ 步连乘，雅可比矩阵特征值偏离 1 时易出现消失/爆炸     |
+| **计算时间** | 每个训练 step 需完整跑 $T$ 次前向 + $T$ 次反向        |
+| **数值噪声** | 大 $T$ 时数值误差被反复放大，训练不稳定                 |
+
+### 各方法的应对策略
+
+| 方法                | 应对 BPTT 的方式                                |
+| ----------------- | ----------------------------------------- |
+| **DPPO / ReinFlow** | 把 ODE 步骤展开为 MDP，用策略梯度替代 BPTT（梯度仅在单步内传播）  |
+| **FQL（本文）**      | **完全跳过 BPTT**——蒸馏到一步策略再做价值最大化            |
+| **直接 BPTT**       | 仅在 $T$ 很小（2–4）且任务简单时勉强可行，VLA 规模上不可扩展     |
+
+> **本文的核心创举**：通过引入一步策略 $\mu(s, z)$ 承担 Q 最大化职责，把表达性留给 BC Flow，把可微分留给单步网络，**从架构层面绕开 BPTT**。
+
+---
+
 ## 核心贡献
 
 ### 算法：FQL
@@ -39,12 +84,12 @@ $$
 $$
 
 ### 关键优势
-| 性质 | 说明 |
-|------|------|
-| **无 BPTT** | 价值最大化只作用于一步策略，不穿透 Flow 的 ODE |
-| **推理时单步** | 部署时直接用 $\mu(s, z)$，无需 ODE 积分 |
-| **保留表达力** | 通过蒸馏继承 BC Flow 的多模态刻画 |
-| **实现极简** | 仅需几行代码叠加在 behavior-regularized actor-critic 框架上 |
+| 性质         | 说明                                              |
+| ---------- | ----------------------------------------------- |
+| **无 BPTT** | 价值最大化只作用于一步策略，不穿透 Flow 的 ODE                    |
+| **推理时单步**  | 部署时直接用 $\mu(s, z)$，无需 ODE 积分                    |
+| **保留表达力**  | 通过蒸馏继承 BC Flow 的多模态刻画                           |
+| **实现极简**   | 仅需几行代码叠加在 behavior-regularized actor-critic 框架上 |
 
 ### 背景：Behavior-Regularized Actor-Critic
 在 TD3+BC 等方法上扩展的通用离线 RL 框架：
