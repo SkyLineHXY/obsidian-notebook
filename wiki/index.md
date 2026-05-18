@@ -6,8 +6,8 @@
 ---
 
 ## Stats
-- **Sources**: 42 | **Entities**: 13 | **Concepts**: 12 | **Comparisons**: 2 | **Analyses**: 8
-- **Last updated**: 2026-05-17 (新建 Concept：AWR；更新 RECAP Concept 页：补充条件 I 作用 + vs PPO/Actor-Critic + CFGRL 前驱)
+- **Sources**: 42 | **Entities**: 13 | **Concepts**: 12 | **Comparisons**: 2 | **Analyses**: 9
+- **Last updated**: 2026-05-18 (新建 Analysis：RL 微调生成模型的技术挑战与解法全景——BPTT 根本原因 + 三条解法路线系统梳理)
 
 ---
 
@@ -211,6 +211,7 @@
 | [[wiki/analyses/UMI ee6d 位姿变换推理]] | Camera-at-$t_0$ 参考原点下 ee6d 完整 SE(3) 变换链：采集→帧无关性→推理还原→延迟匹配 | 2026-04-25 |
 | [[wiki/analyses/π₀.₇ 训练逻辑全景解析]] | VLA / World Model / High-Level Policy 三模型训练目标、推理时 Prompt 组装与 CFG 完整解析 | 2026-04-29 |
 | [[wiki/analyses/π₀.₆ 与 RECAP 训练原理全景解析]] | π₀.₆ 架构（Gemma 3 4B + 860M flow expert + KI）、RECAP 完整数学推导（贝叶斯反向消除 + delta 二值化 + flow log-likelihood 下界）、三阶段管线与定向失败模式消除 | 2026-05-17 |
+| [[wiki/analyses/RL微调生成模型的技术挑战与解法全景]] | BPTT 三重代价 + log-prob 不可解析等根本障碍；三条解法路线（Markov 化 PG / CFM loss ratio / 离线 Q-learning）+ WarmPrior 正交优化轴；含完整数学推导 | 2026-05-18 |
 
 ---
 

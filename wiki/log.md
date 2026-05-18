@@ -604,3 +604,12 @@ aw/sources/papers/Lab Automation/（新建目录）
   - 三种应对策略对比：DPPO/ReinFlow vs FQL vs 直接 BPTT
 - **frontmatter 更新**：tags 增加 `BPTT`；updated 改为 2026-05-18
 - **触发来源**：用户在 RECAP 笔记上下文中提问 "BPTT 指的是什么"
+
+## [2026-05-18] query | RL 微调生成模型的技术挑战与解法全景（Analysis 新建）
+- **触发来源**：用户请求生成一页 analyses，介绍 RL 微调生成模型的局限性及主流方法的解法
+- **新建** [[wiki/analyses/RL微调生成模型的技术挑战与解法全景]]
+  - 系统梳理四大技术障碍：① log-prob 不可解析（完整推导 ODE 积分分解）② BPTT 三重代价（显存/梯度病态/计算时间）③ 探索-利用悖论（Flow ODE 无随机性）④ 离线策略抽取难题
+  - 三条主流解法路线：A（Markov 化 PG：DPPO + ReinFlow）/ B（CFM loss ratio：FPO）/ C（离线 Q-learning：FQL + OFQL + FAN）+ 正交优化轴（WarmPrior）
+  - 严谨数学推导：log-prob 不可解析 ODE 积分代价 $\mathcal{O}(d^3 T)$；DPPO 两层 MDP 封闭 log-prob；ReinFlow 噪声注入 Markov 化完整步骤；FQL 解耦消除 BPTT 的梯度路径分析
+  - 含实用选型矩阵（7 场景）与三条路线根本哲学对比
+- **更新** wiki/index.md：Analyses 8→9；新增表格行
