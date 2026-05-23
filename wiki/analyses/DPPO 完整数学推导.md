@@ -455,55 +455,33 @@ $$a^{k-1} \approx a^k + \frac{\beta_k}{2}\, \nabla_{a^k} \log q_k(a^k) + \sigma_
 
 ## 7. 完整算法总结
 
-```
-算法：DPPO（含截断去噪 + DDIM）
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-输入：预训练扩散策略参数 θ₀，价值网络参数 φ₀，
-      DDIM 步数 K，截断步数 K'，裁剪范围 ε_clip，
-      更新轮数 M（每批数据的 PPO 迭代次数）
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-for 每次外循环迭代 i = 1, 2, ... do
-  ─── 阶段 1：数据采集 ────────────────────────────
-  令 θ_old = θ（保存当前策略作为旧策略）
-  用 π_{θ_old} 与环境交互，收集 N 条轨迹：
-    ● 对每个时刻 t：
-        (1) 采样 a^K ~ N(0, I)（初始噪声）
-        (2) DDIM 去噪 K 步，保存中间状态 a^{K-1}, ..., a^0
-        (3) 执行动作 a^0，获得奖励 r_t，转移到 s_{t+1}
+**算法：DPPO（含截断去噪 + DDIM）**
 
-  ─── 阶段 2：优势估计 ───────────────────────────
-  对每条轨迹计算 GAE 优势 Â_t（式 10）
-  和折扣回报 R̂_t（用于训练价值网络）
+**输入**：预训练扩散策略参数 $\theta_0$，价值网络参数 $\phi_0$；DDIM 步数 $K$，截断步数 $K'$，裁剪范围 $\epsilon_{\text{clip}}$，每批 PPO 更新轮数 $M$。
 
-  ─── 阶段 3：PPO 更新（迭代 M 轮）───────────────
-  for epoch = 1, ..., M do
-    for 每个 mini-batch (s_t, a^{0:K}_t, r_t, Â_t) do
+**For** 外循环迭代 $i = 1, 2, \ldots$：
 
-      ── 策略损失（式 8）──
-      for k = 1, ..., K' do            ← 只更新最后 K' 步
-        计算 μ_θ(a^k, s, k)（用当前网络）
-        计算 μ_{θ_old}(a^k, s, k)（用旧网络）
-        计算 log ρ_θ^k = (‖a^{k-1}-μ_{θ_old}‖² - ‖a^{k-1}-μ_θ‖²) / (2σ_k²)   [式 6]
-        ρ_θ^k = exp(log ρ_θ^k)         [式 7]
-        L_k = min(ρ_θ^k · Â_t, clip(ρ_θ^k, 1-ε_clip, 1+ε_clip) · Â_t)   [式 8]
-      end for
-      L_policy = -mean(L_k)             ← 取负号因为是最大化
+- **阶段 1：数据采集**
+  - 令 $\theta_{\text{old}} = \theta$（保存当前策略）
+  - 用 $\pi_{\theta_{\text{old}}}$ 与环境交互，收集 $N$ 条轨迹，对每个时刻 $t$：
+    1. 采样 $a^K \sim \mathcal{N}(0, I)$（初始噪声）
+    2. DDIM 去噪 $K$ 步，保存中间状态 $a^{K-1}, \ldots, a^0$
+    3. 执行动作 $a^0$，获得奖励 $r_t$，转移到 $s_{t+1}$
+- **阶段 2：优势估计**
+  - 计算 GAE 优势 $\hat{A}_t$（式 10）与折扣回报 $\hat{R}_t$（用于价值网络）
+- **阶段 3：PPO 更新（迭代 $M$ 轮）**
+  - For epoch $= 1, \ldots, M$，每个 mini-batch $(s_t, a^{0:K}_t, r_t, \hat{A}_t)$：
+    - 策略损失（式 8）：For $k = 1, \ldots, K'$（仅更新最后 $K'$ 步）
+      - 计算 $\mu_\theta(a^k, s, k)$（当前网络）与 $\mu_{\theta_{\text{old}}}(a^k, s, k)$（旧网络）
+      - $\log \rho_\theta^k = \dfrac{\lVert a^{k-1} - \mu_{\theta_{\text{old}}} \rVert^2 - \lVert a^{k-1} - \mu_\theta \rVert^2}{2\sigma_k^2}$（式 6）
+      - $\rho_\theta^k = \exp(\log \rho_\theta^k)$（式 7）
+      - $L_k = \min(\rho_\theta^k \hat{A}_t,\ \mathrm{clip}(\rho_\theta^k, 1-\epsilon_{\text{clip}}, 1+\epsilon_{\text{clip}}) \hat{A}_t)$（式 8）
+    - $L_{\text{policy}} = -\mathrm{mean}(L_k)$（取负号因为是最大化）
+    - 价值损失：$L_{\text{value}} = \mathrm{mean}((V_\phi(s_t) - \hat{R}_t)^2)$（式 11）
+    - 总损失：$L_{\text{total}} = L_{\text{policy}} + c_1 L_{\text{value}} - c_2 H[\pi_\theta]$（式 15）
+    - 梯度更新：$(\theta, \phi) \leftarrow (\theta, \phi) - \eta \nabla_{\theta, \phi} L_{\text{total}}$
 
-      ── 价值损失（式 11）──
-      L_value = mean((V_φ(s_t) - R̂_t)²)
-
-      ── 总损失（式 15）──
-      L_total = L_policy + c₁ · L_value - c₂ · H[π_θ]
-
-      ── 梯度更新 ──
-      (θ, φ) ← (θ, φ) - η · ∇_{θ,φ} L_total
-    end for
-  end for
-
-end for
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-输出：微调后的扩散策略 π_θ
-```
+**输出**：微调后的扩散策略 $\pi_\theta$。
 
 ---
 

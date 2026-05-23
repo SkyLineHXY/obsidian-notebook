@@ -10,7 +10,7 @@ updated: 2026-05-17
 
 AWR（Advantage-Weighted Regression，优势加权回归）是 Peng et al. (2019) 提出的一种经典 **offline RL** 算法。其核心思想是：**不做策略梯度，而是用 advantage 对监督学习样本进行重新加权**，从而在行为克隆基础上隐式地实现策略改进。
 
-**关联页面**：[[wiki/concepts/rl/Offline 强化学习]] | [[wiki/concepts/rl/RECAP]] | [[wiki/analyses/π₀.₆ 与 RECAP 训练原理全景解析]]
+**关联页面**：[[wiki/concepts/rl/Offline 强化学习]] | [[wiki/concepts/rl/RECAP]] | [[π₀.₆ 与 RECAP 原理解析]]
 
 ---
 
@@ -134,7 +134,7 @@ AWR 在大型模型（VLA / 扩散策略）上的核心问题：
 
 ## 实验表现（π₀.₆ T-shirt 折叠任务）
 
-来自 [[wiki/analyses/π₀.₆ 与 RECAP 训练原理全景解析]]（Figure 11）：
+来自 [[π₀.₆ 与 RECAP 原理解析]]（Figure 11）：
 
 - **成功率**：AWR ≈ offline-RL+SFT，显著优于 PPO
 - **吞吐量**：AWR 策略**明显变慢**——因为 AWR 只学快且成功的动作，牺牲了速度

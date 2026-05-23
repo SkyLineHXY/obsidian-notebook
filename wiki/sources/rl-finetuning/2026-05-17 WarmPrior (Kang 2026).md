@@ -1,10 +1,12 @@
 ---
 type: source
 tags: [RL-Finetuning, Flow Matching, Source Distribution, Behavior Cloning, Visuomotor Control, Robot Manipulation, Prior Design]
-sources: [raw/assets/papers/VLA+RL/Kang - 2026 - WarmPrior Straightening Flow-Matching Policies with Temporal Priors.pdf]
+sources: [raw/sources/papers/VLA+RL/Kang - 2026 - WarmPrior Straightening Flow-Matching Policies with Temporal Priors/Kang - 2026 - WarmPrior Straightening Flow-Matching Policies with Temporal Priors.md]
 created: 2026-05-17
-updated: 2026-05-17
+updated: 2026-05-23
 ---
+
+[[raw/sources/papers/VLA+RL/Kang - 2026 - WarmPrior Straightening Flow-Matching Policies with Temporal Priors/Kang - 2026 - WarmPrior Straightening Flow-Matching Policies with Temporal Priors.md]]
 
 # WarmPrior: Straightening Flow-Matching Policies with Temporal Priors
 
@@ -20,6 +22,9 @@ updated: 2026-05-17
 ## 一句话摘要
 
 将流匹配策略的**高斯源分布**替换为由近期动作历史构造的 **WarmPrior**（时序先验），使概率路径更直，在机器人操控 BC 任务和 prior-space RL 两条线上均提升性能与样本效率。
+
+![[raw/sources/papers/VLA+RL/Kang - 2026 - WarmPrior Straightening Flow-Matching Policies with Temporal Priors/images/3cd74102bc6601932b1deafaf38aea096c22df1fb6f8dbcbe55d085f612d856e.jpg]]
+*Figure 1：用近期动作历史锚定源分布，将 $\mathcal{N}(0, I)$ 替换为靠近目标流形的 WarmPrior，缩短并拉直概率路径。*
 
 ---
 

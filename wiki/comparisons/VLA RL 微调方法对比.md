@@ -56,15 +56,15 @@ VLA（Vision-Language-Action）模型将大型语言/视觉语言模型作为策
 
 ## 方法全景对比
 
-| 方法 | VLA 架构 | RL 范式 | Log-prob 方案 | 核心创新 | 奖励类型 | 规模 |
-|---|---|---|---|---|---|---|
-| [[wiki/sources/vla-rl/2026-04-19 π0.6 RECAP\|RECAP/π₀.₆]] | Flow VLA | 迭代离线 RL | **不做 PG**，advantage conditioning | Advantage 作为前缀 token 条件化 VLA 生成 | 稀疏二值 + 价值函数 | 真实世界，大规模多任务 |
-| [[wiki/sources/vla-rl/2026-04-24 πRL\|πRL]] | Flow VLA (π₀/π₀.₅) | 在线 RL (PPO) | Flow-Noise（噪声注入）/ Flow-SDE（ODE→SDE） | 两种等价方案使 flow VLA 可做 PPO | 仿真稀疏 | 仿真多基准 |
-| [[wiki/sources/vla-rl/2026-05-17 SA-VLA (Pan 2026)\|SA-VLA]] | Flow VLA | 在线 RL | 类似 flow 策略 RL | 空间对齐 + 几何进度奖励 + SCAN 退火探索 | 稠密（几何进度） | 仿真多物体 |
-| [[wiki/sources/vla-rl/2026-05-17 iRe-VLA (Guo 2025)\|iRe-VLA]] | AR-VLA | 迭代 RL + SFT 交替 | AR logits | 交替 RL 探索 + SFT 稳定的迭代框架 | 稀疏 | 仿真 + 真实臂 |
-| [[wiki/sources/vla-rl/2026-05-17 VLA-RL (Lu 2025)\|VLA-RL]] | AR-VLA (OpenVLA-7B) | 在线 RL (PPO/REINFORCE) | AR logits | VLM 过程奖励模型（RPRM）稠密化奖励 | 稠密（VLM 生成） | 仿真 LIBERO-40 |
-| [[wiki/sources/vla-rl/2026-05-17 GR-RL (Li 2025)\|GR-RL]] | AR / 通用 VLA | 离线 RL 过滤 + 在线精调 | Q-function 过滤（不需 log-prob） | Q 值作任务进度函数，形态对称增强，潜空间噪声预测 | 稀疏（Q 隐式稠密化）| 真实机器人（极限精度） |
-| [[wiki/sources/vla-rl/2026-05-17 VLA-OPD (Zhong 2026)\|VLA-OPD]] | AR-VLA | On-policy 蒸馏（非 RL 奖励） | Reverse-KL | 教师蒸馏在 policy-induced 状态上，桥接 SFT 与 RL | 无（教师替代奖励） | 仿真 LIBERO/RoboTwin |
+| 方法                                                               | VLA 架构              | RL 范式                 | Log-prob 方案                         | 核心创新                                 | 奖励类型        | 规模                 |
+| ---------------------------------------------------------------- | ------------------- | --------------------- | ----------------------------------- | ------------------------------------ | ----------- | ------------------ |
+| [[wiki/sources/vla-rl/2026-04-19 π0.6 RECAP\|RECAP/π₀.₆]]        | Flow VLA            | 迭代离线 RL               | **不做 PG**，advantage conditioning    | Advantage 作为前缀 token 条件化 VLA 生成      | 稀疏二值 + 价值函数 | 真实世界，大规模多任务        |
+| [[wiki/sources/vla-rl/2026-04-24 πRL\|πRL]]                      | Flow VLA (π₀/π₀.₅)  | 在线 RL (PPO)           | Flow-Noise（噪声注入）/ Flow-SDE（ODE→SDE） | 两种等价方案使 flow VLA 可做 PPO              | 仿真稀疏        | 仿真多基准              |
+| [[wiki/sources/vla-rl/2026-05-17 SA-VLA (Pan 2026)\|SA-VLA]]     | Flow VLA            | 在线 RL                 | 类似 flow 策略 RL                       | 空间对齐 + 几何进度奖励 + SCAN 退火探索            | 稠密（几何进度）    | 仿真多物体              |
+| [[wiki/sources/vla-rl/2026-05-17 iRe-VLA (Guo 2025)\|iRe-VLA]]   | AR-VLA              | 迭代 RL + SFT 交替        | AR logits                           | 交替 RL 探索 + SFT 稳定的迭代框架               | 稀疏          | 仿真 + 真实臂           |
+| [[wiki/sources/vla-rl/2026-05-17 VLA-RL (Lu 2025)\|VLA-RL]]      | AR-VLA (OpenVLA-7B) | 在线 RL (PPO/REINFORCE) | AR logits                           | VLM 过程奖励模型（RPRM）稠密化奖励                | 稠密（VLM 生成）  | 仿真 LIBERO-40       |
+| [[wiki/sources/vla-rl/2026-05-17 GR-RL (Li 2025)\|GR-RL]]        | AR / 通用 VLA         | 离线 RL 过滤 + 在线精调       | Q-function 过滤（不需 log-prob）          | Q 值作任务进度函数，形态对称增强，潜空间噪声预测            | 稀疏（Q 隐式稠密化） | 真实机器人（极限精度）        |
+| [[wiki/sources/vla-rl/2026-05-17 VLA-OPD (Zhong 2026)\|VLA-OPD]] | AR-VLA              | On-policy 蒸馏（非 RL 奖励） | Reverse-KL                          | 教师蒸馏在 policy-induced 状态上，桥接 SFT 与 RL | 无（教师替代奖励）   | 仿真 LIBERO/RoboTwin |
 
 ---
 
@@ -72,11 +72,11 @@ VLA（Vision-Language-Action）模型将大型语言/视觉语言模型作为策
 
 ### 挑战 1：如何为 Flow-based VLA 提供 log-prob / PG 信号
 
-| 解法类型 | 方法 | 机制 |
-|---|---|---|
-| **完全回避 PG** | RECAP | Advantage conditioning：把 advantage 二值化后作为 prefix token，让 VLA 自回归条件化生成；无需策略梯度 |
-| **噪声注入 Markov 化** | πRL (Flow-Noise) | 与 ReinFlow 类似，在 flow VLA 去噪步注入可学习噪声 → 封闭 log-prob → PPO |
-| **ODE → SDE 转换** | πRL (Flow-SDE) | Rectified Flow ODE 转等价 SDE，离散化后每步为高斯分布 → log-prob 可算 |
+| 解法类型              | 方法               | 机制                                                                           |
+| ----------------- | ---------------- | ---------------------------------------------------------------------------- |
+| **完全回避 PG**       | RECAP            | Advantage conditioning：把 advantage 二值化后作为 prefix token，让 VLA 自回归条件化生成；无需策略梯度 |
+| **噪声注入 Markov 化** | πRL (Flow-Noise) | 与 ReinFlow 类似，在 flow VLA 去噪步注入可学习噪声 → 封闭 log-prob → PPO                      |
+| **ODE → SDE 转换**  | πRL (Flow-SDE)   | Rectified Flow ODE 转等价 SDE，离散化后每步为高斯分布 → log-prob 可算                         |
 
 ### 挑战 2：如何处理稀疏奖励（信用分配）
 
@@ -186,15 +186,15 @@ $$\text{KL}(\pi_\theta \| \pi_{\text{teacher}}) = \sum_a \pi_\theta(a|s) \log \f
 
 ## 实用选型建议
 
-| 场景 | 推荐方法 | 核心理由 |
-|---|---|---|
-| 大规模多任务 Flow-VLA + 真实部署迭代 | **RECAP** | 唯一经真实世界大规模验证的 Flow-VLA RL 路线 |
-| Flow-based VLA + 仿真在线 RL | **πRL** | +29–31% 成功率；Flow-Noise 实现相对简单 |
-| Flow VLA + 空间泛化/新位置 OOD | **SA-VLA** | 专门防止 RL 微调破坏空间归纳偏置 |
-| AR-VLA + 通用性 / Scaling | **VLA-RL** | PRM 稠密化奖励 + scaling laws；OpenVLA 开源可用 |
-| AR-VLA + 极限精度 / 长时域灵巧任务 | **GR-RL** | 三阶段流水线，Q 过滤 + 对称增强 + 真机精调 |
-| AR-VLA + 样本效率 + 防遗忘 | **VLA-OPD** | Reverse-KL 蒸馏，2–3× 样本减少，同时保留预训练能力 |
-| 快速原型，AR-VLA，计算资源有限 | **iRe-VLA** | 迭代框架简单，无需大规模系统和精细奖励设计 |
+| 场景                       | 推荐方法        | 核心理由                                  |
+| ------------------------ | ----------- | ------------------------------------- |
+| 大规模多任务 Flow-VLA + 真实部署迭代 | **RECAP**   | 唯一经真实世界大规模验证的 Flow-VLA RL 路线          |
+| Flow-based VLA + 仿真在线 RL | **πRL**     | +29–31% 成功率；Flow-Noise 实现相对简单         |
+| Flow VLA + 空间泛化/新位置 OOD  | **SA-VLA**  | 专门防止 RL 微调破坏空间归纳偏置                    |
+| AR-VLA + 通用性 / Scaling   | **VLA-RL**  | PRM 稠密化奖励 + scaling laws；OpenVLA 开源可用 |
+| AR-VLA + 极限精度 / 长时域灵巧任务  | **GR-RL**   | 三阶段流水线，Q 过滤 + 对称增强 + 真机精调             |
+| AR-VLA + 样本效率 + 防遗忘      | **VLA-OPD** | Reverse-KL 蒸馏，2–3× 样本减少，同时保留预训练能力     |
+| 快速原型，AR-VLA，计算资源有限       | **iRe-VLA** | 迭代框架简单，无需大规模系统和精细奖励设计                 |
 
 ---
 

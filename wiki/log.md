@@ -341,7 +341,7 @@
 **触发原因**：用户就 π₀.₇ 整体训练逻辑提问，要求将分析存入 wiki/analyses。
 
 **新建 Analysis 页（1 个）**：
-- [[wiki/analyses/π₀.₇ 训练逻辑全景解析]]：完整解析三模型协作机制，涵盖：
+- [[π₀.₇ 详细解析]]：完整解析三模型协作机制，涵盖：
   - §1 核心结论：三个模型独立训练，推理时通过 Prompt 组装协同（附 Algorithm 1 时序图）
   - §2 VLA 训练逻辑：KI 双损失分离（VLM 骨干 CE + Action Expert CFM），梯度边界说明，CFM 线性插值路径与向量场的完整数学推导
   - §3 多模态 Prompt $\mathcal{C}_t$ 的四组件构成与精确 Dropout 比例（含 train-test 分布对齐设计）
@@ -607,9 +607,37 @@ aw/sources/papers/Lab Automation/（新建目录）
 
 ## [2026-05-18] query | RL 微调生成模型的技术挑战与解法全景（Analysis 新建）
 - **触发来源**：用户请求生成一页 analyses，介绍 RL 微调生成模型的局限性及主流方法的解法
-- **新建** [[wiki/analyses/RL微调生成模型的技术挑战与解法全景]]
+- **新建** [[RL微调生成模型的技术挑战与解决方案]]
   - 系统梳理四大技术障碍：① log-prob 不可解析（完整推导 ODE 积分分解）② BPTT 三重代价（显存/梯度病态/计算时间）③ 探索-利用悖论（Flow ODE 无随机性）④ 离线策略抽取难题
   - 三条主流解法路线：A（Markov 化 PG：DPPO + ReinFlow）/ B（CFM loss ratio：FPO）/ C（离线 Q-learning：FQL + OFQL + FAN）+ 正交优化轴（WarmPrior）
   - 严谨数学推导：log-prob 不可解析 ODE 积分代价 $\mathcal{O}(d^3 T)$；DPPO 两层 MDP 封闭 log-prob；ReinFlow 噪声注入 Markov 化完整步骤；FQL 解耦消除 BPTT 的梯度路径分析
   - 含实用选型矩阵（7 场景）与三条路线根本哲学对比
 - **更新** wiki/index.md：Analyses 8→9；新增表格行
+
+## [2026-05-23] ingest+lint+update | 全 vault polish + CLAUDE.md 精简重构
+- **MinerU 转换**（6 篇待处理 PDF）
+  - `raw/assets/papers/Agent/Yang 等 - 2026 - ARIS ...pdf` → `raw/sources/papers/Agent/Yang 等 - 2026 - ARIS .../`
+  - `raw/assets/papers/VLA+RL/Gao - 2026 - FlowRL ...pdf` → `raw/sources/papers/VLA+RL/Gao - 2026 - FlowRL .../`
+  - `raw/assets/papers/VLA+RL/Kang - 2026 - WarmPrior ...pdf` → 同上
+  - `raw/assets/papers/VLA+RL/McAllister - 2025 - FPO ....pdf` → 同上
+  - `raw/assets/papers/VLA+RL/Yi 等 - 2026 - Flow Policy Gradients ...pdf` → 同上（暂无对应 wiki page；列入待补 Source 行列）
+  - `raw/assets/papers/VLA+RL/Zhang 等 - 2026 - ReinFlow ...pdf` → 同上
+  - 其余 PDF（Lee FAN、Nguyen OFQL、Zhai Critic 等）已先前完成转换，本次 batch `--resume` 跳过。
+- **Lint 修复**
+  - `wiki/index.md` 统计修正：Entities 13→12、Concepts 12→13（匹配实际文件计数）。
+  - `wiki/index.md` 失效链接修复：`[[π₀.₇ 详细解析]]`、`[[π₀.₆ 与 RECAP 原理解析]]`、`[[RL微调生成模型的技术挑战与解决方案]]` → 全部补 `wiki/analyses/` 前缀，并修正末尾的额外 `]`。
+  - 公式格式违规修复（伪代码块 → LaTeX 列表）：`wiki/analyses/DDPM & DDIM 完整数学推导.md`（4 处算法块）、`wiki/analyses/DPPO 完整数学推导.md`（1 个算法块）、`wiki/analyses/Flow Matching 完整数学推导.md`（训练伪代码）；将 `ᾱ_t`、`ε_θ`、`θ₀`、`σ_t` 等 Unicode 符号统一改写为 `$\bar{\alpha}_t$`、`$\varepsilon_\theta$`、`$\theta_0$`、`$\sigma_t$`。
+  - 代码字串包裹公式修复：`wiki/analyses/UMI ee6d 位姿变换推理.md:237` `` `F_T_NE = I` `` → `${}^{F}T_{NE} = I$` 等 4 处。
+- **图片嵌入**（首次启用 §2.3 新规则）
+  - `wiki/sources/rl-finetuning/2026-05-17 FlowRL (Gao 2026).md`：嵌入 taxonomy figure。
+  - `wiki/sources/rl-finetuning/2026-04-18 ReinFlow.md`：嵌入 Hopper-v2 训练曲线。
+  - `wiki/sources/rl-finetuning/2026-05-17 FPO Flow Matching Policy Gradients (McAllister 2025).md`：嵌入 gridworld flow visualization。
+  - `wiki/sources/rl-finetuning/2026-05-17 WarmPrior (Kang 2026).md`：嵌入 Figure 1 temporal prior diagram。
+  - `wiki/sources/agent-systems/2026-05-16 ARIS.md`：嵌入系统总览 Figure 1，并补充 paper-side raw 链接。
+  - 上述 5 个 source 页的 frontmatter `sources` 字段同步改写为 `raw/sources/papers/.../<stem>.md` 路径。
+- **CLAUDE.md 重构（v2.0 → v2.1）**
+  - 整体压缩：18749 bytes → 7594 bytes（约 59.5% 缩减）；6 节结构保留，§2 / §5 内部合并为表格化速查。
+  - 新增 §2.3 图片嵌入规则与 §3.1 步骤 5「选图」。
+  - `~/.claude/skills/mineru/skill.md` 同步追加「Image References (Wiki Promotion Rule)」段落。
+- **Knowledge gap 标记**
+  - Yi 2026《Flow Policy Gradients for Robot Control》：MinerU 已完成转换，wiki Source 页尚未建立；列入下一次扫描时补建。

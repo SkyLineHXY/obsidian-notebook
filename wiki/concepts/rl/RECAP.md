@@ -162,7 +162,7 @@ $$
 \hat\pi(a \mid o, \ell) \propto \pi_{\mathrm{ref}}(a \mid o, \ell)\left(\frac{\pi_{\mathrm{ref}}(a \mid I, o, \ell)}{\pi_{\mathrm{ref}}(a \mid o, \ell)}\right)^{\beta}
 $$
 
-当 $\beta=1$ 时，改进策略 $= \pi_{\mathrm{ref}}(a \mid I=1, o, \ell)$，**推理时强制 $I=\text{positive}$ 即可直接得到改进策略**，无需 CFG 插值，无需重新加权。详细推导见 [[wiki/analyses/π₀.₆ 与 RECAP 训练原理全景解析]]。
+当 $\beta=1$ 时，改进策略 $= \pi_{\mathrm{ref}}(a \mid I=1, o, \ell)$，**推理时强制 $I=\text{positive}$ 即可直接得到改进策略**，无需 CFG 插值，无需重新加权。详细推导见 [[π₀.₆ 与 RECAP 原理解析]]。
 
 ---
 

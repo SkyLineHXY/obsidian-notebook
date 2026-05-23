@@ -1,10 +1,12 @@
 ---
 type: source
 tags: [RL-Finetuning, Flow Matching, Policy Gradient, PPO, On-Policy, Multimodal Actions, Continuous Control]
-sources: [raw/assets/papers/VLA+RL/McAllister - 2025 - Flow Matching Policy Gradients (FPO).pdf]
+sources: [raw/sources/papers/VLA+RL/McAllister - 2025 - Flow Matching Policy Gradients (FPO)/McAllister - 2025 - Flow Matching Policy Gradients (FPO).md]
 created: 2026-05-17
-updated: 2026-05-17
+updated: 2026-05-23
 ---
+
+[[raw/sources/papers/VLA+RL/McAllister - 2025 - Flow Matching Policy Gradients (FPO)/McAllister - 2025 - Flow Matching Policy Gradients (FPO).md]]
 
 # Flow Matching Policy Gradients (FPO)
 
@@ -20,6 +22,9 @@ updated: 2026-05-17
 ## 一句话摘要
 
 Flow Policy Optimization (FPO) 将流匹配纳入策略梯度框架：以 **条件流匹配 loss 的优势加权比** 作为代理目标，兼容 PPO-clip，无需显式 log-prob，且对训练/推理时的扩散/流积分器选择完全不可知。
+
+![[raw/sources/papers/VLA+RL/McAllister - 2025 - Flow Matching Policy Gradients (FPO)/images/26d146de8cc9bda6698932b6f5d16588b7794d832daa2f0fe1b3e8893903b401.jpg]]
+*Figure：双目标 Gridworld 任务中 FPO 学到的 flow 与目标动作分布随去噪步演化 — 展示了 FPO 保留扩散策略多模态结构的能力。*
 
 ---
 

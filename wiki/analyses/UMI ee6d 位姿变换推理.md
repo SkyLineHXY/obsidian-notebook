@@ -234,7 +234,7 @@ $${}^O T_{EE} = \underbrace{{}^O T_F}_{\substack{\text{纯运动学 FK} \\ \text
 | $\{NE\}$ | — | 名义末端执行器（出厂写死） |
 | $\{EE\}$ | `panda_EE` | 用户定义的实际 EE |
 
-**关键结论**：当 `F_T_NE = I` 且 `NE_T_EE = I`（Franka 出厂默认），`O_T_EE` 直接等于 ${}^B T_F$。
+**关键结论**：当 ${}^{F}T_{NE} = I$ 且 ${}^{NE}T_{EE} = I$（Franka 出厂默认），${}^{O}T_{EE}$ 直接等于 ${}^{B}T_{F}$。
 
 ### 9.2 法兰帧的轴方向
 

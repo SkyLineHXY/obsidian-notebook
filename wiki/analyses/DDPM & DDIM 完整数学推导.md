@@ -44,10 +44,8 @@ updated: 2026-04-23
 
 DDPM 的思路可以用一句话概括：**先用固定规则把数据加噪成纯噪声（前向），再训练神经网络学会把纯噪声逆向恢复成数据（逆向）**。
 
-```
-数据 x_0 ──[前向：逐步加噪]──► 纯噪声 x_T ~ N(0, I)
-纯噪声 x_T ──[逆向：逐步去噪]──► 新数据 x̂_0
-```
+- **前向**：$x_0 \xrightarrow{\text{逐步加噪}} x_T \sim \mathcal{N}(0, I)$
+- **逆向**：$x_T \xrightarrow{\text{逐步去噪}} \hat{x}_0$
 
 ---
 
@@ -386,16 +384,12 @@ $$
 
 **算法流程**：
 
-```
-输入：训练好的 ε_θ
-x_T ~ N(0, I)
-
-for t = T, T-1, ..., 1:
-    z ~ N(0, I)  if t > 1  else  z = 0
-    x_{t-1} = 1/√α_t * (x_t - β_t/√(1-ᾱ_t) * ε_θ(x_t, t)) + σ_t * z
-
-return x_0
-```
+- **输入**：训练好的 $\varepsilon_\theta$
+- **初始化**：$x_T \sim \mathcal{N}(0, I)$
+- **For $t = T, T-1, \ldots, 1$**：
+  - 采样 $z \sim \mathcal{N}(0, I)$（若 $t = 1$ 则 $z = 0$）
+  - $x_{t-1} = \dfrac{1}{\sqrt{\alpha_t}}\left(x_t - \dfrac{\beta_t}{\sqrt{1-\bar{\alpha}_t}}\,\varepsilon_\theta(x_t, t)\right) + \sigma_t z$
+- **输出**：$x_0$
 
 **缺点**：需要完整的 $T=1000$ 步，每步都要调用神经网络，推理极慢。
 
@@ -640,42 +634,32 @@ $$
 
 ### 16. DDPM 训练算法
 
-```
-训练阶段：
-repeat:
-  1. x_0 ~ q(x_0)          ← 从真实数据中采样
-  2. t ~ Uniform[1, T]      ← 随机采样时间步
-  3. ε ~ N(0, I)            ← 采样噪声
-  4. x_t = √ᾱ_t * x_0 + √(1-ᾱ_t) * ε   ← 前向过程闭式解
-  5. 计算损失 L = ‖ε - ε_θ(x_t, t)‖²
-  6. 梯度下降更新 θ
-until 收敛
-```
+**训练阶段**（repeat until 收敛）：
+1. $x_0 \sim q(x_0)$ — 从真实数据中采样
+2. $t \sim \mathrm{Uniform}[1, T]$ — 随机采样时间步
+3. $\varepsilon \sim \mathcal{N}(0, I)$ — 采样噪声
+4. $x_t = \sqrt{\bar{\alpha}_t}\,x_0 + \sqrt{1-\bar{\alpha}_t}\,\varepsilon$ — 前向过程闭式解
+5. 计算损失 $L = \lVert \varepsilon - \varepsilon_\theta(x_t, t) \rVert^2$
+6. 梯度下降更新 $\theta$
 
 ### 17. DDPM 采样算法
 
-```
-采样阶段：
-x_T ~ N(0, I)
-for t = T, T-1, ..., 1:
-  z ~ N(0, I)  if t > 1  else  z = 0
-  x_{t-1} = 1/√α_t * (x_t - β_t/√(1-ᾱ_t) * ε_θ(x_t, t)) + √β_t * z
-return x_0
-```
+**采样阶段**：
+- 初始化 $x_T \sim \mathcal{N}(0, I)$
+- For $t = T, T-1, \ldots, 1$：
+  - $z \sim \mathcal{N}(0, I)$（若 $t = 1$ 则 $z = 0$）
+  - $x_{t-1} = \dfrac{1}{\sqrt{\alpha_t}}\left(x_t - \dfrac{\beta_t}{\sqrt{1-\bar{\alpha}_t}}\,\varepsilon_\theta(x_t, t)\right) + \sqrt{\beta_t}\,z$
+- 返回 $x_0$
 
 ### 18. DDIM 采样算法（加速版）
 
-```
-采样阶段（给定子序列 τ₁ < τ₂ < ... < τ_S = T，step 数 S << T）：
-x_{τ_S} ~ N(0, I)
-for i = S, S-1, ..., 1:
-  ε_pred = ε_θ(x_{τ_i}, τ_i)             ← 一次神经网络调用
-  x̂_0 = (x_{τ_i} - √(1-ᾱ_{τ_i}) * ε_pred) / √ᾱ_{τ_i}
-  x_{τ_{i-1}} = √ᾱ_{τ_{i-1}} * x̂_0
-               + √(1-ᾱ_{τ_{i-1}} - σ_{τ_i}²) * ε_pred
-               + σ_{τ_i} * z       (z ~ N(0,I)，若 σ=0 则省略)
-return x_0
-```
+**采样阶段**（给定子序列 $\tau_1 < \tau_2 < \cdots < \tau_S = T$，step 数 $S \ll T$）：
+- 初始化 $x_{\tau_S} \sim \mathcal{N}(0, I)$
+- For $i = S, S-1, \ldots, 1$：
+  - $\varepsilon_{\text{pred}} = \varepsilon_\theta(x_{\tau_i}, \tau_i)$ — 一次神经网络调用
+  - $\hat{x}_0 = (x_{\tau_i} - \sqrt{1-\bar{\alpha}_{\tau_i}}\,\varepsilon_{\text{pred}}) / \sqrt{\bar{\alpha}_{\tau_i}}$
+  - $x_{\tau_{i-1}} = \sqrt{\bar{\alpha}_{\tau_{i-1}}}\,\hat{x}_0 + \sqrt{1-\bar{\alpha}_{\tau_{i-1}} - \sigma_{\tau_i}^2}\,\varepsilon_{\text{pred}} + \sigma_{\tau_i}\,z$（$z \sim \mathcal{N}(0, I)$；若 $\sigma = 0$ 则省略）
+- 返回 $x_0$
 
 ---
 
