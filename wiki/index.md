@@ -6,8 +6,8 @@
 ---
 
 ## Stats
-- **Sources**: 46 | **Entities**: 12 | **Concepts**: 13 | **Comparisons**: 2 | **Analyses**: 9
-- **Last updated**: 2026-05-25 (Ingest 4 篇待处理论文：FPO++ Yi 2026、LaST-R1 Chen 2026、π0-FPO Lyu 2025、VLAC Zhai 2025；CFM Loss Ratio 概念达 ≥3 来源阈值，待升级为 Concept 页)
+- **Sources**: 48 | **Entities**: 12 | **Concepts**: 14 | **Comparisons**: 2 | **Analyses**: 9
+- **Last updated**: 2026-05-25 (Ingest SAC Flow Zhang 2026、Decoupled Q-Chunking Li 2025；新建 OGBench Concept 页（≥2 来源达阈值）)
 
 ---
 
@@ -47,6 +47,8 @@
 | 31 | [[wiki/sources/rl-finetuning/2026-05-17 OFQL (Nguyen 2025)]] | raw/assets/papers/VLA+RL/Nguyen - 2025 - OFQL...pdf | 2026-05-17 |
 | 32 | [[wiki/sources/rl-finetuning/2026-05-17 FAN (Lee 2026)]] | raw/assets/papers/VLA+RL/Lee - 2026 - FAN...pdf | 2026-05-17 |
 | 43 | [[wiki/sources/rl-finetuning/2026-05-25 FPO++ (Yi 2026)]] | raw/sources/papers/VLA+RL/Yi 等 - 2026 - Flow Policy Gradients.../...md | 2026-05-25 |
+| 47 | [[wiki/sources/rl-finetuning/2026-05-25 SAC Flow (Zhang 2026)]] | raw/sources/papers/RL(Reinforce Learning)/Zhang 等 - 2026 - SAC Flow.../full.md | 2026-05-25 |
+| 48 | [[wiki/sources/rl-finetuning/2026-05-25 Decoupled Q-Chunking (Li 2025)]] | raw/sources/papers/RL(Reinforce Learning)/Li 等 - 2025 - Decoupled Q-Chunking/...md | 2026-05-25 |
 
 ### Generative Models (2)
 | # | Page | Original Source | Date |
@@ -180,10 +182,11 @@
 | ----------------------------------------------- | ------------------------------------------------ | ------------------- |
 | [[wiki/concepts/vla/Vision-Language-Action 模型]] | 视觉+语言+动作统一的机器人基础模型（π 系列、GR00T、LeRobot、StarVLA 等） | 来源 7, 9, 10, 11, 12 |
 
-### Benchmarks (1)
+### Benchmarks (2)
 | Page | Summary | Sources |
 |------|---------|---------|
 | [[wiki/concepts/benchmarks/LIBERO]] | 机器人操控仿真基准（4 子集：Spatial/Object/Goal/Long），VLA 评测事实标准 | 来源 9, 18, 19 |
+| [[wiki/concepts/benchmarks/OGBench]] | 长视野目标条件离线 RL 基准，测试 bootstrapping bias 缓解与稀疏奖励下的策略学习 | 来源 47, 48 |
 
 ### Infrastructure (1)
 | Page | Summary | Sources |
@@ -341,6 +344,7 @@
 
 **⚡ 概念升级提醒（≥2 来源达阈值）**：
 - **CFM Loss Ratio 作为 IS Ratio 替代** ✅ 已达 ≥3 来源（#29 McAllister、#43 FPO++、#45 π0-FPO），**待建 Concept 页**：条件流匹配损失比替代重要性采样比，各纸独立提出但核心思想相同。
+- **OGBench** ✅ 已达 ≥2 来源（#47 SAC Flow、#48 DQC），已建页 [[wiki/concepts/benchmarks/OGBench]]。
 
 **来自 FPO++ (Yi 2026，来源 43)**：
 - **ASPO（Asymmetric SPO）**：正负 advantage 使用不同 trust region 的非对称 PPO 目标；仅来源 43
@@ -360,3 +364,14 @@
 - **VLAC（Vision-Language-Action-Critic）**：actor + critic 统一于单一 VLM（InternVL），token-level 输出 reward delta；仅来源 46
 - **Pairwise Progress Delta Reward**：以配对图像时序差值为 dense reward，独立于任务起始点；仅来源 46
 - **Graded Human-in-the-Loop Protocol**：三级（offline replay / return&explore / human guide）分级 HIL 干预框架；仅来源 46
+
+**来自 SAC Flow (Zhang 2026，来源 47)**：
+- **Flow-G（GRU-gated velocity）**：GRU 门控速度参数化，用于稳定 flow rollout 的 off-policy 梯度；仅来源 47
+- **Flow-T（Transformer-decoded velocity）**：Transformer decoder 速度参数化，state-conditioned cross-attention 精炼 action token；仅来源 47
+- **Noise-Augmented Rollout**：flow rollout 中逐步注入高斯噪声，使 joint path density $p_c(\mathcal{A}|s)$ 可解析，为 SAC 提供 entropy term；仅来源 47
+
+**来自 Decoupled Q-Chunking (Li 2025，来源 48)**：
+- **Open-Loop Consistency（OLC）**：形式化动作块开环回放的状态分布偏差，是 action chunking Q-learning 理论保证的核心条件；仅来源 48
+- **Bounded Optimality Variability（BOV）**：闭环执行 action chunking 策略时最优性保证的替代条件；仅来源 48
+- **Partial Critic Distillation（DQC）**：通过 expectile regression 将大块 critic 蒸馏为小块 partial critic，解耦 critic/policy 的动作块大小；仅来源 48
+- **Action Chunking Q-learning 理论**：首次形式化 value bias 上界 $O(\varepsilon_h H\bar{H})$ 及与 n-step return 比较的条件；与 [[wiki/concepts/imitation-learning/ACT]] 的 IL 视角互补，待第二来源升级为 Concept 页。

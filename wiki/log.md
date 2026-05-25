@@ -673,3 +673,23 @@ aw/sources/papers/Lab Automation/（新建目录）
 - Stats：Sources 42→46；VLA+RL 节 7→10 行；生成模型+RL 节 9→10 行
 - 新增 CFM Loss Ratio 升级提醒
 - 新增 4 个来源的 Knowledge Gaps 块
+
+## [2026-05-25] ingest | SAC Flow (Zhang 2026) + Decoupled Q-Chunking (Li 2025)
+
+**新建 Source 页（2 个）**：
+- [[wiki/sources/rl-finetuning/2026-05-25 SAC Flow (Zhang 2026)]]：Flow rollout ≡ Residual RNN → GRU/Transformer 速度重参数化 + noise-augmented rollout 实现端到端 SAC 训练；OGBench offline-to-online +60%、MuJoCo from-scratch +130%
+- [[wiki/sources/rl-finetuning/2026-05-25 Decoupled Q-Chunking (Li 2025)]]：首次形式化 action chunking Q-learning 理论（OLC 条件、value bias 上界）；DQC 算法通过 partial critic distillation 解耦 critic/policy 块大小；OGBench 聚合得分 82 vs QC 25
+
+**新建 Concept 页（1 个）**：
+- [[wiki/concepts/benchmarks/OGBench]]：长视野目标条件离线 RL 基准（Park et al. 2025a），来源 47+48 同时使用，达 ≥2 阈值
+
+**MinerU 解析**：
+- SAC Flow：full.md 成功（zip 解压绕过 Windows MAX_PATH），134 张图片全部提取
+- DQC：直接解析成功
+
+**更新 wiki/index.md**：
+- Stats：Sources 46→48；Concepts 13→14（新增 OGBench）
+- 生成模型+RL 节新增来源 47、48
+- Benchmarks 节新增 OGBench
+- 新增两篇论文的 Knowledge Gaps（6 条）
+- 标记 OGBench 升级完成
