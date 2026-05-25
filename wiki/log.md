@@ -641,3 +641,35 @@ aw/sources/papers/Lab Automation/（新建目录）
   - `~/.claude/skills/mineru/skill.md` 同步追加「Image References (Wiki Promotion Rule)」段落。
 - **Knowledge gap 标记**
   - Yi 2026《Flow Policy Gradients for Robot Control》：MinerU 已完成转换，wiki Source 页尚未建立；列入下一次扫描时补建。
+
+---
+
+## [2026-05-25] ingest | 4 篇待处理论文：FPO++、LaST-R1、π0-FPO、VLAC
+
+**触发原因**：用户请求更新 wiki；扫描发现 4 篇已完成 MinerU 转换但无 wiki Source 页的论文。
+
+**新建 Source 页（4 个）**：
+- [[wiki/sources/rl-finetuning/2026-05-25 FPO++ (Yi 2026)]]（来源 #43）：FPO++ = per-sample CFM ratio clipping + ASPO 非对称 trust region；腿足/仿人/操控机器人控制，sim-to-real 到 Booster T1 + Unitree G1。分类：生成模型+RL（无 LLM 骨干）。
+- [[wiki/sources/vla-rl/2026-05-25 LaST-R1 (Chen 2026)]]（来源 #44）：LAPO 联合优化 latent CoT + action；Qwen3-VL-4B + DINOv3 latent targets；自适应 CoT 长度；LIBERO 99.9%、实机 90%。
+- [[wiki/sources/vla-rl/2026-05-25 π0-FPO RFT Flow-VLA (Lyu 2025)]]（来源 #45）：π0 VLA 在线 RL 微调；likelihood-free CFM ratio + latent Euler 探索 + Q-ensemble；LIBERO 87.2%，LIBERO-Long 65.3%。**注意**：与 McAllister FPO (#29) 和 Yi FPO++ (#43) 同名但独立开发。
+- [[wiki/sources/vla-rl/2026-05-25 VLAC (Zhai 2025)]]（来源 #46）：InternVL actor+critic 统一模型；pairwise progress delta 作 dense reward；graded HIL 三级协议；4 真实任务 30%→90%（200 episodes），HIL 样本效率提升 50%。
+
+**图片嵌入**：
+- FPO++ (来源 43)：嵌入 Fig 1 子图（quadruped trotting）
+- LaST-R1 (来源 44)：嵌入 Fig 2 LAPO 框架图（确认为清晰架构图）
+- π0-FPO (来源 45)：嵌入 ALOHA/LIBERO 任务基准图
+- VLAC (来源 46)：嵌入 Fig 1/2 VLAC 架构 + 训练数据图（确认为清晰架构图）
+
+**概念升级提醒**：
+- **CFM Loss Ratio 作为 IS Ratio 替代**：来源 #29（McAllister）+ #43（Yi）+ #45（Lyu）→ 已达 ≥3 来源，**待建 Concept 页**（下次 ingest 时执行）
+
+**新增 Knowledge Gaps（9 条）**：
+- 来源 43：ASPO、Per-Sample Flow Ratio、Booster T1
+- 来源 44：LAPO、Adaptive Latent CoT、DINOv3 CLS Latent Targets
+- 来源 45：Multi-step Latent Euler Exploration、Q-Ensemble for Flow-VLA RL
+- 来源 46：VLAC 架构、Pairwise Progress Delta Reward、Graded HIL Protocol
+
+**更新 wiki/index.md**：
+- Stats：Sources 42→46；VLA+RL 节 7→10 行；生成模型+RL 节 9→10 行
+- 新增 CFM Loss Ratio 升级提醒
+- 新增 4 个来源的 Knowledge Gaps 块

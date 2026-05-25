@@ -4,11 +4,11 @@
 
 ## 1. 目录结构与权限
 
-| 层级 | 维护者 | Claude 权限 | 说明 |
-|---|---|---|---|
-| `raw/` | 用户 | **只读** | 原始资料。`assets/` 存二进制（PDF/DOCX/PPTX/图片），`sources/` 存 Markdown（含 `papers/<topic>/<stem>/<stem>.md` + `images/<hash>.jpg`） |
-| `wiki/` | Claude | **读写** | 知识库。`index.md` 全局索引、`log.md` 操作日志、`overview.md` 顶层综述、`entities/`、`concepts/`、`sources/`、`comparisons/`、`analyses/` |
-| `CLAUDE.md` | 共同 | 共同演进 | 本配置 |
+| 层级          | 维护者    | Claude 权限 | 说明                                                                                                                     |
+| ----------- | ------ | --------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `raw/`      | 用户     | **只读**    | 原始资料。`assets/` 存二进制（PDF/DOCX/PPTX/图片），`sources/` 存 Markdown（含 `papers/<topic>/<stem>/<stem>.md` + `images/<hash>.jpg`） |
+| `wiki/`     | Claude | **读写**    | 知识库。`index.md` 全局索引、`log.md` 操作日志、`overview.md` 顶层综述、`entities/`、`concepts/`、`sources/`、`comparisons/`、`analyses/`     |
+| `CLAUDE.md` | 共同     | 共同演进      | 本配置                                                                                                                    |
 
 子目录约定（保持现有划分；新增按主题就近放置，必要时新建）：
 - `entities/`：`models/`、`frameworks/`、`tools/`、`hardware/`、`systems/`、`people/`
@@ -32,13 +32,13 @@ updated: YYYY-MM-DD
 
 ### 2.2 命名与存储
 
-| 类型 | 路径格式 | 说明 |
-|---|---|---|
-| Entity | `wiki/entities/<category>/实体名.md` | 人/组织/产品/工具 |
-| Concept | `wiki/concepts/<category>/概念名.md` | 原理/方法论/术语 |
-| Source | `wiki/sources/<theme>/YYYY-MM-DD 标题.md` | 单篇资料摘要；`YYYY-MM-DD` 为**摄取日期** |
-| Comparison | `wiki/comparisons/对比主题.md` | 跨来源横向对比 |
-| Analysis | `wiki/analyses/分析主题.md` | 深度专题 |
+| 类型         | 路径格式                                    | 说明                            |
+| ---------- | --------------------------------------- | ----------------------------- |
+| Entity     | `wiki/entities/<category>/实体名.md`       | 人/组织/产品/工具                    |
+| Concept    | `wiki/concepts/<category>/概念名.md`       | 原理/方法论/术语                     |
+| Source     | `wiki/sources/<theme>/YYYY-MM-DD 标题.md` | 单篇资料摘要；`YYYY-MM-DD` 为**摄取日期** |
+| Comparison | `wiki/comparisons/对比主题.md`              | 跨来源横向对比                       |
+| Analysis   | `wiki/analyses/分析主题.md`                 | 深度专题                          |
 
 ### 2.3 链接 & 图片
 
@@ -120,15 +120,15 @@ Ingest 时若原文用伪代码/Unicode/纯文本写数学，**必须**主动转
 
 **强制**：PDF/DOCX/PPTX 必须先 `mineru` skill → 再 `Read`。**禁用** `mineru-document-explorer`。
 
-| 项 | 规则 |
-|---|---|
-| 路径镜像 | `raw/assets/papers/<topic>/<file>.pdf` → 输出目录 `raw/sources/papers/<topic>/`；产物 `<topic>/<stem>/<stem>.md` + `<stem>/images/<hash>.jpg` |
-| Token | `MINERU_TOKEN` 已在 `~/.claude/settings.json` `env` 节；**不要**传 `--token`（会触发安全 hook） |
-| 调用方式 | 写 wrapper 脚本到临时目录再 `python` 执行（避免命令行暴露 token） |
-| Python | Windows 用 `python`（**不要** `python3`，被 hook 拦截） |
-| MD 读取 | > 100 行用 `Read offset=+limit` 分段 |
-| 图片 | MD 内 `![](images/<hash>.jpg)`（相对）→ 嵌入 wiki 时改写为 `![[raw/sources/papers/<topic>/<stem>/images/<hash>.jpg]]`（绝对 wiki-link） |
-| Lint | 检查近期 PDF 来源是否经 mineru 转换；公式缺失/结构混乱提示重跑 |
+| 项      | 规则                                                                                                                                     |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| 路径镜像   | `raw/assets/papers/<topic>/<file>.pdf` → 输出目录 `raw/sources/papers/<topic>/`；产物 `<topic>/<stem>/<stem>.md` + `<stem>/images/<hash>.jpg` |
+| Token  | `MINERU_TOKEN` 已在 `~/.claude/settings.json` `env` 节；**不要**传 `--token`（会触发安全 hook）                                                      |
+| 调用方式   | 写 wrapper 脚本到临时目录再 `python` 执行（避免命令行暴露 token）                                                                                          |
+| Python | Windows 用 `python`（**不要** `python3`，被 hook 拦截）                                                                                         |
+| MD 读取  | > 100 行用 `Read offset=+limit` 分段                                                                                                       |
+| 图片     | MD 内 `![](images/<hash>.jpg)`（相对）→ 嵌入 wiki 时改写为 `![[raw/sources/papers/<topic>/<stem>/images/<hash>.jpg]]`（绝对 wiki-link）               |
+| Lint   | 检查近期 PDF 来源是否经 mineru 转换；公式缺失/结构混乱提示重跑                                                                                                 |
 
 ## 6. GitHub 同步
 

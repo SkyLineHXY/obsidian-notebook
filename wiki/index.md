@@ -6,8 +6,8 @@
 ---
 
 ## Stats
-- **Sources**: 42 | **Entities**: 12 | **Concepts**: 13 | **Comparisons**: 2 | **Analyses**: 9
-- **Last updated**: 2026-05-23 (MinerU 转换 6 篇待处理 PDF；修复 lint 问题：算法块 LaTeX 化、index 计数与失效链接、CLAUDE.md 精简重构并新增图片嵌入规则)
+- **Sources**: 46 | **Entities**: 12 | **Concepts**: 13 | **Comparisons**: 2 | **Analyses**: 9
+- **Last updated**: 2026-05-25 (Ingest 4 篇待处理论文：FPO++ Yi 2026、LaST-R1 Chen 2026、π0-FPO Lyu 2025、VLAC Zhai 2025；CFM Loss Ratio 概念达 ≥3 来源阈值，待升级为 Concept 页)
 
 ---
 
@@ -18,7 +18,7 @@
 |---|------|----------------|------|
 | 26 | [[wiki/sources/agent-systems/2026-05-16 ARIS]] | raw/sources/github/wanshuiyin...ARIS...md | 2026-05-16 |
 
-### VLA + RL (7)
+### VLA + RL (10)
 > 策略骨干为携带 LLM/VLM 的 VLA 模型，RL 作用于大模型级别的策略后训练。
 | # | Page | Original Source | Date |
 |---|------|----------------|------|
@@ -29,8 +29,11 @@
 | 35 | [[wiki/sources/vla-rl/2026-05-17 GR-RL (Li 2025)]] | raw/assets/papers/VLA+RL/Li - 2025 - GR-RL.pdf | 2026-05-17 |
 | 36 | [[wiki/sources/vla-rl/2026-05-17 SA-VLA (Pan 2026)]] | raw/assets/papers/VLA+RL/Pan - 2026 - SA-VLA.pdf | 2026-05-17 |
 | 37 | [[wiki/sources/vla-rl/2026-05-17 VLA-OPD (Zhong 2026)]] | raw/assets/papers/VLA+RL/Zhong - 2026 - VLA-OPD.pdf | 2026-05-17 |
+| 44 | [[wiki/sources/vla-rl/2026-05-25 LaST-R1 (Chen 2026)]] | raw/sources/papers/VLA+RL/Chen 等 - 2026 - LaST-R1.../...md | 2026-05-25 |
+| 45 | [[wiki/sources/vla-rl/2026-05-25 π0-FPO RFT Flow-VLA (Lyu 2025)]] | raw/sources/papers/VLA+RL/Lyu 等 - 2025 - Reinforcement Fine-Tuning.../...md | 2026-05-25 |
+| 46 | [[wiki/sources/vla-rl/2026-05-25 VLAC (Zhai 2025)]] | raw/sources/papers/VLA+RL/Zhai 等 - 2025 - VLA-Critic.../...md | 2026-05-25 |
 
-### 生成模型 + RL（Diffusion / Flow）(9)
+### 生成模型 + RL（Diffusion / Flow）(10)
 > 策略骨干为扩散模型或 Flow Matching（无 LLM 骨干），RL 解决连续去噪链的策略优化问题。HIL-SERL 为传统 SAC 基线系统，纳入同类作比较。
 | # | Page | Original Source | Date |
 |---|------|----------------|------|
@@ -43,6 +46,7 @@
 | 30 | [[wiki/sources/rl-finetuning/2026-05-17 WarmPrior (Kang 2026)]] | raw/assets/papers/VLA+RL/Kang - 2026 - WarmPrior...pdf | 2026-05-17 |
 | 31 | [[wiki/sources/rl-finetuning/2026-05-17 OFQL (Nguyen 2025)]] | raw/assets/papers/VLA+RL/Nguyen - 2025 - OFQL...pdf | 2026-05-17 |
 | 32 | [[wiki/sources/rl-finetuning/2026-05-17 FAN (Lee 2026)]] | raw/assets/papers/VLA+RL/Lee - 2026 - FAN...pdf | 2026-05-17 |
+| 43 | [[wiki/sources/rl-finetuning/2026-05-25 FPO++ (Yi 2026)]] | raw/sources/papers/VLA+RL/Yi 等 - 2026 - Flow Policy Gradients.../...md | 2026-05-25 |
 
 ### Generative Models (2)
 | # | Page | Original Source | Date |
@@ -334,3 +338,25 @@
 - **Autonomous Generalist Scientist**：覆盖科研全流程的自主 AI+机器人系统；仅来源 42
 - **Scaling Laws for Scientific Discovery**：AI+机器人结合的科学发现能力规模化法则；仅来源 42
 - **Robot Scientist**：具备通用实验室操作能力的机器人科学家；仅来源 42
+
+**⚡ 概念升级提醒（≥2 来源达阈值）**：
+- **CFM Loss Ratio 作为 IS Ratio 替代** ✅ 已达 ≥3 来源（#29 McAllister、#43 FPO++、#45 π0-FPO），**待建 Concept 页**：条件流匹配损失比替代重要性采样比，各纸独立提出但核心思想相同。
+
+**来自 FPO++ (Yi 2026，来源 43)**：
+- **ASPO（Asymmetric SPO）**：正负 advantage 使用不同 trust region 的非对称 PPO 目标；仅来源 43
+- **Per-Sample Flow Ratio**：逐 MC 样本计算 CFM loss ratio 而非先平均；仅来源 43
+- **Booster T1**：人形机器人平台，FPO++ sim-to-real 测试对象之一；仅来源 43
+
+**来自 LaST-R1 (Chen 2026，来源 44)**：
+- **LAPO（Latent-to-Action Policy Optimization）**：latent embedding + action 联合 PPO 优化，Gaussian IS ratio 近似 latent；仅来源 44
+- **Adaptive Latent CoT**：`<latent_end>` 动态发射 + RL 奖励调节推理长度；仅来源 44
+- **DINOv3 CLS Latent Targets**：用 DINOv3 CLS token 作为 offline latent 预训练目标；仅来源 44
+
+**来自 π0-FPO (Lyu 2025，来源 45)**：
+- **Multi-step Latent (Euler) Exploration**：在 latent 空间做 Euler 扰动产生时序相关探索；仅来源 45
+- **Q-Ensemble Critic for Flow-VLA RL**：多 critic 集成在 flow-matching VLA latent 空间的 Q 估计；仅来源 45
+
+**来自 VLAC (Zhai 2025，来源 46)**：
+- **VLAC（Vision-Language-Action-Critic）**：actor + critic 统一于单一 VLM（InternVL），token-level 输出 reward delta；仅来源 46
+- **Pairwise Progress Delta Reward**：以配对图像时序差值为 dense reward，独立于任务起始点；仅来源 46
+- **Graded Human-in-the-Loop Protocol**：三级（offline replay / return&explore / human guide）分级 HIL 干预框架；仅来源 46
