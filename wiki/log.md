@@ -734,3 +734,12 @@ aw/sources/papers/Lab Automation/（新建目录）
 **Knowledge Gaps 关闭**：
 - ~~"OPE 门控 AM-Q"~~ ✅ 已并入 [[wiki/concepts/rl/Iterative Offline RL]] §1.2 与 §2.3
 - ~~"迭代离线 RL 飞轮"~~ ✅ 已建独立 [[wiki/concepts/rl/Iterative Offline RL]]
+
+## [2026-05-28] update | RLT 源页补充 Fig.2 架构图与 Appendix B 实现细节
+- 在 [[wiki/sources/vla-rl/2026-05-28 RLT RL Token VLA Online RL (Xu 2026)]] 「方法」标题下嵌入 Fig.2 RL Token 抽取示意图（wiki-link 形式，零复制）
+- 新增「实现细节（Appendix B）」小节，覆盖：RL token 训练步数（2k–10k）、actor/critic MLP 规模（256/512）、TD3 双 Q ensemble、动作维度 140-D、控制频率 50 Hz、reference dropout 50%、UTD=5、actor:critic = 1:2、训练数据量、两阶段课程与 hand-over 微调
+- 本地 commit `697f326` 已建立；GitHub push 因网络（github.com:443 连接失败）暂未成功，待网络恢复后重试
+
+## [2026-05-28] update | RLT 源页补充 Fig.2 架构图与 Appendix B 实现细节
+- 在 [[wiki/sources/vla-rl/2026-05-28 RLT RL Token VLA Online RL (Xu 2026)]] 「方法」标题下嵌入 Fig.2 RL Token 抽取示意图（wiki-link 形式，无复制）
+- 新增「实现细节（Appendix B）」小节，覆盖：RL token 训练步数、actor/critic MLP 规模（256/512）、TD3 双 Q ensemble、动作维度 140-D、控制频率 50 Hz、reference dropout 50
