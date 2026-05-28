@@ -39,13 +39,13 @@ OGBench 包含多组机器人操控环境，文献中通常报告"最难 6 个�
 
 （以 [[wiki/sources/rl-finetuning/2026-05-25 Decoupled Q-Chunking (Li 2025)]] 报告为准，6 个最难环境聚合得分）
 
-| 方法 | 得分 |
-|------|------|
-| **DQC** | **82** |
-| NS（n-step return） | 68 |
-| SHARSA | 44 |
-| QC（Q-chunking，等块） | 25 |
-| HIQL | 18 |
+| 方法                | 得分     |
+| ----------------- | ------ |
+| **DQC**           | **82** |
+| NS（n-step return） | 68     |
+| SHARSA            | 44     |
+| QC（Q-chunking，等块） | 25     |
+| HIQL              | 18     |
 
 [[wiki/sources/rl-finetuning/2026-05-25 SAC Flow (Zhang 2026)]] 在 offline-to-online 设置（在 OGBench 上预训练再在线微调）下，相较 Flow Q-Learning 等基线取得最高 **+60% success rate**。
 

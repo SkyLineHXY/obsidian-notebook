@@ -6,8 +6,8 @@
 ---
 
 ## Stats
-- **Sources**: 48 | **Entities**: 12 | **Concepts**: 14 | **Comparisons**: 2 | **Analyses**: 9
-- **Last updated**: 2026-05-25 (Ingest SAC Flow Zhang 2026、Decoupled Q-Chunking Li 2025；新建 OGBench Concept 页（≥2 来源达阈值）)
+- **Sources**: 51 | **Entities**: 12 | **Concepts**: 15 | **Comparisons**: 2 | **Analyses**: 9
+- **Last updated**: 2026-05-28 (Ingest Q-Chunking Li 2026 / RL-100 Lei 2026 / RLT Xu 2026；新建 Action Chunking Q-Learning Concept 页（≥2 来源达阈值）)
 
 ---
 
@@ -32,6 +32,7 @@
 | 44 | [[wiki/sources/vla-rl/2026-05-25 LaST-R1 (Chen 2026)]] | raw/sources/papers/VLA+RL/Chen 等 - 2026 - LaST-R1.../...md | 2026-05-25 |
 | 45 | [[wiki/sources/vla-rl/2026-05-25 π0-FPO RFT Flow-VLA (Lyu 2025)]] | raw/sources/papers/VLA+RL/Lyu 等 - 2025 - Reinforcement Fine-Tuning.../...md | 2026-05-25 |
 | 46 | [[wiki/sources/vla-rl/2026-05-25 VLAC (Zhai 2025)]] | raw/sources/papers/VLA+RL/Zhai 等 - 2025 - VLA-Critic.../...md | 2026-05-25 |
+| 51 | [[wiki/sources/vla-rl/2026-05-28 RLT RL Token VLA Online RL (Xu 2026)]] | raw/assets/papers/VLA+RL/Xu 等 - 2026 - RL Token Bootstrapping Online RL with Vision-Language-Action Models.pdf | 2026-05-28 |
 
 ### 生成模型 + RL（Diffusion / Flow）(10)
 > 策略骨干为扩散模型或 Flow Matching（无 LLM 骨干），RL 解决连续去噪链的策略优化问题。HIL-SERL 为传统 SAC 基线系统，纳入同类作比较。
@@ -49,6 +50,8 @@
 | 43 | [[wiki/sources/rl-finetuning/2026-05-25 FPO++ (Yi 2026)]] | raw/sources/papers/VLA+RL/Yi 等 - 2026 - Flow Policy Gradients.../...md | 2026-05-25 |
 | 47 | [[wiki/sources/rl-finetuning/2026-05-25 SAC Flow (Zhang 2026)]] | raw/sources/papers/RL(Reinforce Learning)/Zhang 等 - 2026 - SAC Flow.../full.md | 2026-05-25 |
 | 48 | [[wiki/sources/rl-finetuning/2026-05-25 Decoupled Q-Chunking (Li 2025)]] | raw/sources/papers/RL(Reinforce Learning)/Li 等 - 2025 - Decoupled Q-Chunking/...md | 2026-05-25 |
+| 49 | [[wiki/sources/rl-finetuning/2026-05-28 Q-Chunking RL with Action Chunking (Li 2026)]] | raw/assets/papers/RL(Reinforce Learning)/Li 等 - 2026 - Reinforcement Learning with Action Chunking.pdf | 2026-05-28 |
+| 50 | [[wiki/sources/rl-finetuning/2026-05-28 RL-100 Real-World RL on Diffusion Policy (Lei 2026)]] | raw/assets/papers/VLA+RL/Lei 等 - 2026 - RL-100 Performant Robotic Manipulation with Real-World Reinforcement Learning.pdf | 2026-05-28 |
 
 ### Generative Models (2)
 | # | Page | Original Source | Date |
@@ -156,13 +159,14 @@
 
 ## Concepts by Category
 
-### Reinforcement Learning (4)
+### Reinforcement Learning (5)
 | Page | Summary | Sources |
 |------|---------|---------|
 | [[wiki/concepts/rl/Offline 强化学习]] | 静态数据集下的约束优化 RL 范式 | 来源 6, 7 |
 | [[wiki/concepts/rl/RECAP]] | 离线 Advantage-conditioned 策略优化，π₀.₆ 核心方法；补充：条件 I 作用、vs PPO/Actor-Critic、CFGRL 前驱推导 | 来源 7, 10 |
 | [[wiki/concepts/rl/DPPO]] | 用 PPO 在线 RL 微调扩散策略的事实基线 | 来源 4, 8 |
 | [[wiki/concepts/rl/AWR]] | Advantage-Weighted Regression：KL 正则化 RL 的加权 BC 实现，过滤式模仿学习，Flow Matching 不兼容，RECAP 的直接前驱 | 来源 6, 7 |
+| [[wiki/concepts/rl/Action Chunking Q-Learning]] | 动作分块 Q-learning：扩展动作空间实现无偏 n-step backup + 时间连贯探索，核心方法 QC / QC-FQL / DQC | 来源 48, 49 |
 
 ### Imitation Learning (2)
 | Page | Summary | Sources |
@@ -374,4 +378,20 @@
 - **Open-Loop Consistency（OLC）**：形式化动作块开环回放的状态分布偏差，是 action chunking Q-learning 理论保证的核心条件；仅来源 48
 - **Bounded Optimality Variability（BOV）**：闭环执行 action chunking 策略时最优性保证的替代条件；仅来源 48
 - **Partial Critic Distillation（DQC）**：通过 expectile regression 将大块 critic 蒸馏为小块 partial critic，解耦 critic/policy 的动作块大小；仅来源 48
-- **Action Chunking Q-learning 理论**：首次形式化 value bias 上界 $O(\varepsilon_h H\bar{H})$ 及与 n-step return 比较的条件；与 [[wiki/concepts/imitation-learning/ACT]] 的 IL 视角互补，待第二来源升级为 Concept 页。
+- ~~**Action Chunking Q-learning 理论**~~ ✅ 已达 ≥2 来源（#48 Li 2025 + #49 Li 2026），已建页 [[wiki/concepts/rl/Action Chunking Q-Learning]]。
+
+**来自 Q-Chunking RL with Action Chunking (Li 2026，来源 49)**：
+- **Best-of-N 作为隐式 KL 约束**：从行为策略采 N 个候选取 Q 最大者，KL 上界 $\leq \log N - (N-1)/N$；仅来源 49
+- **时间连贯度量（Temporal Coherency Metric）**：每 5 步末端执行器位移均值作为探索质量量化指标；仅来源 49
+
+**来自 RL-100 (Lei 2026，来源 50)**：
+- **两级 MDP（Denoising MDP + Environment MDP）**：将扩散去噪建模为嵌套 MDP，环境级 Advantage 共享给所有去噪步；仅来源 50
+- **OPE 门控（AM-Q Gate）**：AM-Q 近似模型 Q 函数门控离线 PPO 更新，保证单调改善；仅来源 50
+- **迭代离线 RL + 数据扩展飞轮**：RL→rollout→数据合并→IL 重训的迭代循环；仅来源 50
+- **一步一致性蒸馏（Robot Deployment）**：将多步 DDIM 策略压缩为一步 CM 用于高频真实部署；仅来源 50
+
+**来自 RLT (Xu 2026，来源 51)**：
+- **RL Token（VLA 紧凑 RL 接口）**：encoder-decoder 自编码瓶颈从冻结 VLA 提取紧凑状态嵌入；仅来源 51
+- **Reference Action Conditioning（参考动作条件化）**：RL actor 以 VLA 参考动作块为条件并正则化，将 RL 转化为局部精修；仅来源 51
+- **Reference Action Dropout**：随机清零参考块防止 actor 退化为复制；仅来源 51
+- **Critical Phase Fine-tuning**：仅对任务最精密关键阶段做 RL 微调；仅来源 51

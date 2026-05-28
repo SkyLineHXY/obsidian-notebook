@@ -693,3 +693,28 @@ aw/sources/papers/Lab Automation/（新建目录）
 - Benchmarks 节新增 OGBench
 - 新增两篇论文的 Knowledge Gaps（6 条）
 - 标记 OGBench 升级完成
+## [2026-05-28] ingest | Q-Chunking Li 2026 + RL-100 Lei 2026 + RLT Xu 2026 — 3 篇新论文摄取
+
+**触发原因**: 用户添加了 3 篇新 PDF（2 篇 VLA+RL，1 篇 RL(Reinforce Learning)），请求更新 wiki
+**检索来源**: 用户本地 PDF 下载
+**PDF 下载目录**: `raw/assets/papers/VLA+RL/` 和 `raw/assets/papers/RL(Reinforce Learning)/`
+**MinerU 转换**: ✅ 成功 3 个文件（VLA+RL 2 篇耗时 4.9 分钟，RL 批次 4 篇耗时 1.7 分钟含已有论文）
+
+**新建 Source 页（3 个）**:
+- [[wiki/sources/rl-finetuning/2026-05-28 Q-Chunking RL with Action Chunking (Li 2026)]]（来源 #49）：Q-chunking 通用 recipe（QC + QC-FQL）；时间扩展动作空间实现无偏 n-step backup + 时间连贯探索；OGBench 整体 52%→86%，大幅超越 BFN（51%→63%）
+- [[wiki/sources/rl-finetuning/2026-05-28 RL-100 Real-World RL on Diffusion Policy (Lei 2026)]]（来源 #50）：两级 MDP + 统一 PPO surrogate on 扩散去噪步 + OPE 门控 + 一步一致性蒸馏；8 个真实机器人任务 1000/1000 完美成功，商场 7 小时无故障部署
+- [[wiki/sources/vla-rl/2026-05-28 RLT RL Token VLA Online RL (Xu 2026)]]（来源 #51）：RL Token encoder-decoder 从冻结 π₀.₆ 提取紧凑 RL 状态；轻量 actor-critic 以 VLA 参考动作块为条件做局部精修；4 个精密任务数小时内 3× 速度提升
+
+**新建 Concept 页（1 个）**:
+- [[wiki/concepts/rl/Action Chunking Q-Learning]]：来源 #48（Li 2025 DQC）+ #49（Li 2026）达 ≥2 来源阈值；含无偏 n-step backup 推导（Theorem A.1）、三种 backup 对比公式、QC/QC-FQL/DQC 三变体对比表
+
+**新增 Knowledge Gaps（11 条）**:
+- Best-of-N KL 约束（来源 49）、时间连贯度量（来源 49）
+- 两级 Denoising MDP（来源 50）、OPE 门控 AM-Q（来源 50）、迭代离线 RL 飞轮（来源 50）、CM 部署蒸馏（来源 50）
+- RL Token（来源 51）、参考动作条件化（来源 51）、参考动作 Dropout（来源 51）、关键阶段微调（来源 51）
+
+**更新 wiki/index.md**:
+- Stats：Sources 48→51；Concepts 14→15（新增 Action Chunking Q-Learning）
+- 生成模型+RL 节新增来源 49、50；VLA+RL 节新增来源 51
+- 标记 Action Chunking Q-learning 理论升级完成（✅）
+- 新增各论文 Knowledge Gaps
