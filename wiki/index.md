@@ -6,8 +6,8 @@
 ---
 
 ## Stats
-- **Sources**: 51 | **Entities**: 12 | **Concepts**: 15 | **Comparisons**: 2 | **Analyses**: 9
-- **Last updated**: 2026-05-28 (Ingest Q-Chunking Li 2026 / RL-100 Lei 2026 / RLT Xu 2026；新建 Action Chunking Q-Learning Concept 页（≥2 来源达阈值）)
+- **Sources**: 51 | **Entities**: 12 | **Concepts**: 17 | **Comparisons**: 2 | **Analyses**: 9
+- **Last updated**: 2026-05-28 (Ingest Q-Chunking Li 2026 / RL-100 Lei 2026 / RLT Xu 2026；新建 Action Chunking Q-Learning + Iterative Offline RL + Representation Regularization in Visuomotor RL Concept 页)
 
 ---
 
@@ -167,6 +167,8 @@
 | [[wiki/concepts/rl/DPPO]] | 用 PPO 在线 RL 微调扩散策略的事实基线 | 来源 4, 8 |
 | [[wiki/concepts/rl/AWR]] | Advantage-Weighted Regression：KL 正则化 RL 的加权 BC 实现，过滤式模仿学习，Flow Matching 不兼容，RECAP 的直接前驱 | 来源 6, 7 |
 | [[wiki/concepts/rl/Action Chunking Q-Learning]] | 动作分块 Q-learning：扩展动作空间实现无偏 n-step backup + 时间连贯探索，核心方法 QC / QC-FQL / DQC | 来源 48, 49 |
+| [[wiki/concepts/rl/Iterative Offline RL]] | 外层数据扩展飞轮 + 内层 OPE-gated PPO 改进；RL-100 核心，破除 offline RL 数据覆盖瓶颈 | 来源 50 |
+| [[wiki/concepts/rl/Representation Regularization in Visuomotor RL]] | Recon + VIB 双正则稳定 RL 微调期 encoder；含 IB 理论推导与 RL-100 消融 | 来源 50 |
 
 ### Imitation Learning (2)
 | Page | Summary | Sources |

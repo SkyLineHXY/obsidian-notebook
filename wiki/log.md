@@ -718,3 +718,19 @@ aw/sources/papers/Lab Automation/（新建目录）
 - 生成模型+RL 节新增来源 49、50；VLA+RL 节新增来源 51
 - 标记 Action Chunking Q-learning 理论升级完成（✅）
 - 新增各论文 Knowledge Gaps
+
+## [2026-05-28] update | 新建 RL-100 衍生概念页 ×2
+
+**触发**：用户对 [[wiki/sources/rl-finetuning/2026-05-28 RL-100 Real-World RL on Diffusion Policy (Lei 2026)]] 中"迭代离线 RL 流程"与"IL 阶段 Recon/VIB 动机"展开追问，确认建立独立概念页。
+
+**新建 Concept 页（2 篇）**：
+- [[wiki/concepts/rl/Iterative Offline RL]] — 外层数据扩展飞轮 + 内层 OPE-gated PPO 改进；含 §2 严谨数学推导（Eq.7 surrogate / OPE-monotonic improvement / vs 朴素 Offline PPO 对比）
+- [[wiki/concepts/rl/Representation Regularization in Visuomotor RL]] — Recon + VIB 双正则；含 §3 严谨数学推导（重建项的互信息下界 / VIB 的 IB 上界 / re-parameterization trick / 降权策略分析）
+
+**更新 wiki/index.md**：
+- Stats：Concepts 15 → 17
+- RL 概念表新增两行
+
+**Knowledge Gaps 关闭**：
+- ~~"OPE 门控 AM-Q"~~ ✅ 已并入 [[wiki/concepts/rl/Iterative Offline RL]] §1.2 与 §2.3
+- ~~"迭代离线 RL 飞轮"~~ ✅ 已建独立 [[wiki/concepts/rl/Iterative Offline RL]]

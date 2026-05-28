@@ -142,16 +142,21 @@ $$
 
 ## 新概念追踪
 
-**首次出现，追踪中**：
-- **两级 MDP（Denoising MDP + Environment MDP）**：将扩散去噪建模为嵌套 MDP，使 RL 信号在所有去噪步传播；仅来源 50
-- **OPE 门控（AM-Q Gate）**：用近似模型 Q 函数门控离线 PPO 更新接受与否，保证单调改善；仅来源 50
-- **迭代离线 RL（Iterative Offline RL + Dataset Expansion）**：每轮 RL→rollout→数据合并→IL 重训的飞轮循环；仅来源 50
-- **一步一致性蒸馏（Consistency Model for Diffusion Policy Deployment）**：将多步 DDIM 策略压缩为一步 CM 用于高频部署；仅来源 50（在机器人领域的具体应用）
+**已升级为独立概念页**（用户追问后建立）：
+- ✅ **迭代离线 RL（Iterative Offline RL + Dataset Expansion）**：每轮 RL→rollout→数据合并→IL 重训的飞轮循环 → [[wiki/concepts/rl/Iterative Offline RL]]
+- ✅ **OPE 门控（AM-Q Gate）**：用近似模型 Q 函数门控离线 PPO 更新；已并入 [[wiki/concepts/rl/Iterative Offline RL]] §1.2 与 §2.3
+- ✅ **Visuomotor RL 表征正则（Recon + VIB）**：联合训练 encoder 时用重建 + 信息瓶颈防漂移 → [[wiki/concepts/rl/Representation Regularization in Visuomotor RL]]
+
+**仍待积累的概念**（仅来源 50）：
+- **两级 MDP（Denoising MDP + Environment MDP）**：将扩散去噪建模为嵌套 MDP（注：DPPO 已用类似双层 MDP，可考虑合并到 [[wiki/concepts/rl/DPPO]] 或新建独立页）
+- **一步一致性蒸馏（Consistency Model for Diffusion Policy Deployment）**：将多步 DDIM 策略压缩为一步 CM 用于高频部署
 
 ---
 
 ## 关联页面
 
+- [[wiki/concepts/rl/Iterative Offline RL]] — **本篇核心算法概念页**
+- [[wiki/concepts/rl/Representation Regularization in Visuomotor RL]] — **本篇 IL 阶段表征正则化概念页**
 - [[wiki/sources/rl-finetuning/2026-04-19 DPPO]] — 最接近方法：PPO 微调扩散策略
 - [[wiki/sources/rl-finetuning/2026-04-18 ReinFlow]] — Flow Matching 策略 RL 微调
 - [[wiki/entities/systems/HIL-SERL]] — 核心比较系统
