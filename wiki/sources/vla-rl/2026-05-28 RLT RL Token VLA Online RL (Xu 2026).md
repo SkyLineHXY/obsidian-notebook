@@ -42,6 +42,9 @@ RLT 在冻结 π₀.₆ VLA 上添加轻量级 encoder-decoder 提取 "RL token"
 
 ## 方法：RLT（RL Token）
 
+![[raw/sources/papers/VLA+RL/Xu 等 - 2026 - RL Token Bootstrapping Online RL with Vision-Language-Action Models/images/54ad31ede3cbc899a941d2790e09ef80d0aea1b6cad4c37e297743f5754c5ff3.jpg]]
+*Figure 2：RL Token 抽取示意。在冻结的 π₀.₆（SigLIP-400M + Gemma-4B + 860M flow-matching action expert）上插入一个 encoder-decoder transformer，将整段 VLA token 序列压缩为单个 1×2048 的 RL token，供下游轻量 actor-critic 使用。*
+
 ### Stage 1：RL Token 提取（自适应 VLA 接口）
 
 在预训练 VLA（π₀.₆）上添加 encoder-decoder transformer $g_\phi$（参数小），以自回归重建 VLA 内部 token 嵌入为目标：
@@ -90,6 +93,38 @@ $\beta$ 控制 actor 向 VLA 参考动作块的正则化强度。
 - 冻结 VLA → 提供感知理解 + 参考动作建议（宏观先验）
 - 轻量 RL actor-critic → 在关键精密阶段做局部精修
 
+### 实现细节（Appendix B）
+
+**RL token 抽取器训练**
+- VLA backbone：π₀.₆（SigLIP-400M + Gemma-4B + 860M action expert），全程冻结
+- VLA token 嵌入维度：2048，RL token $\mathbf{z}_{\mathrm{rl}}$ 形状 $1\times 2048$
+- 训练步数：每任务 **2000–10000** gradient steps（在 1–10 h 单任务演示数据上）
+- 可选联合 SFT：损失 $\mathcal{L}_{\mathrm{ro}}(\phi) + \alpha\mathcal{L}_{\mathrm{vla}}(\theta_{\mathrm{vla}})$，仅当 $\alpha > 0$ 时同步微调 VLA
+- RL token 输入源：2 个 wrist camera + 1 个 base camera 图像（语言指令在单任务设定下省略）
+
+**Actor-Critic 网络（从零初始化，per-task）**
+- 输入：$\mathbf{x} = (\mathbf{z}_{\mathrm{rl}}, \mathbf{s}^p)$；$\mathbf{s}^p$ 视任务而定（螺丝：关节位；扎带/Ethernet/充电器：末端位姿）
+- 隐藏层规模：
+  - 扎带 / Ethernet / 充电器：**2 层 MLP，hidden=256**
+  - 螺丝（最难）：**3 层 MLP，hidden=512**
+- Critic：**双 Q ensemble**，target 取两者最小（TD3 风格，Fujimoto 2018）
+- Actor：高斯策略，**固定小方差 $\sigma$**；同时接收 $\tilde{\mathbf{a}}_{1:C}$ 作为输入
+- 动作维度：14-D per timestep × $C=10$ chunk = **140-D** chunked action
+- 控制频率：**50 Hz**
+
+**在线 RL 关键超参**
+- Reference-action dropout 概率：**50%**（推理时始终提供 $\tilde{\mathbf{a}}$）
+- Action chunk 子采样步长：2 → 每秒机器人数据约产 **25 个训练样本**
+- Update-to-data ratio（UTD）：**5**（rollout 与 learning 异步执行）
+- Critic / Actor 更新比：**2 : 1**
+- 训练规模：每任务 400–1000 episodes，约 **15 min – 5 h 实际机器人数据**
+- 奖励信号：人工提供 sparse **+1** 成功信号
+
+**两阶段课程（screw / zip-tie）**
+1. 仅 critical-phase 训练（小幅初始随机化）
+2. 进入 full-task：前序由 base VLA 执行，进入关键段后切换到 RL 策略
+3. 最后一次短 SFT：让 VLA 学会预测「何时交棒」给 RL 策略（用人工 intervention 时机作 label），实现 test-time 自动切换
+
 ---
 
 ## 实验结果
@@ -102,12 +137,12 @@ $\beta$ 控制 actor 向 VLA 参考动作块的正则化强度。
 
 **主要结果（Critical Phase）**：
 
-| 任务 | Base VLA | RLT（ours）|
-|------|---------|---------|
-| 螺丝（成功率）| 20% | 65% |
-| 扎带（成功率）| 35% | 100% |
-| Ethernet（成功率）| 98% | 100% |
-| 充电器（成功率）| 79% | 100% |
+| 任务            | Base VLA | RLT（ours） |
+| ------------- | -------- | --------- |
+| 螺丝（成功率）       | 20%      | 65%       |
+| 扎带（成功率）       | 35%      | 100%      |
+| Ethernet（成功率） | 98%      | 100%      |
+| 充电器（成功率）      | 79%      | 100%      |
 
 **速度**：关键阶段执行速度提升最高 3×；某些任务 RLT 策略可超越人类遥操速度。
 
@@ -146,7 +181,6 @@ $\beta$ 控制 actor 向 VLA 参考动作块的正则化强度。
 ## 新概念追踪
 
 **首次出现，追踪中**：
-- **RL Token（VLA 紧凑 RL 接口）**：encoder-decoder 自编码瓶颈从冻结 VLA 提取紧凑状态嵌入；仅来源 51
 - **Reference Action Conditioning（参考动作条件化）**：RL actor 以 VLA 参考动作块为条件并正则化，将 RL 转化为局部精修；仅来源 51
 - **Reference Action Dropout**：随机清零参考块防止 actor 退化为复制；仅来源 51
 - **Critical Phase Fine-tuning**：仅对任务最精密关键阶段做 RL 微调，避免 RL 干扰已经足够好的前序阶段；仅来源 51
