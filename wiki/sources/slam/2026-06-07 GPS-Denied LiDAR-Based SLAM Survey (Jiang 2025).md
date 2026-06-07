@@ -31,12 +31,12 @@ updated: 2026-06-07
 
 四类典型传感器组合（Table 1）：
 
-| 组合 | 优势 | 劣势 | 代表算法 |
-|---|---|---|---|
-| 2D LiDAR + IMU | 结构简单、低成本、平面环境 | 无 3D 信息、环境适应弱 | Hector SLAM, GMapping |
-| Camera + IMU | 低成本、纹理丰富场景有效 | 强依赖光照/纹理 | ORB-SLAM, VINS-Mono |
-| 3D LiDAR + IMU | 高精度 3D 点云、复杂环境 | 高成本、点云计算密集 | LOAM, FAST-LIO |
-| 3D LiDAR + Camera + IMU | 彩色点云 + 高精度、适应性最强 | 集成复杂、功耗高 | V-LOAM, LVI-SAM, FAST-LIVO |
+| 组合                      | 优势               | 劣势            | 代表算法                       |
+| ----------------------- | ---------------- | ------------- | -------------------------- |
+| 2D LiDAR + IMU          | 结构简单、低成本、平面环境    | 无 3D 信息、环境适应弱 | Hector SLAM, GMapping      |
+| Camera + IMU            | 低成本、纹理丰富场景有效     | 强依赖光照/纹理      | ORB-SLAM, VINS-Mono        |
+| 3D LiDAR + IMU          | 高精度 3D 点云、复杂环境   | 高成本、点云计算密集    | LOAM, FAST-LIO             |
+| 3D LiDAR + Camera + IMU | 彩色点云 + 高精度、适应性最强 | 集成复杂、功耗高      | V-LOAM, LVI-SAM, FAST-LIVO |
 
 - **数据集**（Table 2）：2D 平面导航（MIT Stata、ROS TurtleBot）；视觉惯性（EuRoC MAV、TUM VI、KITTI）；3D LiDAR（Newer College、NCLT、MulRan 隧道/城市）；多传感器（Complex Urban、Apollo-SouthBay、NTU-VIRAL、R3LIVE）。
 - **更新方案两分**：**优化式**（重投影误差/BA/branch-and-bound，精度高但算力大）vs **滤波式**（EKF/UKF/PF 递归估计，实时性强，本文主线）。

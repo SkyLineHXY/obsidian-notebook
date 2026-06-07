@@ -6,8 +6,8 @@
 ---
 
 ## Stats
-- **Sources**: 56 | **Entities**: 12 | **Concepts**: 18 | **Comparisons**: 3 | **Analyses**: 9
-- **Last updated**: 2026-06-07 (Ingest X-ICP Tuna 2024；新建 slam 源页 ×1，含严谨数学推导与 LiDAR 可定位性三级分类框架)
+- **Sources**: 58 | **Entities**: 12 | **Concepts**: 19 | **Comparisons**: 3 | **Analyses**: 9
+- **Last updated**: 2026-06-07 (Ingest FAST-LIO (Xu 2021) + FAST-LIO2 (Xu 2022)；新建 slam 源页 ×2 + LiDAR-Inertial Odometry 概念页 ×1，含完整 iEKF 数学推导与高效 Kalman 增益证明)
 
 ---
 
@@ -116,12 +116,14 @@
 | 41 | [[wiki/sources/lab-automation/2026-05-17 Intelligent Science Laboratory Position (Zhang 2025)]] | raw/assets/papers/Lab Automation/Zhang - 2025 - Intelligent Science Laboratory.pdf | 2026-05-17 |
 | 42 | [[wiki/sources/lab-automation/2026-05-17 Scaling Laws Scientific Discovery (Zhang 2025)]] | raw/assets/papers/Lab Automation/Zhang - 2025 - Scaling Laws Scientific Discovery.pdf | 2026-05-17 |
 
-### SLAM (3)
+### SLAM (5)
 | # | Page | Original Source | Date |
 |---|------|----------------|------|
 | 54 | [[wiki/sources/slam/2026-06-07 GPS-Denied LiDAR-Based SLAM Survey (Jiang 2025)]] | raw/assets/papers/其他/Jiang 等 - 2025 - GPS-Denied LiDAR-Based SLAM—A Survey.pdf | 2026-06-07 |
 | 55 | [[wiki/sources/slam/2026-06-07 Active SLAM Survey (Placed 2023)]] | raw/assets/papers/其他/Placed 等 - 2023 - A Survey on Active SLAM.pdf | 2026-06-07 |
 | 56 | [[wiki/sources/slam/2026-06-07 X-ICP Localizability-Aware LiDAR Registration (Tuna 2024)]] | raw/assets/papers/其他/Tuna 等 - 2024 - X-ICP Localizability-Aware LiDAR Registration for Robust Localization in Extreme Environments.pdf | 2026-06-07 |
+| 57 | [[wiki/sources/slam/2026-06-07 FAST-LIO (Xu 2021)]] | raw/assets/papers/其他/Xu和Zhang - 2021 - FAST-LIO A Fast, Robust LiDAR-inertial Odometry Package by Tightly-Coupled Iterated Kalman Filter.pdf | 2026-06-07 |
+| 58 | [[wiki/sources/slam/2026-06-07 FAST-LIO2 (Xu 2022)]] | raw/assets/papers/其他/Xu 等 - 2022 - FAST-LIO2 Fast Direct LiDAR-Inertial Odometry.pdf | 2026-06-07 |
 
 ---
 
@@ -208,10 +210,11 @@
 |------|---------|---------|
 | [[wiki/concepts/infrastructure/PREEMPT_RT实时内核]] | Linux 实时内核补丁，机器人实时控制必备 | 来源 2, 3 |
 
-### SLAM (1)
+### SLAM (2)
 | Page | Summary | Sources |
 |------|---------|---------|
 | [[wiki/concepts/slam/SLAM (Simultaneous Localization and Mapping)]] | 同步定位与建图：前端/后端、滤波 vs 优化、被动 vs 主动；含严谨数学推导（概率后验分解 + EKF-SLAM 递归 + 主动 SLAM POMDP/最优性准则） | 来源 54, 55, 56 |
+| [[wiki/concepts/slam/LiDAR-Inertial Odometry]] | LiDAR+IMU 紧耦合里程计：流形 iEKF 框架、运动畸变补偿、高效 Kalman 增益（$O(n^2)$ vs $O(m^2)$）完整数学推导；FAST-LIO / FAST-LIO2 实例 | 来源 57, 58 |
 
 ---
 
@@ -430,3 +433,10 @@
 - **LiDAR 可定位性（LiDAR Localizability）**：ICP 优化 Hessian 各特征向量方向的几何约束充分性，X-ICP 提出三级（none/partial/full）细粒度分类；仅来源 56
 - **Localizability-Aware Constrained ICP**：可定位性三级分类与 Lagrangian 等式约束 ICP 联合框架；仅来源 56
 - **Partial Localizability**：稀疏但有效的中间约束态，通过对应点重采样提取有效约束，提供受控位姿更新；仅来源 56
+
+**来自 FAST-LIO (Xu 2021，来源 57) + FAST-LIO2 (Xu 2022，来源 58)**：
+- ~~**LiDAR-Inertial Odometry**~~ ✅ 已达 ≥2 来源（#57 FAST-LIO + #58 FAST-LIO2），已建页 [[wiki/concepts/slam/LiDAR-Inertial Odometry]]
+- **ikd-Tree（增量式 k-d 树）**：支持增量插入/删除/重平衡 + 在树上降采样的动态 k-d tree，FAST-LIO2 核心数据结构；仅来源 58
+- **LOAM-Livox**：Livox 固态 LiDAR 的 LOAM 适配版本，FAST-LIO 的对比基线；仅来源 57
+- **LINS**：紧耦合 iEKF LIO（Robocentric 公式），FAST-LIO 主要对比系统；仅来源 57, 58
+- **在线 LiDAR-IMU 外参标定**：将 ${}^I\mathbf{T}_L$ 纳入状态向量实时估计，FAST-LIO2 新增；仅来源 58

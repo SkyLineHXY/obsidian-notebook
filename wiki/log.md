@@ -780,3 +780,14 @@ aw/sources/papers/Lab Automation/（新建目录）
   - [[wiki/sources/slam/2026-06-07 Active SLAM Survey (Placed 2023)]]：T-RO 主动 SLAM 权威综述（POMDP 统一表述 + 三阶段模块化 + BSP/DRL/多机器人 + 7 大开放挑战）；Placed PDF 仅抽出作者头像，无内容图可嵌
 - 新建 [[wiki/concepts/slam/SLAM (Simultaneous Localization and Mapping)]]（≥2 来源达阈值）：含强制「严谨数学推导」节——(A) 概率 SLAM 后验贝叶斯分解、(B) EKF-SLAM 预测-更新递归、(C) 主动 SLAM POMDP + Kiefer 最优性准则（T/D/A/E-opt）与单调性定理，全 LaTeX
 - index：Stats Sources 53→55、Concepts 17→18；新增 Sources「SLAM (2)」与 Concepts「SLAM (1)」分节
+
+## [2026-06-07] ingest | FAST-LIO (Xu 2021) + FAST-LIO2 (Xu 2022) — LiDAR-Inertial Odometry 双论文摄取
+
+- MinerU 解析两篇 PDF：
+  - `raw/assets/papers/其他/Xu和Zhang - 2021 - FAST-LIO...pdf` → `raw/sources/papers/其他/Xu和Zhang.../`
+  - `raw/assets/papers/其他/Xu 等 - 2022 - FAST-LIO2...pdf` → `raw/sources/papers/其他/Xu 等 - 2022.../`
+- 新建 slam 源页 ×2：
+  - [[wiki/sources/slam/2026-06-07 FAST-LIO (Xu 2021)]]：紧耦合 iEKF LIO；高效 Kalman 增益（$O(n^2)$ vs $O(m^2)$）；前/后向传播运动畸变补偿；UAV 实验 10-50 Hz
+  - [[wiki/sources/slam/2026-06-07 FAST-LIO2 (Xu 2022)]]：直接点云配准（无特征提取）；ikd-Tree 增量 k-d 树；在线 LiDAR-IMU 外参标定；19 数据集 SOTA、100 Hz
+- 新建 [[wiki/concepts/slam/LiDAR-Inertial Odometry]]（FAST-LIO + FAST-LIO2 ≥2 来源达阈值）：含「严谨数学推导」节——流形 $\boxplus/\boxminus$ 运算定义、连续运动模型、离散化误差传递矩阵 $\mathbf{F}_{\widetilde{\mathbf{x}}}$、后向传播畸变补偿推导、点到平面测量模型、iEKF MAP 优化、高效 Kalman 增益等价性证明（矩阵求逆引理），全 LaTeX
+- index：Stats Sources 56→58、Concepts 18→19；SLAM 源页分节 3→5、SLAM 概念 1→2
