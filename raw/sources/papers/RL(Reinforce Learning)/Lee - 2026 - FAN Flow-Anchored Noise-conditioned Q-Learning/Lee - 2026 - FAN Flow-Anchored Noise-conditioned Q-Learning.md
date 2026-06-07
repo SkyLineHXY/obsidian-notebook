@@ -1,0 +1,1113 @@
+# Towards Efficient and Expressive Offline RL via Flow-Anchored Noise-conditioned Q-Learning
+
+Sungyoung Lee 1 Dohyeong Kim 2 Eshan Balachandar 1 Zelal Su Mustafaoglu 1 Keshav Pingali 1
+
+# Abstract
+
+We propose Flow-Anchored Noise-conditioned Q-Learning (FAN), a highly efficient and highperforming offline reinforcement learning (RL) algorithm. Recent work has shown that expressive flow policies and distributional critics improve offline RL performance, but at a high computational cost. Specifically, flow policies require iterative sampling to produce a single action, and distributional critics require computation over multiple samples (e.g., quantiles) to estimate value. To address these inefficiencies while maintaining high performance, we introduce FAN. Our method employs a behavior regularization technique that utilizes only a single flow policy iteration and requires only a single Gaussian noise sample for distributional critics. Our theoretical analysis of convergence and performance bounds demonstrates that these simplifications not only improve efficiency but also lead to superior task performance. Experiments on robotic manipulation and locomotion tasks demonstrate that FAN achieves state-ofthe-art performance while significantly reducing both training and inference runtimes. We release our code at https://github.com/brianlsy98/FAN.
+
+# 1. Introduction
+
+Offline Reinforcement Learning (RL) (Lange et al., 2012; Levine et al., 2020) aims to learn a policy using only a fixed dataset of pre-collected interactions. This allows for the safe and efficient reuse of large historical data, but the lack of online feedback prevents the agent from correcting errors, making it prone to value overestimation for actions outside the dataset state-action (behavior) distribution (Fujimoto et al., 2019; Kumar et al., 2019). Therefore, a core challenge in offline RL lies in maximizing returns while constraining
+
+1The University of Texas at Austin 2Independent Researcher. Correspondence to: Keshav K. Pingali <pingali@cs.utexas.edu>.
+
+Proceedings of the $\it 4 3 ^ { r d }$ International Conference on Machine Learning, Seoul, South Korea. PMLR 306, 2026. Copyright 2026 by the author(s).
+
+![](images/c0a7c037343e7526dec3bc119a6c3b4b94b96a5bf2baa445def598ec4923444c.jpg)  
+Figure 1. Training Runtime per Batch vs. Average Success Rates on five OGBench puzzle-4x4-singleplay-v0 tasks. FAN performs the best with the highest computational efficiency.
+
+the learned policy to the behavior policy that generated the data. For effective constraints, recent work has adopted expressive algorithms for learning the policy and the value.
+
+First, flow matching has been widely used for policy training (Espinosa-Dice et al., 2025b; Wang et al., 2025). Unlike Gaussian-based approaches that are limited to unimodal distributions, behavior flow policies can learn complex and multimodal dataset behaviors (Park et al., 2025c; Tiofack et al., 2025). This enables more expressive constraints for the policy, allowing it to outperform the behavior of the dataset (Espinosa-Dice et al., 2025a; Park et al., 2025a).
+
+Second, there have been approaches using distributional critics (Ma et al., 2021; Dong et al., 2025), which learn the distribution of returns. These critics capture information that cannot be fully represented by expected returns, e.g., return uncertainty. This distributional expressivity is often achieved by modeling multiple statistics of the distribution via quantiles (Dabney et al., 2018a;b), which represent the cumulative probability thresholds of the return distribution.
+
+In this work, we focus on the computational efficiency of these expressive training mechanisms. As seen in Figure 1, methods employing behavior flow policies and distributional critics are computationally expensive. First, flow policies require multiple forward iterations to produce a single action, which increases the computational cost proportionally to the number of flow steps. Second, distributional critics necessitate processing multiple samples (e.g., quantiles), scaling the cost linearly with the number of samples. This motivates the main question explored in our study:
+
+(1) Flow Anchoring   
+![](images/02e2719215098f8ccc0a11cd891d6d81b55f38dad3400fe866ec1e4e6a61ed21.jpg)
+
+(2) Noise-conditioned Critic and $\mathcal { T } _ { n } ^ { \pi }$   
+![](images/98f1d871a3528cb8614275f6242b8a6cb04e9956c5063b1587a064a199c70b46.jpg)
+
+![](images/274bf8c288d7b8e6db72dcaa0b988fb8011b8e58664eaaced9d9cfd05ac0c833.jpg)  
+Figure 2. Overview of FAN. (Left) Behavior regularization utilizes only a single flow policy iteration and is applied to both actor and critic updates. (Middle) The distributional critic is conditioned on the same noise used for policy sampling. (Right) The critic update incorporates an upper expectile regression to capture maximum possible distributional returns.
+
+How can we leverage flow policies and distributional critics to achieve state-of-the-art offline RL performance while simultaneously improving computational efficiency?
+
+Specifically, we investigate whether (1) behavior flow policies can remain effective with a single flow iteration, and (2) distributional critics can be trained using a single sample.
+
+To this end, we propose Flow-Anchored Noise-conditioned Q-Learning (FAN). First, FAN utilizes flow policies but restricts them to a single iteration for behavior regularization, a mechanism we term Flow Anchoring. Second, FAN employs a Noise-conditioned Critic, which captures distributional return information while being trainable using a single Gaussian noise sample. This critic is defined by the proposed operator $\mathcal { T } _ { n } ^ { \pi }$ in Eq.(9), which tightly couples the policy and value functions through shared noise inputs. Experiments on D4RL and OGBench demonstrate that FAN achieves best or near-best performance while reducing training runtime by at least 5× compared to prior distributional approaches. Furthermore, its inference speed is among the fastest, competitive even with non-distributional methods.
+
+# Contributions. We make three key contributions:
+
+1. We propose Flow Anchoring to efficiently and expressively regularize the policy to the dataset behavior.   
+2. We propose a noise-conditioned value function defined by the operator $\mathcal { T } _ { n } ^ { \pi }$ to efficiently capture expressive distributional return information.   
+3. Our proposed algorithm, FAN, achieves high computational efficiency in both training and inference while simultaneously improving offline RL performance.
+
+# 2. Related Work
+
+Offline RL. In offline RL, the policy is trained to maximize the sum of rewards without further environment interactions. Given only fixed datasets, the primary challenge is to avoid distribution shift caused by value overestimation on out-
+
+of-distribution (OOD) actions. Prior work adopts behavior regularization (Wu et al., 2019; Peng et al., 2019; Fujimoto & Gu, 2021; Tarasov et al., 2023a), conservatism (Kumar et al., 2020), in-sample learning (Kostrikov et al., 2021; Garg et al., 2023; Xu et al., 2023), and more (Chen et al., 2022; Nikulin et al., 2023; Sikchi et al., 2023; Lee & Kwon, 2025) to constrain OOD actions to the dataset action support. In this work, FAN applies behavior regularization to constrain the policy to be similar to the dataset behavior.
+
+Diffusion and Flow Policies in Offline RL. Recent work in offline RL has increasingly leveraged diffusion and flow policies to address the limitations of unimodal Gaussian policies. By solving the underlying differential equations, these policies provide highly expressive modeling of the offline behavior distribution. Prior work has trained diffusion and flow policies using objectives weighted by action values (Ding et al., 2024; Zhang et al., 2025), sampled optimal actions through rejection sampling (Hansen-Estruch et al., 2023; He et al., 2024; Mao et al., 2024), or utilized them for behavior regularization (Chen et al., 2023; 2024b; Gao et al., 2025; Park et al., 2025c; Lee et al., 2025), and more (Venkatraman et al., 2023; Chen et al., 2024a). FAN uses flow policies for behavior regularization, but eliminates the computational bottleneck of iterative sampling.
+
+Distributional Offline RL. Distributional RL (Engel et al., 2005; Morimura et al., 2010; Bellemare et al., 2017) aims to learn the entire distribution of future returns, rather than just the expected return as in non-distributional approaches. With expressive distributional critics, these methods demonstrate strong theoretical guarantees (Wang et al., 2023; 2024) and empirical performance (Dabney et al., 2018a;b; Farebrother et al., 2024), especially in risk-sensitive settings (Kim et al., 2023; Ma et al., 2025). Prior work in distributional offline RL includes quantile-based (Urp´ı et al., 2021; Ma et al., 2021), uncertainty-based (Agarwal et al., 2020; Wu et al., 2021), and generative modelingbased (Dong et al., 2025) approaches. However, these methods typically incur significant computational overheads, requiring processes such as updates on multiple quantile samples, ensemble evaluations for variance estimation, or iterative sampling for generative modeling. In contrast, FAN addresses these inefficiencies using a noise-conditioned critic.
+
+# 3. Preliminaries
+
+Problem Setting. We consider a Markov Decision Process (MDP) defined as $\mathcal { M } = ( S , \mathcal { A } , r , \mu , P , \gamma )$ , where $s$ is the state space, A is the d-dimensional action space, $r : \mathcal { S } \times \mathcal { A } $ R is the reward function, $\mu \in \Delta ( S )$ is the initial state distribution, and $P : \mathcal { S } \times \mathcal { A }  \Delta ( \mathcal { S } )$ is the transition dynamics kernel. $\Delta ( \mathcal { X } )$ denotes the set of probability distributions over a space X , and $\gamma \in ( 0 , 1 )$ is the discount factor. The goal is to learn a policy $\pi : S  \Delta ( { \mathcal { A } } )$ that maximizes the cumulative discounted return.
+
+The standard action-value function $Q ^ { \pi } ( s , a )$ in prior work is defined to estimate the expected future return:
+
+$$
+Q ^ {\pi} (s, a) = \mathbb {E} _ {\tau \sim P ^ {\pi} (\cdot | s _ {0} = s, a _ {0} = a)} \left[ \sum_ {t = 0} ^ {\infty} \gamma^ {t} r (s _ {t}, a _ {t}) \right], \tag {1}
+$$
+
+where the expectation is taken over trajectories $\tau =$ $( s _ { 0 } , a _ { 0 } , r _ { 0 } , s _ { 1 } , \dots )$ generated by the dynamics $P$ and policy π. Offline RL aims to find the optimal policy $\pi ^ { * }$ that maximizes the expected return $\mathbb { E } _ { s _ { 0 } \sim \mu , a _ { 0 } \sim \pi ( \cdot | s _ { 0 } ) } [ Q ^ { \pi } ( s _ { 0 } , a _ { 0 } ) ]$ using only a fixed dataset $\mathcal { D } = \{ \tau ^ { ( i ) } \}$ of trajectories.
+
+In this work, instead of using the standard $Q ^ { \pi } ( s , a )$ , we capture the distributional information of the return with our proposed critic $Q ^ { \pi } ( s , a , \epsilon )$ , where $\epsilon \sim \mathcal { N } ( 0 , I _ { d } )$ .
+
+Behavior-Regularized Actor-Critic (BRAC). BRAC (Wu et al., 2019; Tarasov et al., 2023a; Park et al., 2025c) is a generalized offline RL framework that achieves stateof-the-art performance by enforcing a constraint between the learned policy $\pi _ { \omega }$ and the dataset behavior policy $\pi _ { \beta }$ . Specifically, BRAC incorporates a regularization term $R ( \pi _ { \omega } ( \cdot | s ) , \pi _ { \beta } ( \cdot | s ) )$ (e.g., KL divergence or Wasserstein distance between distributions) into the actor-critic updates, resulting in the following coupled objectives:
+
+$$
+\begin{array}{l} \mathcal {L} _ {Q} (\phi) = \mathbb {E} \left[ \left(Q _ {\phi} (s, a) - (r + \gamma q _ {\hat {\phi}} ^ {\pi_ {\omega}, \pi_ {\beta}} (\cdot | s ^ {\prime}))\right) ^ {2} \right] = \\ \mathbb {E} \left[ \left(Q _ {\phi} (s, a) - (r + \gamma (Q _ {\hat {\phi}} (s ^ {\prime}, a _ {\omega} ^ {\prime}) - \alpha_ {2} R (a _ {\omega} ^ {\prime}, a _ {\beta} ^ {\prime}))\right) ^ {2} \right], \\ \mathcal {L} _ {\pi} (\omega) = \mathbb {E} \left[ - Q _ {\phi} (s, a _ {\omega}) + \alpha_ {1} R (a _ {\omega}, a _ {\beta}) \right], \tag {2} \\ \end{array}
+$$
+
+where the expectation is taken over $( s , a , r , s ^ { \prime } ) \sim \mathcal { D } , a _ { \omega } \sim$ $\pi _ { \omega } ( \cdot | s ) , a _ { \beta } \sim \pi _ { \beta } ( \cdot | s ) , a _ { \omega } ^ { \prime } \sim \pi _ { \omega } ( \cdot | s ^ { \prime } )$ , and $a _ { \beta } ^ { \prime } \sim \pi _ { \beta } ( \cdot | s ^ { \prime } )$ . Here, $\alpha _ { 1 } , \alpha _ { 2 } > 0$ determine the regularization strength, and different choices of R recover different algorithms such as ReBRAC (Tarasov et al., 2023a), FQL (Park et al., 2025c), or the FAN algorithm that we propose.
+
+Flow Matching. Flow matching (Lipman et al., 2022; Liu et al., 2022; Albergo & Vanden-Eijnden, 2022) is a class of generative modeling that learns the underlying velocity field between a prior distribution and a target distribution. Formally, given a target distribution $p ( x ) \in \Delta ( \mathbb { R } ^ { d } )$ , a timedependent velocity field $v ( t , x ) : [ 0 , 1 ] \times \mathbb { R } ^ { d } \to \mathbb { R } ^ { d }$ defines a flow trajectory $\psi ( t , x ) : [ 0 , 1 ] \times \mathbb { R } ^ { d } \to \mathbb { R } ^ { d }$ , which serves as the unique solution to the following ordinary differential equation (ODE) (Lee, 2003):
+
+$$
+\frac {d}{d t} \psi (t, x) = v (t, \psi (t, x)) \tag {3}
+$$
+
+By satisfying the continuity equation, the velocity field v generates a probability density path $p _ { t } ( x )$ that continuously maps the prior noise distribution $p _ { 0 } ( x )$ to the target data distribution $p _ { 1 } ( x )$ . Prior work (Lipman et al., 2022) has shown that minimizing the following conditional flow matching (CFM) loss based on the Optimal Transport (OT) path is sufficient for training the underlying vector field.
+
+$$
+\begin{array}{l} \mathcal {L} _ {\mathrm{CFM}} (\theta) = \mathbb {E} \quad_ {x _ {1} \sim p (x),} \quad \left[ \| v _ {\theta} (t, x _ {t}) - (x _ {1} - x _ {0}) \| _ {2} ^ {2} \right] \\ x _ {0} \sim \mathcal {N} (0, I), \\ t \sim \operatorname{Unif} ([ 0, 1 ]), \\ x _ {t} = (1 - t) x _ {0} + t x _ {1} \\ \end{array}
+$$
+
+The learned velocity $v _ { \theta }$ transforms the Gaussian $\mathcal { N } ( 0 , I )$ to the target distribution $p ( x )$ through the flow (Eq.(3)). We use Eq.(4) to train our flow policy $v _ { \theta }$ , which maps the normal distribution to the offline dataset action distribution.
+
+Behavior Flow Policy. In offline RL, the behavior flow policy models the behavior distribution of the offline dataset and is trained with the following objective similar to Eq.(4):
+
+$$
+\begin{array}{l} \mathcal {L} _ {\text { FlowBC }} (\theta) = \mathbb {E} _ {(s, a) \sim \mathcal {D}}, \quad \left[ \| v _ {\theta} (s, t, a _ {t}) - (a - \epsilon) \| _ {2} ^ {2} \right] \\ \epsilon \sim \mathcal {N} (0, I _ {d}), \\ t \sim \mathrm{Unif} ([ 0, 1 ]), \\ a _ {t} = (1 - t) \epsilon + t a \\ \end{array}
+$$
+
+Sampling actions from the behavior flow policy vθ recovers the dataset behavior, but requires solving Eq.(3) using ODE solvers $( \mathrm { e . g . }$ ., Euler method). To sample actions with higher returns than $v _ { \theta } ,$ prior work has applied rejection sampling weighted by future return estimates (Park et al., 2025a;b; Dong et al., 2025), or trained a separate one-step policy $\pi _ { \omega }$ with behavior regularization (Park et al., 2025c). Rejection sampling requires multiple vθ iterations for both training and inference, but behavior regularization enables one-step action inference with $\pi _ { \omega }$ trained using the objective:
+
+$$
+\begin{array}{l} \mathcal {L} _ {P} (\omega) = \mathbb {E} _ {s \sim \mathcal {D},} \quad \left[ - Q ^ {\pi_ {\omega}} (s, a _ {\omega}) + \alpha | | a _ {\omega} - a _ {\theta} | | ^ {2} \right], \\ \epsilon \sim \mathcal {N} (0, I _ {d}), \\ a _ {\omega} = \pi_ {\omega} (s, \epsilon) \\ \end{array}
+$$
+
+where $a _ { \theta }$ is the terminal state of the ODE defined by $v _ { \theta }$ starting from $\epsilon , Q ^ { \pi _ { \omega } }$ is the expected return under the policy $\pi _ { \omega } .$ , and α is the coefficient for behavior regularization. However, training still requires $v _ { \theta }$ iterations for generating $a _ { \theta }$ , which motivates our proposed method, Flow Anchoring.
+
+Distributional RL. Instead of expectations, distributional RL focuses on modeling the entire distribution of future returns. Given a policy π, the discounted return random variable is defined as $\begin{array} { r } { \dot { Z } ^ { \pi } = \sum _ { t = 0 } ^ { \infty } \gamma ^ { t } r ( S _ { t } , A _ { t } ) } \end{array}$ , with values in the range $\begin{array} { r } { [ z _ { \operatorname* { m i n } } , z _ { \operatorname* { m a x } } ] \triangleq [ \frac { r _ { \operatorname* { m i n } } } { 1 - \gamma } , \frac { r _ { \operatorname* { m a x } } } { 1 - \gamma } ] } \end{array}$ [ rmin , rmax ]. Here, St and $S _ { t }$ $A _ { t }$ are the state and action random variables at timestep t, where the values are determined by trajectories following $\pi .$ The conditional return random variable is defined as $\begin{array} { r } { Z ^ { \pi } ( s , a ) = r ( s , a ) + \sum _ { h = 1 } ^ { \infty } \gamma ^ { h } r ( S _ { h } , A _ { h } ) } \end{array}$ , and the expected return value estimate satisfies $Q ^ { \pi } ( s , a ) = \mathbb { E } [ Z ^ { \pi } ( s , a ) ]$ . The distributional Bellman operator $\mathcal { T } ^ { \pi }$ is defined as:
+
+$$
+\mathcal {T} ^ {\pi} Z (s, a) \stackrel {{d}} {{=}} r (s, a) + \gamma Z (S ^ {\prime}, A ^ {\prime}), \tag {7}
+$$
+
+where $S ^ { \prime }$ and A′ are random variables following the joint density $P ( s ^ { \prime } | s , a ) \pi ( a ^ { \prime } | s ^ { \prime } )$ , and $\circeq$ denotes equality in distribution. Prior work (Bellemare et al., 2017) has shown that $\tau ^ { \pi }$ is a γ-contraction under the $p \cdot$ -Wasserstein distance, and therefore, repeatedly applying $\mathcal { T } ^ { \pi }$ converges to a unique fixed point (Banach, 1922). Our proposed $\mathcal { T } _ { n } ^ { \pi } \left( \mathrm { E q . } ( 9 ) \right)$ also satisfies the conditions of Banach’s fixed-point theorem.
+
+Expectile Loss. Expectile regression (Newey & Powell, 1987) generalizes standard mean squared error (MSE) loss to an asymmetric form. For a prediction x and a target xˆ, the expectile loss is defined using the coefficient $\kappa \in ( 0 , 1 )$ :
+
+$$
+\mathcal {L} _ {2} ^ {\kappa} (\hat {x} - x) = | \kappa - \mathbf {1} ((\hat {x} - x) <   0) | (\hat {x} - x) ^ {2}. \tag {8}
+$$
+
+Here, the expectile is the minimizer of $\operatorname { E q . } ( 8 )$ , and with fixed $\kappa ,$ it becomes the κ-th expectile of the target random variable xˆ. In distributional RL, approaches such as Rowland et al. (2019); Jullien et al. (2023) model expectiles of the return random variable with Eq.(8). Moreover, nondistributional offline RL with in-sample learning (Kostrikov et al., 2021; Xu et al., 2023) exploits Eq.(8) to approximate the optimal value $V ^ { \ast } ( s )$ ≈ maxa $Q ( s , a )$ using the loss $L _ { V } ( \psi ) = \mathbb { E } _ { ( s , a ) \sim \mathcal { D } } [ \mathcal { L } _ { 2 } ^ { \kappa } ( Q _ { \hat { \theta } } ( s , a ) - V _ { \psi } ( s ) ) ]$ with $\kappa \approx 1$ . Similarly, we use Eq.(8) to estimate the ess sup in Eq.(9).
+
+# 4. Flow-Anchored Noise-conditioned Q-Learning (FAN)
+
+We now introduce FAN, a behavior-regularized actor-critic method using flow policies and distributional critics. FAN includes two details: (1) the operator $\mathcal { T } _ { n } ^ { \pi }$ for critic training, and (2) Flow Anchoring for behavior regularization.
+
+Main Focus. Our primary objective is to maximize both performance and efficiency. However, high performance usually incurs higher computational costs. Among various mechanisms, we prioritize the use of expressive models to achieve high performance. Specifically, we design the policies to be supported by flow matching and the values to capture return distributions. We aimed to maximize computational efficiency within this expressive framework.
+
+Notations and Function Definitions. Fix $s \in S$ and $a \in { \mathcal { A } }$ . Let $\epsilon _ { p } , \epsilon _ { v } \sim \mathcal { N } ( 0 , I _ { d } )$ and $t , \kappa \sim \mathrm { U n i f } ( [ 0 , 1 ] )$ , where we mark random variables in gray. A stochastic policy is a measurable map $\pi : S \times \mathbb { R } ^ { d }  A .$ , and the sampled action is $a _ { \pi } : = \pi ( s , \epsilon _ { p } )$ . For behavior regularization, we define a behavior flow policy as a measurable map $v : S \times [ 0 , 1 ] \times$ $A  A$ , where $v _ { \beta } : = v ( s , t , a _ { t } )$ models the velocity field associated with the offline behavior action distribution using $a _ { t } : = ( 1 - t ) \epsilon _ { p } + t a$ . Let Q be the space of bounded, measurable functions $S \times \mathcal { A } \times \mathbb { R } ^ { d } \to \mathbb { R }$ , and fix $Q \in$ $\mathcal { Q } .$ Then $Q _ { n } : = Q ( s , a , \epsilon _ { v } )$ is a random variable, and we define $Q ^ { \pi } \in \mathcal { Q }$ as the unique fixed point of $\mathcal { T } _ { n } ^ { \pi }$ (Eq. (9)) by Theorem 4.1. Finally, we define the κ-th expectile of $Q _ { n }$ as $\begin{array} { r } { Z _ { \kappa } ^ { Q } : = \arg \operatorname* { m i n } _ { \boldsymbol { q } \in \mathbb { R } } \mathbb { E } _ { \boldsymbol { \epsilon } _ { v } \sim \mathcal { N } ( 0 , I _ { d } ) } \big [ \mathcal { L } _ { 2 } ^ { \kappa } ( Q ( s , a , \boldsymbol { \epsilon } _ { v } ) - \boldsymbol { q } ) \big ] } \end{array}$ .
+
+Value Networks. We train two function approximators: $Q _ { \phi } ( s , a , \epsilon )$ to model $Q ^ { \pi } ( s , a , \epsilon )$ , and $Z _ { \psi } ( s , a )$ for the upper expectile of $Q _ { \phi } ( s , a )$ , which is $Z _ { \kappa \approx 1 } ^ { Q _ { \phi } }$ . By Theorem 4.2, lim $\begin{array} { r } { { 1 } _ { \kappa \to 1 - } Z _ { \psi } ( s , a ) = \csc \operatorname* { s u p } _ { \epsilon \sim \mathcal { N } ( 0 , I _ { d } ) } Q _ { \phi } ( s , a , \epsilon ) } \end{array}$ .
+
+Policy Networks. We use two policy neural networks: $\pi _ { \omega } ( s , \epsilon )$ for modeling π, and $v _ { \theta } ( s , t , a _ { t } )$ for modeling v.
+
+# 4.1. Actor-Critic Training
+
+Motivation. One of the major computational bottlenecks in distributional critic training is that they need considerations on multiple samples (e.g., quantiles). However, should we always rely on multiple samples to use the distributional information of future returns? As one solution, we propose to use noise vectors instead of quantiles, setting the distributional critic training remain valid even with a single sample. Specifically, with $\epsilon ^ { \prime } \sim \mathcal { N } ( 0 , I _ { d } )$ , we define the following distributional operator on $Q ( s , a , \epsilon ^ { \prime } )$ :
+
+$$
+\mathcal {T} _ {n} ^ {\pi} Q (s, a, \epsilon^ {\prime}) := \frac {d}{r} + \gamma \underset {\epsilon \sim \mathcal {N} (0, I _ {d})} {\text { ess   sup }} Q (s ^ {\prime}, \pi (s ^ {\prime}, \epsilon^ {\prime}), \epsilon). \tag {9}
+$$
+
+For simplicity, we only consider deterministic transitions and rewards, meaning that the reward r and the next state $s ^ { \prime }$ is fixed given $( s , a )$ . The convergence of the operator is guaranteed with Theorem 4.1, and therefore, iteratively applying $\mathcal { T } _ { n } ^ { \pi }$ to any $Q \in \mathcal { Q }$ converges to $Q ^ { \pi }$ . The motivation for using the ess sup is to preserve the greedy, max-based action selection principle underlying classical Q-learning (Watkins & Dayan, 1992), while extending it to noise-conditioned return distributions. We refer to Appendix A for detailed explanations and theoretical benefits of $\mathcal { T } _ { n } ^ { \pi }$ .
+
+(1) Noise-conditioned Critic Update. Direct Monte Carlo sampling for estimating the essential supremum in Eq.(9) requires multiple noise samples. Moreover, max operation on these samples can also increase value overestimation. Therefore, we propose the following Temporal Difference (TD) learning objective for the noise-conditioned critic $Q _ { \phi } \mathrm { . }$ :
+
+$$
+\mathcal {L} _ {Q} (\phi) = \mathbb {E} \left[ (Q _ {\phi} (s, a, \epsilon^ {\prime}) - (r + \gamma q _ {\psi} ^ {\pi_ {\omega}, v _ {\theta}} (s ^ {\prime}, \epsilon^ {\prime})) ^ {2} \right], \tag {10}
+$$
+
+where the expectation is taken over $( s , a , r , s ^ { \prime } ) \sim \mathcal { D }$ and $\epsilon ^ { \prime } \sim \mathcal { N } ( 0 , I _ { d } ) . \ qquade ^ { \pi _ { \omega } , v _ { \theta } } ( s ^ { \prime } , \epsilon ^ { \prime } ) : = Z _ { \psi } ( s ^ { \prime } , \pi _ { \omega } ( s ^ { \prime } , \epsilon ^ { \prime } ) ) -$ is the behavior regularized critic value defined in Eq.(15).
+
+(2) Upper Expectile Regression. We train $Z _ { \psi } ( s , a )$ to model ess sup in $T _ { n } ^ { \pi } \left( \mathrm { E q . } ( 9 ) \right)$ , using only the state-action data pairs in the offline dataset:
+
+$$
+\mathcal {L} _ {Z} (\psi) = \underset {\epsilon \sim \mathcal {N} (0, I _ {d})} {\mathbb {E}} _ {(s, a) \sim \mathcal {D},} \left[ L _ {2} ^ {\kappa} (Q _ {\hat {\phi}} (s, a, \epsilon) - Z _ {\psi} (s, a)) \right]. \tag {11}
+$$
+
+To make $Z _ { \psi }$ model the upper expectile, we fix $\kappa = 0 . 9$ for all experiments, which differs from prior distributional approaches that train for all possible $\kappa \sim \mathrm { U n i f } ( [ 0 , 1 ] )$ .
+
+(3) Value Maximization. The one-step policy $\pi _ { \omega }$ is trained to maximize the estimated future return by minimizing:
+
+$$
+\mathcal {L} _ {P} (\omega) = \mathbb {E} _ {\substack {s \sim \mathcal {D}, \\ \epsilon , \epsilon^ {\prime} \sim \mathcal {N} (0, I _ {d}), \\ a _ {\omega} = \pi_ {\omega} (s, \epsilon)}} \left[ - Q _ {\phi} (s, a _ {\omega}, \epsilon^ {\prime}) - Z _ {\psi} (s, a _ {\omega}) \right]. \tag{12}
+$$
+
+With Eq.(12), the actor seeks the highest possible return using both $Q _ { \phi }$ and $Z _ { \psi }$ .
+
+# 4.2. Behavior Regularization
+
+Motivation. Prior work on flow policy behavior regularization requires dataset actions sampled through ODE solving. However, is exact behavior sampling necessary for regularization? Instead of using exact action samples, we propose ”Flow Anchoring”, which regularizes both the policy and value networks without ODE solutions. Since we regularize both the actor and the critic, FAN falls into the category of behavior-regularized actor-critic (Wu et al., 2019).
+
+(1) Behavior Flow Policy. As in prior work (Park et al., 2025c; Dong et al., 2025), we clone the dataset behavior using flow matching. Specifically, the behavior policy models the vector field mapping the Gaussian distribution to the state-conditional action distribution of the offline dataset:
+
+$$
+\mathcal {L} _ {F} (\theta) = \mathbb {E} _ {\substack {(s, a) \sim \mathcal {D}, \\ t \sim \operatorname{Unif} ([ 0, 1 ]), \\ \epsilon \sim \mathcal {N} (0, I _ {d}), \\ a _ {t} = (1 - t) \epsilon + t a}} \left[ \| v _ {\theta} (s, t, a _ {t}) - (a - \epsilon) \| _ {2} ^ {2} \right]. \tag{13}
+$$
+
+(2) Actor Flow Anchoring. Behavior regularization with Eq.(6) increases training computation due to iterative flow sampling. In contrast, we propose Eq.(14) that regularizes both the actor and critic separately, without flow iteration. This provides an efficient and effective action regularization with the underlying flow of the offline dataset actions:
+
+$$
+\mathcal {L} _ {B} (\omega) = \mathbb {E} \left[ \| (\pi_ {\omega} (s, \epsilon) - \epsilon) - v _ {\theta} (s, t, a _ {t, \omega}) \| _ {2} ^ {2} \right]. \tag {14}
+$$
+
+The expectation is taken over $t \sim \mathrm { U n i f } ( [ 0 , 1 ] ) , \epsilon \sim \mathcal { N } ( 0 , I _ { d } )$ , and $s \sim \mathcal { D } .$ , with $a _ { t , \omega } = ( 1 - t ) \epsilon + t \pi _ { \omega } ( s , \epsilon )$ .
+
+# Algorithm 1 FAN
+
+Input: Dataset D, one-step policy $\pi _ { \omega } ,$ behavior flow policy vθ, noise-conditioned critic $Q _ { \phi } ,$ , critic upper expectile estimator $Z _ { \psi } , \kappa = 0 . 9 , \tau = 0 . 9 9 5$ , behavior regularization coefficients $\alpha _ { 1 } , \alpha _ { 2 } .$ .
+
+while not converged do
+
+$$
+\begin{array}{l} \text { Sample   batch } B = \{(s, a, r, s ^ {\prime}) \} \sim \mathcal {D} \\ \text { ValueUpdate } (B), \text { PolicyUpdate } (B) \\ \phi \leftarrow \tau \phi + (1 - \tau) \phi \\ \end{array}
+$$
+
+return One-step policy $\pi _ { \omega }$
+
+Function ValueUpdate(B):
+
+$$
+\begin{array}{l} \epsilon^ {\prime}, \epsilon_ {1}, \epsilon_ {2}, \epsilon \sim \mathcal {N} (0, I _ {d}), \quad t \sim \operatorname{Unif} ([ 0, 1 ]) \\ a _ {\omega} ^ {\prime} \leftarrow \pi_ {\omega} (s ^ {\prime}, \epsilon^ {\prime}), \quad a _ {t, \omega} ^ {\prime} \leftarrow (1 - t) \epsilon^ {\prime} + t a _ {\omega} ^ {\prime} \\ z \leftarrow Z _ {\psi} (s ^ {\prime}, a _ {\omega} ^ {\prime}), \quad \hat {z} \leftarrow \| (a _ {\omega} ^ {\prime} - \epsilon^ {\prime}) - v _ {\theta} (s ^ {\prime}, t, a _ {t, \omega} ^ {\prime}) \| _ {2} ^ {2} \\ \end{array}
+$$
+
+$$
+\begin{array}{l} \triangleright \text {   TD   update   with   Critic   Flow   Anchoring   } \\ L _ {Q} (\phi) \leftarrow \mathbb {E} [ (Q _ {\phi} (s, a, \epsilon^ {\prime}) - (r + \gamma (z - \alpha_ {2} \hat {z}))) ^ {2} ] \\ \triangleright \text { Upper   Expectile   Regression } \\ L _ {Z} (\psi) \leftarrow \mathbb {E} [ L _ {2} ^ {\kappa} (Q _ {\hat {\phi}} (s, a, \epsilon) - Z _ {\psi} (s, a)) ] \\ \end{array}
+$$
+
+Update $\phi , \psi$ to minimize $L _ { Q } + L _ { Z }$
+
+Function PolicyUpdate(B):
+
+$$
+\begin{array}{l} \epsilon_ {1}, \epsilon_ {2}, \epsilon_ {3} \sim \mathcal {N} (0, I _ {d}), \quad t _ {1}, t _ {2} \sim \operatorname{Unif} ([ 0, 1 ]) \\ a _ {t} \leftarrow (1 - t _ {1}) \epsilon_ {1} + t _ {1} a \\ a _ {\omega} \leftarrow \pi_ {\omega} (s, \epsilon_ {2}), \quad a _ {t, \omega} \leftarrow (1 - t _ {2}) \epsilon_ {2} + t _ {2} a _ {\omega} \\ \end{array}
+$$
+
+$$
+\begin{array}{l} \triangleright \text {   Behavior   Flow   Matching   } \\ L _ {F} (\theta) \leftarrow \mathbb {E} [ \| v _ {\theta} (s, t _ {1}, a _ {t}) - (a - \epsilon_ {1}) \| _ {2} ^ {2} ] \\ \triangleright \text {   Actor   Flow   Anchoring   } \\ L _ {B} (\omega) \leftarrow \mathbb {E} [ \| (a _ {\omega} - \epsilon_ {2}) - v _ {\theta} (s, t _ {2}, a _ {t, \omega}) \| _ {2} ^ {2} ] \\ \triangleright \text {   Value   Maximization   } \\ L _ {P} (\omega) \leftarrow \mathbb {E} \left[ - Q _ {\phi} (s, a _ {\omega}, \epsilon_ {3}) - Z _ {\psi} (s, a _ {\omega}) \right] \\ \end{array}
+$$
+
+Update $\theta , \omega$ to minimize $L _ { F } + \alpha _ { 1 } L _ { B } + L _ { P }$
+
+(3) Critic Flow Anchoring. We also incorporate behavior regularization into Eq.(10) with coefficient α2:
+
+$$
+\begin{array}{l} q _ {\psi} ^ {\pi_ {\omega}, v _ {\theta}} (s ^ {\prime}, \epsilon^ {\prime}) := Z _ {\psi} (s ^ {\prime}, \pi_ {\omega} (s ^ {\prime}, \epsilon^ {\prime})) \\ - \alpha_ {2} \mathbb {E} _ {t \sim \text {Unif} ([ 0, 1 ])} \left[ \| \left(\pi_ {\omega} (s ^ {\prime}, \epsilon^ {\prime}) - \epsilon^ {\prime}\right) - v _ {\theta} (s ^ {\prime}, t, a _ {t, \omega} ^ {\prime}) \| _ {2} ^ {2} \right], \tag {15} \\ \end{array}
+$$
+
+where $a _ { t , \omega } ^ { \prime } = ( 1 - t ) \epsilon ^ { \prime } + t \pi _ { \omega } ( s ^ { \prime } , \epsilon ^ { \prime } ) .$
+
+# 4.3. Theoretical Guarantees
+
+Although the motivations are from computational efficiency, we show that the details in FAN are actually solid in theory.
+
+(1) Convergence of the operator $\mathcal { T } _ { n } ^ { \pi } \ ( \mathbf { E q . } ( 9 ) )$ . As the standard distributional operator $\tau ^ { \pi } \left( \mathrm { E q . } ( 7 ) \right)$ guarantees convergence in the p-Wasserstein metric $( W _ { p } )$ (Bellemare et al.,
+
+2017), we establish convergence in ∞-Wasserstein metric $( W _ { \infty } )$ . Specifically, we prove that $\mathcal { T } _ { n } ^ { \pi }$ is a γ-contraction in the supremum metric $d _ { \infty }$ (Definition B.1), a condition that strictly implies distributional convergence under $W _ { \infty }$ .
+
+Theorem 4.1 (Convergence of $\mathcal { T } _ { n } ^ { \pi } )$ . The proposing operator $\mathcal { T } _ { n } ^ { \pi }$ is a γ-contraction on $\left( \mathcal { Q } , d _ { \infty } \right) ( D e f \mathrm { . }$ inition B.1), and therefore, iterating $\mathcal { T } _ { n } ^ { \pi }$ from any $Q \in \mathcal { Q }$ converges to a unique fixed point $Q ^ { \pi }$ .
+
+Proof. Please refer to the proof in Appendix B.1. Therefore, for any $s \in \mathcal { S } , a \in \mathcal { A } , \epsilon ^ { \prime } \in \mathbb { R } ^ { d }$ , and $Q \in \mathcal { Q } , Q ( s , a , \epsilon ^ { \prime } )$ converges to $Q ^ { \pi } ( s , a , \epsilon ^ { \prime } )$ if we iterate $\mathcal { T } _ { n } ^ { \pi }$ over this value. □
+
+(2) Upper Expectile and the Essential Supremum. We now show why our TD learning objective (Eq.(10)) recovers the return distribution converged through $T _ { n } ^ { \pi } \left( \mathrm { E q . } ( 9 ) \right)$ .
+
+Theorem 4.2 (Upper Expectile Converges to the Essential Supremum). Let $s \in \mathcal { S } , a \in \mathcal { A } , \epsilon \sim$ $\mathcal { N } ( 0 , I _ { d } )$ , and $Q \in { \mathcal { Q } } .$ . For any κ $\in [ \frac { 1 } { 2 } , 1 ) , Z _ { \kappa } : =$ arg mi $\mathsf { l } _ { q \in \mathbb { R } } \ \mathbb { E } _ { \epsilon } \bigl [ \mathcal { L } _ { 2 } ^ { \kappa } ( Q ( s , a , \epsilon ) - q ) \bigr ]$ is bounded by:
+
+$$
+Z _ {1 / 2} \leq Z _ {\kappa} \leq \lim _ {\kappa \rightarrow 1 ^ {-}} Z _ {\kappa} = \operatorname{ess} \sup _ {\epsilon} Q (s, a, \epsilon). \tag {16}
+$$
+
+Proof. Please refer to the proof stated in Appendix B.2. This implies that the upper expectile $Z _ { \psi }$ trained through Eq.(11) with $\kappa \approx 1$ converges to ess sup $Q _ { \phi }$ . □
+
+(3) Validity of Behavior Regularization. We show that minimizing $\mathcal { L } _ { B } \ ( \mathrm { E q . } ( 1 4 ) )$ controls the deviation between distributions induced by the one-step policy $\pi _ { \omega }$ and the behavior policy vθ modeling the offline dataset behavior.
+
+Theorem 4.3 (Flow Anchoring is a Valid Behavior Regularization). Let $\mu _ { \omega } ( \cdot | s )$ and $\mu _ { \theta } ( \cdot | s )$ be the probability distributions induced by the policy $\pi _ { \omega }$ and the behavior flow vθ respectively (Definition B.5). If vθ satisfies Lipschitzness (Assumption B.6), the following holds for all $s \in S { : }$ :
+
+$$
+\mathbb {E} _ {s \sim \mathcal {D}} \left[ W _ {2} ^ {2} (\mu_ {\omega} (\cdot | s), \mu_ {\theta} (\cdot | s)) \right] \leq e ^ {2 L} \mathcal {L} _ {B} (\omega), \tag {17}
+$$
+
+where $W _ { 2 }$ is the Wasserstein-2 distance and L is the Lipschitz constant.
+
+Proof. We provide the complete derivation in Appendix B.3. The equality holds when $\mu _ { \omega } ( \cdot | s ) = \mu _ { \theta } ( \cdot | s )$ and all flow trajectories of the vector field vθ are straight. We note that our behavior model vθ is parameterized by standard neural networks which are Lipschitz, also with Lipschitz-continuous activation functions (e.g., GeLU). Since the composition of Lipschitz functions are Lipschitz, Assumption B.6 is always satisfied. Consequently, minimizing $\mathcal { L } _ { B }$ (Eq. (14)) directly minimizes the upper bound on the Wasserstein-2 distance between the distributions induced by the training policy $\pi _ { \omega }$ and the behavior flow policy $v _ { \theta } .$ . □
+
+# 5. Experiments
+
+In this section, we demonstrate that FAN effectively translates theoretical insights into practice. The goal is to observe whether FAN achieves state-of-the-art performance on offline RL benchmarks, while offering high computational efficiency in both training and inference.
+
+Baselines. We benchmark FAN against highly efficient nondistributional algorithms, as well as high-performing distributional methods. Therefore, we select ReBRAC (Tarasov et al., 2023a), IDQL (Hansen-Estruch et al., 2023), and FQL (Park et al., 2025c) as non-distributional baselines, and IQN (Dabney et al., 2018a), CODAC (Ma et al., 2021), and Value Flows (Dong et al., 2025) as distributional baselines. With non-distributional approaches, we mainly focus on comparing the final performance, and with distributional approaches, we mainly compare computational efficiencies. Please refer to Appendix C for more baseline details.
+
+# 5.1. Offline RL Task Performance
+
+Now, we report how the policy trained with FAN performs on offline RL benchmarks.
+
+Benchmarks. We present results on the standard offline RL benchmarks for robotics locomotion and manipulation. Specifically, we evaluate on 4 antmaze and 12 adroit tasks from D4RL (Fu et al., 2020), and also 25 state-based and 4 pixel-based tasks from OGBench (Park et al., 2024).
+
+Settings. For OGBench tasks, following the official evaluation scheme (Park et al., 2024), we train 1M gradient steps for state-based and 500K steps for pixel-based tasks and report the average success rates across the last three evaluation epochs (i.e., 100K interval). For D4RL tasks, we train for 500k gradient steps and report the performance at the last epoch following Tarasov et al. (2023b). For the baselines, we source the best results reported in prior work (Park et al., 2025c; Dong et al., 2025) where tasks overlap, or tune with similar training budgets with FAN if no prior results exist. We refer to Appendix C for more experimental details.
+
+Results. Table 1 presents results on the performance. FAN achieves state-of-the-art performance in 7 out of 9 task environments, where we define state-of-the-art as achieving at least 95% of the best task performance. Specifically,
+
+Table 1. Offline Results including normalized returns (D4RL) and success rates (OGBench singletask). The results are bolded if they are within the 95% range of the best final performance in each task. We used 8 seeds for training D4RL and OGBench state-based tasks, and 4 seeds for OGBench pixel-based tasks. The full results are at Table 7, with hyperparameters stated in Tables 3 and 4. 
+
+<table><tr><td rowspan="2">BENCHMARK</td><td rowspan="2">TASK TYPES</td><td colspan="3">NON-DISTRIBUTIONAL</td><td colspan="4">DISTRIBUTIONAL</td></tr><tr><td>REBRAC</td><td>IDQL</td><td>FQL</td><td>IQN</td><td>CODAC</td><td>VF</td><td>FAN</td></tr><tr><td rowspan="2">D4RL</td><td>ANTMAZE (4 TASKS)</td><td>73</td><td>75</td><td> $\mathbf{79\pm 8}$ </td><td> $46\pm 4$ </td><td> $46\pm 3$ </td><td> $17\pm 4$ </td><td> $\mathbf{76\pm 4}$ </td></tr><tr><td>ADROIT (12 TASKS)</td><td> $\mathbf{59}$ </td><td> $52\pm 4$ </td><td> $52\pm 3$ </td><td> $50\pm 3$ </td><td> $52\pm 1$ </td><td> $50\pm 2$ </td><td> $53\pm 4$ </td></tr><tr><td rowspan="7">OGBENCH</td><td>ANTSOCCER-ARENA-NAVIGATE (5 TASKS)</td><td> $16\pm 1$ </td><td> $33\pm 6$ </td><td> $\mathbf{60\pm 2}$ </td><td> $24\pm 7$ </td><td> $33\pm 14$ </td><td> $27\pm 7$ </td><td> $\mathbf{60\pm 8}$ </td></tr><tr><td>PUZZLE-3X3-PLAY (5 TASKS)</td><td> $22\pm 2$ </td><td> $19\pm 1$ </td><td> $30\pm 4$ </td><td> $15\pm 1$ </td><td> $20\pm 5$ </td><td> $87\pm 13$ </td><td> $\mathbf{100\pm 1}$ </td></tr><tr><td>PUZZLE-4X4-PLAY (5 TASKS)</td><td> $14\pm 3$ </td><td> $25\pm 8$ </td><td> $17\pm 5$ </td><td> $27\pm 4$ </td><td> $20\pm 18$ </td><td> $27\pm 4$ </td><td> $\mathbf{42\pm 10}$ </td></tr><tr><td>CUBE-DOUBLE-PLAY (5 TASKS)</td><td> $15\pm 6$ </td><td> $14\pm 5$ </td><td> $29\pm 6$ </td><td> $42\pm 8$ </td><td> $61\pm 6$ </td><td> $\mathbf{69\pm 4}$ </td><td> $46\pm 11$ </td></tr><tr><td>SCENE-PLAY (5 TASKS)</td><td> $45\pm 5$ </td><td> $30\pm 4$ </td><td> $56\pm 2$ </td><td> $40\pm 1$ </td><td> $55\pm 1$ </td><td> $\mathbf{59\pm 4}$ </td><td> $\mathbf{58\pm 1}$ </td></tr><tr><td>VISUAL LOCOMOTION (2 TASKS)</td><td> $28\pm 11$ </td><td> $44\pm 4$ </td><td> $17\pm 2$ </td><td> $32\pm 4$ </td><td> $\mathbf{49\pm 2}$ </td><td> $44\pm 4$ </td><td> $\mathbf{49\pm 4}$ </td></tr><tr><td>VISUAL MANIPULATION (2 TASKS)</td><td> $16\pm 4$ </td><td> $8\pm 11$ </td><td> $28\pm 5$ </td><td> $6\pm 3$ </td><td> $2\pm 1$ </td><td> $30\pm 4$ </td><td> $\mathbf{33\pm 16}$ </td></tr></table>
+
+![](images/fb767bbe9895f972f3a26647531822f2adf102582787caca644d88ddfcbd59e2.jpg)
+
+![](images/9d81f3a652b592ff871988f7c6a7befe5810d4509e4d63a69c28b6604ad3b8ab.jpg)  
+Figure 3. The Number of FLOPs and the Wall-clock Compute Time per function call for cube-double-play.
+
+FAN outperforms non-distributional approaches in most OGBench tasks, especially for the tasks dealing with complex manipulation (e.g., puzzle, cube). Also, FAN surpasses distributional approaches on average while maintaining higher computational efficiency.
+
+# 5.2. Computational Efficiency
+
+We evaluate computational efficiency using both the number of floating-point operations (FLOPs) and wall-clock runtime. To quantify computational costs for both training and inference, we measure these metrics for a single training update and a single action-sampling call. All measurements are performed on a single NVIDIA RTX 6000 GPU using JAX/XLA with batch size of 256. For the baselines, we standardized using 16 quantiles, 16 action candidates for rejection sampling, and 10 flow steps if needed.
+
+Floating Point Operations (FLOPs). We measure FLOPs using XLA static cost analysis (The OpenXLA Team, 2017) in JAX (Bradbury et al., 2018). Concretely, we JIT-compile each measured function into an XLA executable and report the compiler-estimated FLOPs for one execution of the compiled graph. For training, we measure FLOPs of the actor-critic updates, which includes the forward/backward pass, optimizer updates, and target-network updates. For inference, we measure FLOPs of a single action sampling.
+
+Wall-Clock Compute Time. We measure wall-clock runtime for both training and inference, excluding compilation overhead before measurements. We report the mean runtime per call calculated over 50 runs.
+
+Results. Figure 3 summarizes the two metrics. For training, CODAC and IQN incur substantially higher costs because they use multiple samples to learn distributional value functions. Value Flows, which is based on flow integration and Jacobian–vector products, exhibits low training FLOPs due to efficient code compilation but actually requires high runtime. Compared to these methods, FAN results in approximately 5–14× faster runtime during training, demonstrating the highest computational efficiency among the distributional approaches. Moreover, for inference, FAN shows the best computational efficiency over all baseline methods, in terms of both the number of FLOPs and runtime.
+
+# 5.3. Ablation Studies
+
+We now analyze the role of each component in FAN. First, we show how Flow Anchoring functions as behavior regularization, and second, we demonstrate how distributional critics trained with $\mathcal { T } _ { n } ^ { \pi }$ affect final performance. Moreover, we investigate how FAN performs in offlineto-online settings. The results are collected from training on five default tasks of OGBench (antsoccer, scene, cube-double, puzzle-3x3, and puzzle-4x4), following the hyperparameters stated in Tables 5 and 6.
+
+Why Flow Anchoring? Besides its computational efficiency, we investigate how our behavior regularization affects final performance. For this, we fix training the noiseconditioned critic with $\mathcal { T } _ { n } ^ { \pi }$ and compare three different behavior regularization techniques: NBRAC using actor-critic standard behavior cloning (BC) from ReBRAC (Tarasov et al., 2023a), NFQL using actor flow BC from FQL (Park et al., 2025c), and FAN using actor-critic Flow Anchoring. The upper part of Figure 4 shows that Flow Anchoring leads to better performance (or performance within 95% of the best) in 4 out of 5 tasks. Therefore, we conclude that Flow Anchoring is the behavior regularization technique that best suits $\mathcal { T } _ { n } ^ { \pi }$ , in terms of both task performance and efficiency.
+
+![](images/6f84ab80a31ecb1ebbeed4b111cc8400e224eccfda0bcd89f0571bc274fba7d1.jpg)
+
+![](images/77d1e6f34dc71accb90cea153ad6b17f00df37b8b3dfd743b2633aefc6ba05d1.jpg)  
+Figure 4. Ablation Studies on Flow Anchoring and $\mathcal { T } _ { n } ^ { \pi }$ . (Up) NBRAC vs. NFQL vs. FAN to verify the effect of Flow Anchoring. (Down) FAQL vs. FAN to verify the effect of $\mathcal { T } _ { n } ^ { \pi }$ . The black line (FAN) performs the best on average, compared to all other combinations.
+
+Table 2. Offline-to-Online Results including normalized returns (D4RL) and success rates (OGBench singletask-v0 defaults). The results are collected over 8 seeds and the numbers are bolded if they are above or equal to 95% of the best performance. 
+
+<table><tr><td rowspan="2">BENCHMARK</td><td rowspan="2">TASK</td><td colspan="3">NON-DISTRIBUTIONAL</td><td colspan="3">DISTRIBUTIONAL</td></tr><tr><td>REBRAC</td><td>IDQL</td><td>FQL</td><td>IQN</td><td>VALUE FLOWS</td><td>FAN</td></tr><tr><td rowspan="5">OGBENCH</td><td>ANTSOCCER-MEDIUM-NAVIGATE</td><td> $0 \pm 0 \rightarrow 0 \pm 0$ </td><td> $26 \pm 15 \rightarrow 39 \pm 10$ </td><td> $28 \pm 8 \rightarrow 86 \pm 5$ </td><td> $28 \pm 8 \rightarrow 34 \pm 4$ </td><td> $22 \pm 3 \rightarrow 0 \pm 0$ </td><td> $52 \pm 8 \rightarrow 68 \pm 9$ </td></tr><tr><td>SCENE-PLAY</td><td> $55 \pm 10 \rightarrow 100 \pm 0$ </td><td> $0 \pm 1 \rightarrow 60 \pm 39$ </td><td> $82 \pm 11 \rightarrow 100 \pm 1$ </td><td> $0 \pm 0 \rightarrow 0 \pm 0$ </td><td> $92 \pm 23 \rightarrow 100 \pm 0$ </td><td> $96 \pm 2 \rightarrow 100 \pm 0$ </td></tr><tr><td>CUBE-DOUBLE-PLAY</td><td> $6 \pm 5 \rightarrow 28 \pm 28$ </td><td> $12 \pm 3 \rightarrow 41 \pm 2$ </td><td> $40 \pm 11 \rightarrow 92 \pm 3$ </td><td> $29 \pm 4 \rightarrow 42 \pm 7$ </td><td> $65 \pm 7 \rightarrow 79 \pm 6$ </td><td> $59 \pm 13 \rightarrow 98 \pm 2$ </td></tr><tr><td>PUZZLE-3X3-PLAY</td><td> $90 \pm 5 \rightarrow 100 \pm 0$ </td><td> $6 \pm 7 \rightarrow 0 \pm 0$ </td><td> $75 \pm 11 \rightarrow 73 \pm 38$ </td><td> $58 \pm 42 \rightarrow 84 \pm 7$ </td><td> $2 \pm 3 \rightarrow 0 \pm 0$ </td><td> $99 \pm 1 \rightarrow 100 \pm 0$ </td></tr><tr><td>PUZZLE-4X4-PLAY</td><td> $8 \pm 4 \rightarrow 14 \pm 35$ </td><td> $23 \pm 2 \rightarrow 19 \pm 12$ </td><td> $8 \pm 3 \rightarrow 38 \pm 52$ </td><td> $22 \pm 2 \rightarrow 6 \pm 1$ </td><td> $14 \pm 3 \rightarrow 51 \pm 12$ </td><td> $17 \pm 7 \rightarrow 100 \pm 1$ </td></tr></table>
+
+Why $\textstyle { \mathcal { T } } _ { n } ^ { \pi } ?$ We also investigate how training for $\mathcal { T } _ { n } ^ { \pi }$ performs with Flow Anchoring. For this, we compare FAN with FAQL, which is a variant of FQL using the standard nondistributional Bellman operator but with Flow Anchoring. The lower part of Figure 4 show that $\mathcal { T } _ { n } ^ { \pi }$ leads to better performance (or performance within 95% of the best) on 4 out of 5 tasks. Hence, we conclude that $\mathcal { T } _ { n } ^ { \pi }$ helps improve performance when used with Flow Anchoring.
+
+Offline-to-Online. We further evaluate how FAN performs during online fine-tuning. For this, we conduct an additional 1M steps of training with environment interactions after the initial 1M step offline training. Specifically, we lower the α1, α2 values in the online phase, relaxing constraints to allow for broad exploration. According to Table 2, FAN achieves state-of-the-art performance on 4 out of 5 tasks, and therefore, we conclude that FAN also performs well in offline-to-online settings.
+
+More Ablation Studies. We provide three additional ablation studies. Appendix D.1 investigates value maximization for policy training, and Appendix D.2 demonstrates the use of multiple noise samples for training. Finally, Appendix D.3 shows how different κ values affect training.
+
+# 6. Conclusion
+
+In this work, we aimed to achieve state-of-the-art offline RL performance while maximizing computational efficiency. Recognizing that expressive function approximators are crucial for high performance, we investigated how to efficiently employ generative modeling and distributional return information. Our proposed method, FAN, addresses this challenge by leveraging Flow Anchoring and the operator $\mathcal { T } _ { n } ^ { \pi }$ , both of which are theoretically grounded. Empirical results demonstrate that FAN achieves superior performance and efficiency, while ablation studies validate the individual contributions of our design choices. Finally, we highlighted FAN’s strong capabilities in offline-to-online adaptation.
+
+We believe FAN opens several avenues for future work. First, the concept of Flow Anchoring holds promise for online RL settings with flow policies. Since Flow Anchoring does not directly sample dataset actions, it is effectively complemented by environment interaction, as observed in our offline-to-online experiments. Therefore, applying it to off-policy online RL could yield benefits. Second, beyond efficiency, future research could focus on leveraging $\mathcal { T } _ { n } ^ { \pi }$ to maximize task performance. For example, extending its application to model-based RL, risk-sensitive tasks, or goal-conditioned settings represents a promising direction.
+
+# Impact Statement
+
+This paper presents work whose goal is to advance the field of Machine Learning, specifically by improving the computational efficiency of offline reinforcement learning. By reducing the floating point operations (FLOPs) and runtime required for training and inference, our method contributes to the broader goal of energy-efficient AI and facilitates the deployment of capable policies on resource-constrained robotic hardware. While the widespread deployment of autonomous agents carries inherent societal implications, ranging from safety challenges in physical environments to the economic impacts of automation, these risks are intrinsic to the field of reinforcement learning as a whole. As our contribution focuses strictly on algorithmic efficiency rather than enabling qualitatively new classes of disruptive capabilities, we do not foresee specific negative consequences unique to this method that require distinct emphasis beyond standard safety considerations.
+
+# References
+
+Agarwal, R., Schuurmans, D., and Norouzi, M. An optimistic perspective on offline reinforcement learning. In International conference on machine learning, pp. 104– 114. PMLR, 2020.   
+Albergo, M. S. and Vanden-Eijnden, E. Building normalizing flows with stochastic interpolants. arXiv preprint arXiv:2209.15571, 2022.   
+Banach, S. Sur les operations dans les ensembles abstraits ´ et leur application aux equations int ´ egrales. ´ Fundamenta mathematicae, 3(1):133–181, 1922.   
+Bellemare, M. G., Dabney, W., and Munos, R. A distributional perspective on reinforcement learning. In International conference on machine learning, pp. 449–458. PMLR, 2017.   
+Bertsekas, D. P. and Tsitsiklis, J. N. Neuro-Dynamic Programming. Athena Scientific, 1996.   
+Bhandari, J., Russo, D., and Singal, R. A finite time analysis of temporal difference learning with linear function approximation. In Conference on learning theory, pp. 1691–1692. PMLR, 2018.   
+Bradbury, J., Frostig, R., Hawkins, P., Johnson, M. J., Leary, C., Maclaurin, D., Necula, G., Paszke, A., VanderPlas, J., Wanderman-Milne, S., and Zhang, Q. JAX: Composable transformations of Python+NumPy programs, 2018. URL http://github.com/jax-ml/jax.   
+Chen, H., Lu, C., Ying, C., Su, H., and Zhu, J. Offline reinforcement learning via high-fidelity generative behavior modeling. arXiv preprint arXiv:2209.14548, 2022.
+
+Chen, H., Lu, C., Wang, Z., Su, H., and Zhu, J. Score regularized policy optimization through diffusion behavior. arXiv preprint arXiv:2310.07297, 2023.
+
+Chen, H., Zheng, K., Su, H., and Zhu, J. Aligning diffusion behaviors with q-functions for efficient continuous control. Advances in Neural Information Processing Systems, 37:119949–119975, 2024a.
+
+Chen, T., Wang, Z., and Zhou, M. Diffusion policies creating a trust region for offline reinforcement learning. Advances in Neural Information Processing Systems, 37: 50098–50125, 2024b.
+
+Dabney, W., Ostrovski, G., Silver, D., and Munos, R. Implicit quantile networks for distributional reinforcement learning. In International conference on machine learning, pp. 1096–1105. PMLR, 2018a.
+
+Dabney, W., Rowland, M., Bellemare, M., and Munos, R. Distributional reinforcement learning with quantile regression. In Proceedings of the AAAI conference on artificial intelligence, volume 32, 2018b.
+
+Ding, S., Hu, K., Zhang, Z., Ren, K., Zhang, W., Yu, J., Wang, J., and Shi, Y. Diffusion-based reinforcement learning via q-weighted variational policy optimization. Advances in Neural Information Processing Systems, 37: 53945–53968, 2024.
+
+Dong, P., Zheng, C., Finn, C., Sadigh, D., and Eysenbach, B. Value flows. arXiv preprint arXiv:2510.07650, 2025.
+
+Engel, Y., Mannor, S., and Meir, R. Reinforcement learning with gaussian processes. In Proceedings of the 22nd international conference on Machine learning, pp. 201– 208, 2005.
+
+Espeholt, L., Soyer, H., Munos, R., Simonyan, K., Mnih, V., Ward, T., Doron, Y., Firoiu, V., Harley, T., Dunning, I., et al. Impala: Scalable distributed deep-rl with importance weighted actor-learner architectures. In International conference on machine learning, pp. 1407–1416. PMLR, 2018.
+
+Espinosa-Dice, N., Brantley, K., and Sun, W. Expressive value learning for scalable offline reinforcement learning. arXiv preprint arXiv:2510.08218, 2025a.
+
+Espinosa-Dice, N., Zhang, Y., Chen, Y., Guo, B., Oertell, O., Swamy, G., Brantley, K., and Sun, W. Scaling offline rl via efficient and expressive shortcut models. arXiv preprint arXiv:2505.22866, 2025b.
+
+Farebrother, J., Orbay, J., Vuong, Q., Ta¨ıga, A. A., Chebotar, Y., Xiao, T., Irpan, A., Levine, S., Castro, P. S., Faust, A., et al. Stop regressing: Training value functions via classification for scalable deep rl. arXiv preprint arXiv:2403.03950, 2024.
+
+Fu, J., Kumar, A., Nachum, O., Tucker, G., and Levine, S. D4rl: Datasets for deep data-driven reinforcement learning. arXiv preprint arXiv:2004.07219, 2020.   
+Fujimoto, S. and Gu, S. S. A minimalist approach to offline reinforcement learning. Advances in neural information processing systems, 34:20132–20145, 2021.   
+Fujimoto, S., Meger, D., and Precup, D. Off-policy deep reinforcement learning without exploration. In International Conference on Machine Learning (ICML), pp. 2052–2062, 2019.   
+Gao, C.-X., Wu, C., Cao, M., Xiao, C., Yu, Y., and Zhang, Z. Behavior-regularized diffusion policy optimization for offline reinforcement learning. arXiv preprint arXiv:2502.04778, 2025.   
+Garg, D., Hejna, J., Geist, M., and Ermon, S. Extreme q-learning: Maxent rl without entropy. arXiv preprint arXiv:2301.02328, 2023.   
+Hansen-Estruch, P., Kostrikov, I., Janner, M., Kuba, J. G., and Levine, S. Idql: Implicit q-learning as an actorcritic method with diffusion policies. arXiv preprint arXiv:2304.10573, 2023.   
+He, L., Shen, L., and Wang, X. Aligniql: Policy alignment in implicit q-learning through constrained optimization. arXiv preprint arXiv:2405.18187, 2024.   
+Hendrycks, D. Gaussian error linear units (gelus). arXiv preprint arXiv:1606.08415, 2016.   
+Jullien, S., Deffayet, R., Renders, J.-M., Groth, P., and de Rijke, M. Distributional reinforcement learning with dual expectile-quantile regression. arXiv preprint arXiv:2305.16877, 2023.   
+Kim, D., Lee, K., and Oh, S. Trust region-based safe distributional reinforcement learning for multiple constraints. Advances in neural information processing systems, 36: 19908–19939, 2023.   
+Kingma, D. P. Adam: A method for stochastic optimization. arXiv preprint arXiv:1412.6980, 2014.   
+Kostrikov, I., Nair, A., and Levine, S. Offline reinforcement learning with implicit q-learning. arXiv preprint arXiv:2110.06169, 2021.   
+Kumar, A., Fu, J., Tucker, G., and Levine, S. Stabilizing offpolicy q-learning via bootstrapping error accumulation reduction. In Advances in Neural Information Processing Systems (NeurIPS), 2019.   
+Kumar, A., Zhou, A., Tucker, G., and Levine, S. Conservative q-learning for offline reinforcement learning. Advances in neural information processing systems, 33: 1179–1191, 2020.
+
+Lange, S., Gabel, T., and Riedmiller, M. Batch reinforcement learning. In Reinforcement learning: State-of-theart, pp. 45–73. Springer, 2012.   
+Lee, D. and Kwon, M. Temporal distance-aware transition augmentation for offline model-based reinforcement learning. arXiv preprint arXiv:2505.13144, 2025.   
+Lee, D., Lee, D., and Zhang, A. Multi-agent coordination via flow matching. arXiv preprint arXiv:2511.05005, 2025.   
+Lee, J. M. Smooth manifolds. In Introduction to smooth manifolds, pp. 1–29. Springer, 2003.   
+Levine, S., Kumar, A., Tucker, G., and Fu, J. Offline reinforcement learning: Tutorial, review, and perspectives on open problems. arXiv preprint arXiv:2005.01643, 2020.   
+Lipman, Y., Chen, R. T., Ben-Hamu, H., Nickel, M., and Le, M. Flow matching for generative modeling. arXiv preprint arXiv:2210.02747, 2022.   
+Liu, X., Gong, C., and Liu, Q. Flow straight and fast: Learning to generate and transfer data with rectified flow. arXiv preprint arXiv:2209.03003, 2022.   
+Ma, X., Chen, J., Xia, L., Yang, J., Zhao, Q., and Zhou, Z. Dsac: Distributional soft actor-critic for risk-sensitive reinforcement learning. Journal of Artificial Intelligence Research, 83, 2025.   
+Ma, Y., Jayaraman, D., and Bastani, O. Conservative offline distributional reinforcement learning. Advances in neural information processing systems, 34:19235–19247, 2021.   
+Mao, L., Xu, H., Zhan, X., Zhang, W., and Zhang, A. Diffusion-dice: In-sample diffusion guidance for offline reinforcement learning. Advances in Neural Information Processing Systems, 37:98806–98834, 2024.   
+Morimura, T., Sugiyama, M., Kashima, H., Hachiya, H., and Tanaka, T. Nonparametric return distribution approximation for reinforcement learning. In Proceedings of the 27th International Conference on Machine Learning (ICML-10), pp. 799–806, 2010.   
+Moulines, E. and Bach, F. Non-asymptotic analysis of stochastic approximation algorithms for machine learning. Advances in neural information processing systems, 24, 2011.   
+Nemirovski, A., Juditsky, A., Lan, G., and Shapiro, A. Robust stochastic approximation approach to stochastic programming. SIAM Journal on optimization, 19(4):1574– 1609, 2009.
+
+Newey, W. K. and Powell, J. L. Asymmetric least squares estimation and testing. Econometrica: Journal of the Econometric Society, pp. 819–847, 1987.   
+Nikulin, A., Kurenkov, V., Tarasov, D., and Kolesnikov, S. Anti-exploration by random network distillation. In International conference on machine learning, pp. 26228– 26244. PMLR, 2023.   
+Park, K., Park, S., Lee, Y., and Levine, S. Scalable offline model-based rl with action chunks. arXiv preprint arXiv:2512.08108, 2025a.   
+Park, S., Frans, K., Eysenbach, B., and Levine, S. Ogbench: Benchmarking offline goal-conditioned rl. arXiv preprint arXiv:2410.20092, 2024.   
+Park, S., Frans, K., Mann, D., Eysenbach, B., Kumar, A., and Levine, S. Horizon reduction makes rl scalable. arXiv preprint arXiv:2506.04168, 2025b.   
+Park, S., Li, Q., and Levine, S. Flow q-learning. arXiv preprint arXiv:2502.02538, 2025c.   
+Peng, X. B., Kumar, A., Zhang, G., and Levine, S. Advantage-weighted regression: Simple and scalable off-policy reinforcement learning. arXiv preprint arXiv:1910.00177, 2019.   
+Puterman, M. L. Markov Decision Processes: Discrete Stochastic Dynamic Programming. Wiley, 1994.   
+Rowland, M., Dadashi, R., Kumar, S., Munos, R., Bellemare, M. G., and Dabney, W. Statistics and samples in distributional reinforcement learning. In International Conference on Machine Learning, pp. 5528–5536. PMLR, 2019.   
+Sikchi, H., Zheng, Q., Zhang, A., and Niekum, S. Dual rl: Unification and new methods for reinforcement and imitation learning. arXiv preprint arXiv:2302.08560, 2023.   
+Srikant, R. and Ying, L. Finite-time error bounds for linear stochastic approximation andtd learning. In Conference on learning theory, pp. 2803–2830. PMLR, 2019.   
+Sutton, R. S. and Barto, A. G. Reinforcement Learning: An Introduction. MIT Press, 2 edition, 2018.   
+Tarasov, D., Kurenkov, V., Nikulin, A., and Kolesnikov, S. Revisiting the minimalist approach to offline reinforcement learning. Advances in Neural Information Processing Systems, 36:11592–11620, 2023a.   
+Tarasov, D., Nikulin, A., Akimov, D., Kurenkov, V., and Kolesnikov, S. Corl: Research-oriented deep offline reinforcement learning library. Advances in Neural Information Processing Systems, 36:30997–31020, 2023b.
+
+The OpenXLA Team. XLA: Optimizing compiler for machine learning, 2017. URL https://github.com/ openxla/xla. Accessed: 2026-01-07.   
+Tiofack, F. N., Hellard, T. L., Schramm, F., Perrin-Gilbert, N., and Carpentier, J. Guided flow policy: Learning from high-value actions in offline reinforcement learning. arXiv preprint arXiv:2512.03973, 2025.   
+Urp´ı, N. A., Curi, S., and Krause, A. Risk-averse offline reinforcement learning. arXiv preprint arXiv:2102.05371, 2021.   
+Venkatraman, S., Khaitan, S., Akella, R. T., Dolan, J., Schneider, J., and Berseth, G. Reasoning with latent diffusion in offline reinforcement learning. arXiv preprint arXiv:2309.06599, 2023.   
+Wang, K., Zhou, K., Wu, R., Kallus, N., and Sun, W. The benefits of being distributional: Small-loss bounds for reinforcement learning. Advances in neural information processing systems, 36:2275–2312, 2023.   
+Wang, K., Oertell, O., Agarwal, A., Kallus, N., and Sun, W. More benefits of being distributional: Secondorder bounds for reinforcement learning. arXiv preprint arXiv:2402.07198, 2024.   
+Wang, Z., Li, D., Chen, Y., Shi, Y., Bai, L., Yu, T., and Fu, Y. One-step generative policies with q-learning: A reformulation of meanflow. arXiv preprint arXiv:2511.13035, 2025.   
+Watkins, C. J. and Dayan, P. Q-learning. Machine learning, 8(3):279–292, 1992.   
+Wu, Y., Tucker, G., and Nachum, O. Behavior regularized offline reinforcement learning. arXiv preprint arXiv:1911.11361, 2019.   
+Wu, Y., Zhai, S., Srivastava, N., Susskind, J., Zhang, J., Salakhutdinov, R., and Goh, H. Uncertainty weighted actor-critic for offline reinforcement learning. arXiv preprint arXiv:2105.08140, 2021.   
+Xu, H., Jiang, L., Li, J., Yang, Z., Wang, Z., Chan, V. W. K., and Zhan, X. Offline rl with no ood actions: In-sample learning via implicit value regularization. arXiv preprint arXiv:2303.15810, 2023.   
+Zhang, S., Zhang, W., and Gu, Q. Energy-weighted flow matching for offline reinforcement learning. arXiv preprint arXiv:2503.04975, 2025.
+
+# Appendix
+
+# A. Details on the operator $\mathcal { T } _ { n } ^ { \pi }$
+
+Recall that the operator for the noise-conditioned critic is defined as
+
+$$
+\mathcal {T} _ {n} ^ {\pi} Q (s, a, \epsilon^ {\prime}) \stackrel {{d}} {{=}} r + \gamma \operatorname{ess} \sup _ {\epsilon \sim \mathcal {N} (0, I _ {d})} Q \left(s ^ {\prime}, \pi \left(s ^ {\prime}, \epsilon^ {\prime}\right), \epsilon\right), \quad \epsilon^ {\prime} \sim \mathcal {N} (0, I _ {d}). \tag {18}
+$$
+
+This section introduces the measure-theoretic objects used by the operator $\mathcal { T } _ { n } ^ { \pi }$ and highlights three theoretical motivations.
+
+# A.1. Measure-Theoretic Notation for $\mathcal { T } _ { n } ^ { \pi }$
+
+σ-algebras. A σ-algebra on a set Ω is a collection ${ \mathcal { F } } \subseteq 2 ^ { \Omega }$ satisfying:
+
+1. $\Omega \in { \mathcal { F } } ,$ ,   
+2. if $A \in { \mathcal { F } }$ , then its complement $A ^ { c } : = \Omega \backslash$ A also belongs to ${ \mathcal { F } } ,$   
+3. if $\{ A _ { i } \} _ { i = 1 } ^ { \infty } \subseteq { \mathcal { F } }$ , then the countable union $\textstyle \bigcup _ { i = 1 } ^ { \infty } A _ { i }$ belongs to $\mathcal { F }$ .
+
+Elements of a σ-algebra are called measurable sets or events. These closure properties ensure that probabilistic statements remain well defined under standard set operations and under limiting constructions arising from countable unions and intersections. Given a set Ω, the smallest σ-algebra containing a collection ${ \mathcal { C } } \subseteq 2 ^ { \Omega }$ is the σ-algebra generated by C.
+
+Topological spaces, Borel sets, and Borel measures. Let X be a topological space (e.g., R or $\mathbb { R } ^ { d }$ with the usual Euclidean topology). The Borel σ-algebra on X , denoted $B ( \mathcal { X } )$ , is the smallest σ-algebra containing all open subsets of X ; its elements are called Borel sets. A Borel probability measure on X is a function $\mu : B ( \mathcal { X } ) \to [ 0 , 1 ]$ satisfying: $( \mathrm { i } ) \mu ( \mathcal { X } ) = 1$ , (ii) $\mu ( A ) \geq 0$ for all $A \in B ( { \mathcal { X } } )$ , and (iii) for any pairwise disjoint collection $\begin{array} { r } { \{ A _ { i } \} _ { i = 1 } ^ { \infty } \subseteq B ( { \boldsymbol { \chi } } ) , \mu \big ( \bigcup _ { i = 1 } ^ { \infty } A _ { i } \big ) = \sum _ { i = 1 } ^ { \infty } \mu ( A _ { i } ) } \end{array}$ . We denote by $\mathcal { P } ( \mathcal { X } )$ the set of all Borel probability measures on X .
+
+Probability space and random variables. A probability space is a triple $( \Omega , \mathcal { F } , \mathbb { P } )$ , where Ω is the sample space, F is a σ-algebra of measurable events on Ω, and P is a probability measure on $( \Omega , { \mathcal { F } } )$ . A real-valued random variable is a measurable map
+
+$$
+X: (\Omega , \mathcal {F}) \to (\mathbb {R}, \mathcal {B} (\mathbb {R})),
+$$
+
+where $B ( \mathbb { R } )$ is the Borel σ-algebra on R. The distribution (law) of X is the pushforward measure $\mathcal { L } ( X ) : = X _ { \# } \mathbb { P } \in \mathcal { P } ( \mathbb { R } )$ .
+
+Pushforward measure (#). Let $\mathcal { P } ( \mathbb { R } )$ denote the set of Borel probability measures on R. For a measurable function $f : \mathcal { X } $ R and a probability measure µ on X , the pushforward measure $f _ { \# } \mu \in \mathcal { P } ( \mathbb { R } )$ is defined by
+
+$$
+(f _ {\#} \mu) (A) := \mu \big (f ^ {- 1} (A) \big), \quad \forall A \in \mathcal {B} (\mathbb {R}). \tag {19}
+$$
+
+Equivalently, if $X \sim \mu ,$ then $f ( X ) \sim f _ { \# } \mu$
+
+Dirac measure. For $x \in \mathbb { R }$ , the Dirac measure $\delta _ { x } \in \mathcal { P } ( \mathbb { R } )$ is defined by $\delta _ { x } ( A ) = { \bf 1 } \{ x \in A \}$ for all Borel sets $A \subset \mathbb { R }$ .
+
+Essential supremum. Let $X : ( \Omega , { \mathcal { F } } ) \to ( \mathbb { R } , B ( \mathbb { R } ) )$ be a random variable. Its essential supremum (w.r.t. P) is
+
+$$
+\operatorname{ess} \sup X := \inf \left\{c \in \mathbb {R}: \mathbb {P} (X > c) = 0 \right\}. \tag {20}
+$$
+
+Equivalently, it is the smallest c such that $X \leq c$ holds almost surely (i.e., up to a P-null event). When $X = f ( \epsilon )$ with $\epsilon \sim \rho ,$ we write
+
+$$
+\operatorname{ess} \sup _ {\epsilon \sim \rho} f (\epsilon) := \inf \left\{c \in \mathbb {R}: \rho (\{\epsilon : f (\epsilon) > c \}) = 0 \right\}.
+$$
+
+For a distribution $\nu \in \mathcal { P } ( \mathbb { R } )$ , we define its essential supremum by
+
+$$
+\operatorname{ess} \sup (\nu) := \inf \left\{c \in \mathbb {R}: \nu \left(\left\{x \in \mathbb {R}: x > c \right\}\right) = 0 \right\}. \tag {21}
+$$
+
+If $Z \sim \nu ,$ then ess sup(ν) = ess sup Z.
+
+# A.2. Measure-Theoretic Definition of $\mathcal { T } _ { n } ^ { \pi }$
+
+Noise space used by the policy and the value. Fix a noise dimension $d \in \mathbb { N }$ and define the base noise space $( \mathbb { R } ^ { d } , B ( \mathbb { R } ^ { d } ) , \rho )$ , where $\rho = \mathcal { N } ( 0 , I _ { d } )$ is the standard Gaussian measure. When we write $\epsilon \sim \rho _ { \mathrm { \scriptscriptstyle i } }$ , we mean that ϵ is a random vector with distribution $\rho .$ Concretely, taking $( \Omega , \mathcal { F } , \mathbb { P } ) = ( \mathbb { R } ^ { d } , \mathcal { B } ( \mathbb { R } ^ { d } ) , \rho )$ and $\epsilon ( \omega ) = \omega$ (the identity map) yields $\epsilon \sim \mathcal { N } ( 0 , I _ { d } )$ by construction. We will use two independent noise variables:
+
+$$
+\epsilon_ {p} \sim \rho \quad (\text { policy   noise }), \qquad \epsilon_ {v} \sim \rho \quad (\text { value   noise }), \qquad \epsilon_ {p} \perp \epsilon_ {v}.
+$$
+
+Policy. Our stochastic policy is a measurable mapping
+
+$$
+\pi : \mathcal {S} \times \mathbb {R} ^ {d} \to \mathcal {A}, \qquad a = \pi (s, \epsilon_ {p}).
+$$
+
+The induced action distribution at state s is
+
+$$
+\pi (\cdot \mid s) = (\pi (s, \cdot)) _ {\#} \rho .
+$$
+
+Noise-conditioned Q-value. A noise-conditioned critic is a measurable mapping
+
+$$
+Q ^ {\pi}: \mathcal {S} \times \mathcal {A} \times \mathbb {R} ^ {d} \to \mathbb {R}, \qquad z = Q ^ {\pi} (s, a, \epsilon_ {v}).
+$$
+
+For fixed $( s , a )$ , the quantity $Q ^ { \pi } ( s , a , \epsilon _ { v } )$ is a random variable induced by $\epsilon _ { v } \sim \rho ,$ , so the critic $Q ^ { \pi } ( s , a , \cdot )$ induces a return distribution
+
+$$
+\nu^ {\pi} (s, a) := \left(Q ^ {\pi} (s, a, \cdot)\right) _ {\#} \rho \in \mathcal {P} (\mathbb {R}).
+$$
+
+Equivalently, for any Borel set $A \subset \mathbb { R } , \nu ^ { \pi } ( s , a ) ( A ) = \rho ( \{ \epsilon : Q ^ { \pi } ( s , a , \epsilon ) \in A \} )$ ). Thus, repeatedly sampling $\epsilon \sim \rho$ and evaluating $Q ^ { \pi } ( s , a , \epsilon )$ yields i.i.d. samples from $\nu ^ { \pi } ( s , a )$ .
+
+Affine Bellman shift. For a reward $r \in \mathbb { R }$ and discount $\gamma \in [ 0 , 1 )$ , define the measurable affine map
+
+$$
+b _ {r, \gamma}: \mathbb {R} \to \mathbb {R}, \qquad b _ {r, \gamma} (z) = r + \gamma z.
+$$
+
+Standard distributional Bellman operator. Given a collection of return distributions $\nu = \{ \nu ( s , a ) \in \mathcal { P } ( \mathbb { R } ) \} _ { s , a }$ , the standard distributional policy-evaluation operator $\left( \operatorname { E q . } ( 7 ) \right)$ i s
+
+$$
+\left(\mathcal {T} ^ {\pi} \nu\right) (s, a) := \mathbb {E} _ {s ^ {\prime} \sim P (\cdot | s, a), \epsilon^ {\prime} \sim \rho} \left[ \left(b _ {r (s, a), \gamma}\right) _ {\#} \nu \left(s ^ {\prime}, \pi \left(s ^ {\prime}, \epsilon^ {\prime}\right)\right) \right]. \tag {22}
+$$
+
+It propagates the entire next-step return distribution through the Bellman backup.
+
+The proposed operator $\mathcal { T } _ { n } ^ { \pi }$ . FAN replaces the next-step distribution by a Dirac mass at its upper-tail statistic ess sup $\textstyle \left( \nu ( s ^ { \prime } , a ^ { \prime } ) \right)$ :
+
+$$
+(\mathcal {T} _ {n} ^ {\pi} \nu) (s, a) := \mathbb {E} _ {s ^ {\prime} \sim P (\cdot | s, a), \epsilon^ {\prime} \sim \rho} \Big [ (b _ {r (s, a), \gamma}) _ {\#} \delta_ {\mathrm{esssup} \left(\nu (s ^ {\prime}, \pi (s ^ {\prime}, \epsilon^ {\prime}))\right)} \Big ]. \tag {23}
+$$
+
+To organize, sample $s ^ { \prime }$ from the environment and $\epsilon ^ { \prime }$ from the noise, set $a ^ { \prime } = \pi ( s ^ { \prime } , \epsilon ^ { \prime } )$ , compute the scalar ess $\operatorname* { s u p } ( \nu ( s ^ { \prime } , a ^ { \prime } ) )$ , place a Dirac mass at that scalar, and then apply the Bellman shift $z \mapsto r + \gamma z$ .
+
+Connection to the sample-level equation $( \mathbf { E q } . ( 9 ) )$ . Let $\epsilon ^ { \prime } \sim \rho$ and define $a ^ { \prime } = \pi ( s ^ { \prime } , \epsilon ^ { \prime } )$ . Let the transition dynamics be deterministic $( \mathrm { i } . \mathrm { e } . , s ^ { \prime }$ is fixed given $( s , a ) )$ . The random scalar
+
+$$
+Y _ {n} (s, a, \epsilon^ {\prime}) := r (s, a) + \gamma \operatorname{ess} \sup \left(\nu^ {\pi} (s ^ {\prime}, a ^ {\prime})\right) = r (s, a) + \gamma \operatorname{ess} \sup _ {\epsilon \sim \rho} Q ^ {\pi} (s ^ {\prime}, a ^ {\prime}, \epsilon) \tag {24}
+$$
+
+has distribution $\nu ( Y _ { n } ( s , a , \epsilon ^ { \prime } ) ) = ( T _ { n } ^ { \pi } \nu ^ { \pi } ) ( s , a )$ by Eq.(23). This is exactly the right-hand side of $\operatorname { E q . } ( 9 )$ .
+
+# A.3. Theoretical Motivations of $\mathcal { T } _ { n } ^ { \pi }$
+
+We now provide theoretical motivations underlying $\mathcal { T } _ { n } ^ { \pi }$ .
+
+Motivation 1: Noise-conditioned critics represent distributions without tracking multiple statistics. A noiseconditioned critic provides an implicit representation of the return distribution using a single function $Q ^ { \pi } ( s , a , \epsilon )$ , rather than explicitly maintaining multiple distributional statistics (e.g., a set of quantiles/expectiles). For each fixed $( s , a )$ , the map $\epsilon \mapsto Q ^ { \pi } ( s , a , \epsilon )$ defines a random variable with distribution
+
+$$
+\nu^ {\pi} (s, a) = \left(Q ^ {\pi} (s, a, \cdot)\right) _ {\#} \rho \in \mathcal {P} (\mathbb {R}).
+$$
+
+Thus, the critic can be viewed as a generative model for the return distribution, with ϵ serving as latent randomness.
+
+If one plugs this representation into a standard distributional backup, a natural single-sample bootstrap target is
+
+$$
+Y _ {\mathrm{std}} := r (s, a) + \gamma   Q ^ {\pi} (s ^ {\prime}, a ^ {\prime}, \epsilon_ {v}), \qquad a ^ {\prime} = \pi (s ^ {\prime}, \epsilon_ {p}), \epsilon_ {p} \sim \rho , \epsilon_ {v} \sim \rho ,
+$$
+
+which introduces an additional source of stochasticity through the critic-noise draw $\epsilon _ { v }$ at the next-state evaluation. When only one (or a small number of) $\epsilon _ { v }$ samples are used per transition, this bootstrap noise can dominate the variance of TD updates and slow finite-sample convergence. The operator $\mathcal { T } _ { n } ^ { \pi }$ removes this particular source of variance by collapsing the next-step distribution using an upper-tail statistic.
+
+Motivation 2: Essential supremum removes critic-induced bootstrap noise (conditional variance reduction). The essential supremum aggregates the next-step return distribution into a deterministic scalar:
+
+$$
+\operatorname{ess} \sup \bigl (\nu^ {\pi} (s ^ {\prime}, a ^ {\prime}) \bigr) = \operatorname{ess} \sup _ {\epsilon \sim \rho} Q ^ {\pi} (s ^ {\prime}, a ^ {\prime}, \epsilon).
+$$
+
+This scalar is then used in the Bellman target under $\mathcal { T } _ { n } ^ { \pi }$ .
+
+To isolate the effect of critic-induced randomness, fix a transition $( s , a , r , s ^ { \prime } )$ and a next action $a ^ { \prime } = \pi ( s ^ { \prime } , \epsilon _ { p } )$ for a given realization of $\epsilon _ { p } .$ Under the standard distributional backup, the target
+
+$$
+Y _ {\mathrm{std}} = r (s, a) + \gamma Q ^ {\pi} (s ^ {\prime}, a ^ {\prime}, \epsilon_ {v}), \qquad \epsilon_ {v} \sim \rho ,
+$$
+
+retains randomness through $\epsilon _ { v } .$ . Conditional on $( s ^ { \prime } , a ^ { \prime } )$ , its variance is
+
+$$
+\mathrm{Var} (Y _ {\mathrm{std}} \mid s ^ {\prime}, a ^ {\prime}) = \gamma^ {2} \mathrm{Var} (Q ^ {\pi} (s ^ {\prime}, a ^ {\prime}, \epsilon_ {v}) \mid s ^ {\prime}, a ^ {\prime}).
+$$
+
+In contrast, the $\mathcal { T } _ { n } ^ { \pi }$ target
+
+$$
+Y _ {n} := r (s, a) + \gamma \operatorname{ess} \sup _ {\epsilon \sim \rho} Q ^ {\pi} (s ^ {\prime}, a ^ {\prime}, \epsilon)
+$$
+
+is deterministic conditional on $( s ^ { \prime } , a ^ { \prime } )$ , hence
+
+$$
+\operatorname{Var} (Y _ {n} \mid s ^ {\prime}, a ^ {\prime}) = 0.
+$$
+
+Therefore, $\mathcal { T } _ { n } ^ { \pi }$ strictly reduces the conditional variance attributable to bootstrap noise from critic sampling. Importantly, this statement does not claim that the overall target variance is zero, since randomness from environment transitions $s ^ { \prime } \sim P ( \cdot \mid s , a )$ and policy noise $a ^ { \prime } = \pi ( s ^ { \prime } , \epsilon _ { p } )$ ) remains.
+
+Variance control is central in stochastic approximation: finite-sample rates depend on the second moment of the update noise (Nemirovski et al., 2009; Moulines & Bach, 2011), and variance-reduced targets can improve sample efficiency in TD-style methods (Bhandari et al., 2018; Srikant & Ying, 2019).
+
+Motivation 3: Essential supremum yields a max-like, order-preserving utility for policy improvement. In actor–critic methods, the critic is used to rank actions and guide policy improvement. In classical (risk-neutral) control, greedy policy improvement selects actions according to
+
+$$
+\pi_ {\text { new }} (s) \in \arg \max _ {a \in \mathcal {A}} Q ^ {\pi} (s, a), \tag {25}
+$$
+
+which follows directly from standard policy iteration and value-based control methods (Sutton & Barto, 2018). More generally, optimal control in Markov decision processes is characterized by the Bellman optimality operator
+
+$$
+\left(\mathcal {T} ^ {\star} Q\right) (s, a) = r (s, a) + \gamma \mathbb {E} _ {s ^ {\prime} \sim P (\cdot | s, a)} \left[ \sup _ {a ^ {\prime}} Q \left(s ^ {\prime}, a ^ {\prime}\right) \right], \tag {26}
+$$
+
+where the supremum is required for general (possibly infinite or continuous) action spaces. This operator is monotone and order-preserving with respect to $Q$ under standard assumptions, a fundamental property underpinning dynamic programming and reinforcement learning theory (Puterman, 1994; Bertsekas & Tsitsiklis, 1996).
+
+With a distributional critic, each action a induces a return distribution $\nu ^ { \pi } ( s , a ) = ( Q ^ { \pi } ( s , a , \cdot ) ) _ { \# } \rho .$ . Consequently, policy improvement requires mapping the return distribution $\nu ^ { \pi } ( s , a )$ to a scalar utility,
+
+$$
+U ^ {\pi} (s, a) := \mathcal {F} \big (\nu^ {\pi} (s, a) \big), \qquad \pi_ {\mathrm{new}} (s) \in \arg \max _ {a \in \mathcal {A}} U ^ {\pi} (s, a).
+$$
+
+We choose the essential supremum functional
+
+$$
+U _ {\max} ^ {\pi} (s, a) := \operatorname{ess} \sup \left(\nu^ {\pi} (s, a)\right) = \operatorname{ess} \sup _ {\epsilon \sim \rho} Q ^ {\pi} (s, a, \epsilon), \tag {27}
+$$
+
+as a principled extension of the classical greedy policy improvement rule. In standard (risk-neutral) control, greedy improvement relies on maximizing scalar action-values, and the Bellman optimality operator itself is defined through a supremum over actions (Eq. (26)). The essential supremum preserves this maximization structure when action-values are represented as distributions rather than scalars: it reduces each return distribution to a single score that is compatible with max-based, order-preserving policy improvement. In this sense, ess sup serves as the natural distributional analogue of the classical max operator, ensuring conceptual continuity between scalar and distributional critics.
+
+# Summary of Theoretical Motivations in $\mathcal { T } _ { n } ^ { \pi }$ Design
+
+• Implicit distribution representation. $Q ^ { \pi } ( s , a , \epsilon )$ represents return distributions without explicitly tracking multiple distributional statistics (e.g., multiple quantiles/expectiles).   
+• Variance reduction in Bellman targets. $\mathcal { T } _ { n } ^ { \pi }$ removes critic-induced bootstrap noise, yielding lower-variance Bellman targets in temporal-difference updates.   
+• Compatibility with greedy policy improvement. ess sup preserves max-like policy improvement.
+
+Together, these properties motivate $\mathcal { T } _ { n } ^ { \pi }$ as a variance-reduced, distribution-aware Bellman operator that remains faithful to the core principles of greedy policy optimization.
+
+# B. Theoretical Guarantees
+
+# B.1. Convergence of the proposing operator $\mathcal { T } _ { n } ^ { \pi }$ (Theorem 4.1)
+
+Definition B.1 (Supremum metric). Let $\mathcal { Q }$ denote the space of bounded, measurable functions $Q : \mathcal { S } \times \mathcal { A } \times \mathbb { R } ^ { d } $ R. We define the metric $d _ { \infty }$ on $\mathcal { Q }$ by
+
+$$
+d _ {\infty} (Q _ {1}, Q _ {2}) := \sup _ {s \in \mathcal {S}, a \in \mathcal {A}, \epsilon \in \mathbb {R} ^ {d}} \big | Q _ {1} (s, a, \epsilon) - Q _ {2} (s, a, \epsilon) \big |.
+$$
+
+Theorem 4.1 (Convergence of $\textstyle { \mathcal { T } } _ { n } ^ { \pi } )$ . The proposing operator $\mathcal { T } _ { n } ^ { \pi }$ is a γ-contraction on $( \mathcal { Q } , d _ { \infty } )$ (Definition B.1), and therefore, iterating $\mathcal { T } _ { n } ^ { \pi }$ from any $Q \in \mathcal { Q }$ converges to a unique fixed point $Q ^ { \pi }$ .
+
+Proof. Recall the definition of the proposing operator:
+
+$$
+(\mathcal {T} _ {n} ^ {\pi} Q) (s, a, \epsilon^ {\prime}) = r (s, a) + \gamma \mathbb {E} _ {s ^ {\prime} \sim P (\cdot | s, a)} \left[ \operatorname{ess} \sup _ {\epsilon} Q (s ^ {\prime}, \pi (s ^ {\prime}, \epsilon^ {\prime}), \epsilon) \right].
+$$
+
+Since rewards are bounded and $Q \in \mathcal { Q }$ is bounded, ${ \mathcal { T } } _ { n } ^ { \pi } Q$ is also bounded, and hence ${ \mathcal { T } } _ { n } ^ { \pi } : \mathcal { Q } \to \mathcal { Q } .$ .
+
+Let $Q _ { 1 } , Q _ { 2 } \in \mathcal { Q }$ . Using Definition B.1, we have
+
+$$
+d _ {\infty} (\mathcal {T} _ {n} ^ {\pi} Q _ {1}, \mathcal {T} _ {n} ^ {\pi} Q _ {2}) = \sup _ {s, a, \epsilon^ {\prime}} | (\mathcal {T} _ {n} ^ {\pi} Q _ {1}) (s, a, \epsilon^ {\prime}) - (\mathcal {T} _ {n} ^ {\pi} Q _ {2}) (s, a, \epsilon^ {\prime}) |
+$$
+
+$$
+\text {(Bounded rewards cancel)} = \sup _ {s, a, \epsilon^ {\prime}} \left| \gamma \mathbb {E} _ {s ^ {\prime}} \left[ \operatorname * {e s s} _ {\epsilon} \sup Q _ {1} (s ^ {\prime}, \pi (s ^ {\prime}, \epsilon^ {\prime}), \epsilon) - \operatorname * {e s s} _ {\epsilon} \sup Q _ {2} (s ^ {\prime}, \pi (s ^ {\prime}, \epsilon^ {\prime}), \epsilon) \right] \right|
+$$
+
+$$
+\text {(Jensen's Inequality)} \leq \gamma \sup _ {s, a, \epsilon^ {\prime}} \mathbb {E} _ {s ^ {\prime}} \left[ \left| \operatorname{ess} \sup _ {\epsilon} Q _ {1} (s ^ {\prime}, \pi (s ^ {\prime}, \epsilon^ {\prime}), \epsilon) - \operatorname{ess} \sup _ {\epsilon} Q _ {2} (s ^ {\prime}, \pi (s ^ {\prime}, \epsilon^ {\prime}), \epsilon) \right| \right]
+$$
+
+$$
+(| \sup f - \sup g | \leq \sup | f - g |) \quad \leq \gamma \sup _ {s, a, \epsilon^ {\prime}} \mathbb {E} _ {s ^ {\prime}} \left[ \operatorname * {e s s} _ {\epsilon} \sup | Q _ {1} (s ^ {\prime}, \pi (s ^ {\prime}, \epsilon^ {\prime}), \epsilon) - Q _ {2} (s ^ {\prime}, \pi (s ^ {\prime}, \epsilon^ {\prime}), \epsilon) | \right]
+$$
+
+$$
+\text {(Bound by max error over entire domain)} \leq \gamma \sup _ {s, a, \epsilon^ {\prime}} \mathbb {E} _ {s ^ {\prime}} \left[ \sup _ {\hat {s}, \hat {a}, \hat {\epsilon}} | Q _ {1} (\hat {s}, \hat {a}, \hat {\epsilon}) - Q _ {2} (\hat {s}, \hat {a}, \hat {\epsilon}) | \right]
+$$
+
+Since the inner expression of the last equation is uniformly bounded by $d _ { \infty } ( Q _ { 1 } , Q _ { 2 } )$ over the entire domain, and the expectation of a constant is the constant itself, we conclude
+
+$$
+d _ {\infty} \left(\mathcal {T} _ {n} ^ {\pi} Q _ {1}, \mathcal {T} _ {n} ^ {\pi} Q _ {2}\right) \leq \gamma d _ {\infty} \left(Q _ {1}, Q _ {2}\right).
+$$
+
+Thus, $\mathcal { T } _ { n } ^ { \pi }$ is a γ-contraction on $( \mathcal { Q } , d _ { \infty } )$ . Since $\mathcal { Q }$ equipped with the supremum norm is a complete metric space, Banach’s Fixed Point Theorem (Banach, 1922) guarantees the existence of a unique fixed point $Q ^ { \pi }$ , and that iterating $\mathcal { T } _ { n } ^ { \pi }$ from any initial $Q \in \mathcal { Q }$ converges to $Q ^ { \pi }$ . □
+
+# B.2. The Upper Expectile converges to the Essential Supremum (Theorem 4.2)
+
+Lemma B.2 (Basic Properties of Expectiles). Let X be a real-valued random variable with $\mathbb { E } [ X ^ { 2 } ] < \infty$ and let $\kappa \in ( 0 , 1 )$ . Define the asymmetric least-squares loss
+
+$$
+\mathcal {L} _ {2} ^ {\kappa} (u) := | \kappa - \mathbf {1} (u <   0) | u ^ {2} = \kappa u _ {+} ^ {2} + (1 - \kappa) u _ {-} ^ {2}, \quad u _ {+} := \max \{u, 0 \}, u _ {-} := \max \{- u, 0 \},
+$$
+
+and the κ-expectile
+
+$$
+e _ {\kappa} (X) := \arg \min _ {q \in \mathbb {R}} \mathbb {E} \left[ \mathcal {L} _ {2} ^ {\kappa} (X - q) \right].
+$$
+
+Then:
+
+(i) (Mean as a special case) $e _ { 1 / 2 } ( X ) = \mathbb { E } [ X ]$ .   
+(ii) (Non-decreasing over κ) The map $\kappa \mapsto e _ { \kappa } ( X )$ is non-decreasing on (0, 1).   
+(iii) (Range bound) If X is essentially bounded with $m \leq$ ess inf X and ess sup $X \leq M ,$ , then $e _ { \kappa } ( X ) \in [ m , M ]$ .
+
+Proof. Existence and uniqueness. Since $q \mapsto \mathcal { L } _ { 2 } ^ { \kappa } ( X - q )$ is convex for each X and strictly convex in q on any event with positive probability (because the quadratic has strictly positive curvature on both sides), the objective $q \mapsto \mathbb { E } [ \mathcal { L } _ { 2 } ^ { \kappa } ( X - q ) ]$ is strictly convex on R. Hence, the minimizer $e _ { \kappa } ( X )$ exists and is unique.
+
+(i) Mean at $\begin{array} { r } { \kappa = \frac { 1 } { 2 } } \end{array}$ . For $\begin{array} { r } { \kappa = \frac { 1 } { 2 } } \end{array}$
+
+$$
+\mathcal {L} _ {2} ^ {1 / 2} (X - q) = \frac {1}{2} (X - q) ^ {2},
+$$
+
+so the unique minimizer is $q = \mathbb { E } [ X ]$ .
+
+A useful characterization (first-order condition). For $\kappa \in ( 0 , 1 )$ ), differentiating the objective w.r.t. q (valid since $\mathbb { E } [ X ^ { 2 } ] < \infty )$ yields the necessary and sufficient optimality condition at $\boldsymbol { q } = \boldsymbol { e } _ { \kappa } ( \boldsymbol { X } )$ :
+
+$$
+\kappa \mathbb {E} [ (X - q) _ {+} ] = (1 - \kappa) \mathbb {E} [ (q - X) _ {+} ], \quad q = e _ {\kappa} (X). \tag {28}
+$$
+
+We will use Eq.(28) for (ii) and (iii).
+
+(ii) Non-decreasing over κ. Fix $\kappa _ { 1 } < \kappa _ { 2 }$ and denote $q _ { i } : = e _ { \kappa _ { i } } ( X )$ . Suppose for contradiction that $q _ { 2 } < q _ { 1 }$ . Note that
+
+$A ( q ) : = \mathbb { E } [ ( X - q ) _ { + } ]$ is non-increasing in q, and $B ( q ) : = \mathbb { E } [ ( q - X ) _ { + } ]$ is non-decreasing in $q .$
+
+Hence $q _ { 2 } < q _ { 1 }$ implies $A ( q _ { 2 } ) \geq A ( q _ { 1 } )$ and $B ( q _ { 2 } ) \leq B ( q _ { 1 } )$ . Using the first-order condition Eq.(28) for each $\kappa _ { i }$ gives
+
+$$
+\frac {A (q _ {i})}{B (q _ {i})} = \frac {1 - \kappa_ {i}}{\kappa_ {i}}, \quad i \in \{1, 2 \}.
+$$
+
+But since $q _ { 2 } < q _ { 1 }$ , we have
+
+$$
+\frac {A (q _ {2})}{B (q _ {2})} \geq \frac {A (q _ {1})}{B (q _ {1})}.
+$$
+
+On the other hand, $\kappa \mapsto { \frac { 1 - \kappa } { \kappa } }$ is strictly decreasing on (0, 1), so
+
+$$
+\frac {A (q _ {2})}{B (q _ {2})} = \frac {1 - \kappa_ {2}}{\kappa_ {2}} <   \frac {1 - \kappa_ {1}}{\kappa_ {1}} = \frac {A (q _ {1})}{B (q _ {1})},
+$$
+
+a contradiction. Therefore $q _ { 2 } \geq q _ { 1 }$ , proving that $\kappa \mapsto e _ { \kappa } ( X )$ is non-decreasing.
+
+(iii) Range bound. Assume ess sup $X \leq M$ . For any $q > M ,$ we have $X - q < 0$ almost surely, so $( X - q ) _ { + } = 0$ and $( q - X ) _ { + } = q - X > 0 \mathrm { a . s } ,$ ., implying the left side of Eq.(28) is 0 while the right side is strictly positive. Hence Eq.(28) cannot hold for $q > M$ , so $e _ { \kappa } ( X ) \leq M$ . Similarly, if ess inf $X \geq m$ , then for any $q < m$ we have $( q - X ) _ { + } = 0$ and $( X - q ) _ { + } = X - q > 0 \mathrm { a . s . }$ , so Eq.(28) cannot hold meaning that $e _ { \kappa } ( X ) \geq m$ . Therefore, $e _ { \kappa } ( X ) \in [ m , M ]$ . □
+
+Theorem 4.2 (Upper Expectile Converges to the Essential Supremum) Let $s \in S , a \in \mathcal { A } , \epsilon \sim \mathcal { N } ( 0 , I _ { d } )$ , and $Q \in { \mathcal { Q } } .$ . For any $\begin{array} { r } { \kappa \in [ \frac { 1 } { 2 } , 1 ) , Z _ { \kappa } : = \arg \operatorname* { m i n } _ { q \in \mathbb { R } } \mathbb { E } _ { \epsilon } \bigl [ \mathcal L _ { 2 } ^ { \kappa } ( Q ( s , a , \epsilon ) - q ) \bigr ] } \end{array}$ is bounded by:
+
+$$
+Z _ {1 / 2} \leq Z _ {\kappa} \leq \lim _ {\kappa \rightarrow 1 ^ {-}} Z _ {\kappa} = \operatorname{ess} \sup _ {\epsilon} Q (s, a, \epsilon). \tag {29}
+$$
+
+Proof. We proceed in two steps: (i) establish the sandwich bounds and existence of the limit, and (ii) identify the limit with the essential supremum.
+
+Step 1: Sandwich bounds and existence of the limit. Let
+
+$$
+X := Q (s, a, \epsilon), \qquad \epsilon \sim \mathcal {N} (0, I _ {d}),
+$$
+
+and denote $Z _ { \kappa } : = e _ { \kappa } ( X )$ . By Lemma B.2 (ii), the map $\kappa \mapsto Z _ { \kappa }$ is non-decreasing on (0, 1). In particular, for all $\kappa \in [ \frac { 1 } { 2 } , 1 )$ ,
+
+$$
+Z _ {1 / 2} \leq Z _ {\kappa} \leq \sup _ {\kappa <   1} Z _ {\kappa}.
+$$
+
+Moreover, since X is essentially bounded and $M : = \mathrm { e s s } \mathrm { s u p } _ { \epsilon } X < \infty$ , Lemma B.2 (iii) implies $Z _ { \kappa } \leq M$ for all $\kappa \in ( 0 , 1 )$ . Therefore, the monotone limit
+
+$$
+Z ^ {*} := \lim _ {\kappa \to 1 ^ {-}} Z _ {\kappa} = \sup _ {\kappa <   1} Z _ {\kappa}
+$$
+
+exists and satisfies $Z ^ { * } \leq M$ . This proves the first two inequalities in Eq.(29).
+
+Step 2: Identification of the limit. By the first-order optimality condition (Lemma B.2, Eq. (28)), $Z _ { \kappa }$ satisfies
+
+$$
+\kappa \mathbb {E} [ (X - Z _ {\kappa}) _ {+} ] = (1 - \kappa) \mathbb {E} [ (Z _ {\kappa} - X) _ {+} ]. \tag {30}
+$$
+
+Since $X \in [ m , M ]$ and $Z _ { \kappa } \in [ m , M ]$ almost surely, we have $( Z _ { \kappa } - X ) _ { + } \leq M - m$ , and thus
+
+$$
+\mathbb {E} \left[ \left(Z _ {\kappa} - X\right) _ {+} \right] \leq M - m.
+$$
+
+Substituting into (30) yields
+
+$$
+0 \leq \mathbb {E} [ (X - Z _ {\kappa}) _ {+} ] = \frac {1 - \kappa}{\kappa} \mathbb {E} [ (Z _ {\kappa} - X) _ {+} ] \leq \frac {1 - \kappa}{\kappa} (M - m) \xrightarrow [ \kappa \to 1 ^ {-} ]{} 0. \tag {31}
+$$
+
+Now suppose, for contradiction, that $Z ^ { * } < M$ . Then there exists $\delta > 0$ such that $Z ^ { * } \leq M - \delta$ . Since $Z ^ { \ast }$ is the non-decreasing limit of $Z _ { \kappa }$ , there exists $\kappa _ { 0 }$ such that $Z _ { \kappa } \leq M - \delta$ for all $\kappa \geq \kappa _ { 0 }$ . Hence, for all such $\kappa ,$
+
+$$
+(X - Z _ {\kappa}) _ {+} \geq (X - (M - \delta)) _ {+}, \quad \text { and   therefore } \quad \mathbb {E} [ (X - Z _ {\kappa}) _ {+} ] \geq \mathbb {E} [ (X - (M - \delta)) _ {+} ].
+$$
+
+By the definition of the essential supremum, $\mathbb { P } ( X > M - \delta ) > 0$ , which implies
+
+$$
+C _ {\delta} := \mathbb {E} [ (X - (M - \delta)) _ {+} ] > 0.
+$$
+
+Thus, for all $\kappa \geq \kappa _ { 0 }$ ,
+
+$$
+\mathbb {E} [ (X - Z _ {\kappa}) _ {+} ] \geq C _ {\delta} > 0,
+$$
+
+which contradicts Eq.(31). Therefore, the assumption $Z ^ { * } < M$ is false, and we conclude
+
+$$
+\lim _ {\kappa \to 1 ^ {-}} Z _ {\kappa} = M = \operatorname{ess} \sup _ {\epsilon} Q (s, a, \epsilon).
+$$
+
+Combining with Step 1 completes the proof of Eq.(29).
+
+![](images/50ec67a92e0c3ce68c98f376fe4ea8e75533100a960a8f8e3756e2e428e12636.jpg)
+
+# B.3. Validity of Flow Anchoring as Behavior Regularization (Theorem 4.3)
+
+Lemma B.3 (Derivative of the Norm Bound). Let $e : [ 0 , 1 ] \to \mathbb { R } ^ { d }$ be an absolutely continuous function and let $g ( t ) : = \| e ( t ) \| _ { 2 }$ . Then g is absolutely continuous and its derivative satisfies:
+
+$$
+g ^ {\prime} (t) \leq \left\| \frac {d}{d t} e (t) \right\| _ {2} \quad \text { for   almost   every } t \in [ 0, 1 ]. \tag {32}
+$$
+
+Proof. Since $e ( t )$ is absolutely continuous, it is differentiable almost everywhere. At any point t where $e ( t )$ is differentiable and $e ( t ) \neq 0 ,$ , we apply the chain rule to the squared norm $g ( t ) ^ { 2 } = \langle e ( t ) , e ( t ) \rangle$ :
+
+$$
+\frac {d}{d t} \big (g (t) ^ {2} \big) = \frac {d}{d t} \langle e (t), e (t) \rangle = 2 \left\langle e (t), \frac {d}{d t} e (t) \right\rangle . \tag {33}
+$$
+
+On the other hand, applying the chain rule to the scalar function $g ( t ) ^ { 2 }$ directly yields:
+
+$$
+\frac {d}{d t} \big (g (t) ^ {2} \big) = 2 g (t) g ^ {\prime} (t) = 2 \| e (t) \| _ {2}   g ^ {\prime} (t). \tag {34}
+$$
+
+Equating the two expressions gives:
+
+$$
+\left\| e (t) \right\| _ {2} g ^ {\prime} (t) = \left\langle e (t), \frac {d}{d t} e (t) \right\rangle . \tag {35}
+$$
+
+Using the Cauchy-Schwarz inequality, $\langle a , b \rangle \leq \| a \| _ { 2 } \| b \| _ { 2 }$ , we obtain:
+
+$$
+\left\| e (t) \right\| _ {2} g ^ {\prime} (t) \leq \left\| e (t) \right\| _ {2} \left\| \frac {d}{d t} e (t) \right\| _ {2}. \tag {36}
+$$
+
+Since we assumed $\| e ( t ) \| _ { 2 } > 0$ , we can divide both sides by $\| e ( t ) \| _ { 2 }$ to get:
+
+$$
+g ^ {\prime} (t) \leq \left\| \frac {d}{d t} e (t) \right\| _ {2}. \tag {37}
+$$
+
+For the case where $e ( t ) = 0 ,$ , the inequality holds trivially if interpreted in the sense of generalized derivatives or by limits, as the minimum of the norm implies a derivative of zero or undefined (but bounded by the directional derivative). Since e is absolutely continuous, this relation holds for almost every $t \in [ 0 , 1 ]$ . □
+
+Lemma B.4 (Differential Gronwall inequality) ¨ . Let $g : [ 0 , 1 ] \to \mathbb { R } _ { \geq 0 }$ be absolutely continuous and suppose
+
+$$
+\frac {d}{d t} g (t) \leq L g (t) + b (t) \quad \text { for   almost   every } t \in [ 0, 1 ], \tag {38}
+$$
+
+where $L \geq 0$ is a constant and $b ( t ) \geq 0$ is integrable. Then for all $\begin{array} { r } { t \in [ 0 , 1 ] , g ( t ) \leq e ^ { L t } g ( 0 ) + \int _ { 0 } ^ { t } e ^ { L ( t - u ) } b ( u ) d u . } \end{array}$ In particular, $i f g ( 0 ) = 0 ,$ , then
+
+$$
+g (t) \leq \int_ {0} ^ {t} e ^ {L (t - u)} b (u) d u \leq e ^ {L t} \int_ {0} ^ {t} b (u) d u. \tag {39}
+$$
+
+Proof. Define $h ( t ) : = e ^ { - L t } g ( t )$ . Since $g$ is absolutely continuous, so is $h ,$ and for almost every $t ,$
+
+$$
+\frac {d}{d t} h (t) = e ^ {- L t} \left(\frac {d}{d t} g (t) - L g (t)\right) \leq e ^ {- L t} b (t).
+$$
+
+Integrating from 0 to t yields $\begin{array} { r } { h ( t ) - h ( 0 ) \leq \int _ { 0 } ^ { t } e ^ { - L u } b ( u ) } \end{array}$ du, and therefore, $\begin{array} { r } { g ( t ) \le e ^ { L t } g ( 0 ) + e ^ { L t } \int _ { 0 } ^ { t } e ^ { - L u } b ( u ) } \end{array}$ du.
+
+Definition B.5 (Induced distributions $\mu _ { \omega } , \mu _ { \theta }$ by the one-step policy $\pi _ { \omega }$ and the behavior flow policy $v _ { \theta } ) .$ . For $s \in S$ , the one-step policy $\pi _ { \omega }$ induces the distribution $\mu _ { \theta } ( \cdot | s )$ :
+
+$$
+\mu_ {\omega} (\cdot | s) := (\pi_ {\omega} (s, \cdot)) _ {\#} \mathcal {N} (0, I _ {d}),
+$$
+
+modeling the action distribution of the one-step policy. Likewise, the behavior flow policy vθ defines the ODE:
+
+$$
+\frac {d x _ {t}}{d t} = v _ {\theta} (s, t, x _ {t}), \quad t \in [ 0, 1 ],
+$$
+
+where $x _ { t } : = x _ { \theta } ( s , t , z )$ is the state of the flow at time t, following $v _ { \theta } ( s , t , x _ { t } )$ with $t \sim \mathrm { U n i f } ( [ 0 , 1 ] )$ , starting from $x _ { 0 } = x _ { \theta } ( s , 0 , z ) = z \sim \mathcal { N } ( 0 , I _ { d } )$ . The flow map $\Phi _ { \theta } ( s , z ) : = x _ { 1 } = x _ { \theta } ( s , 1 , z )$ induces the distribution:
+
+$$
+\mu_ {\theta} (\cdot | s) := (\Phi_ {\theta} (s, \cdot)) _ {\#} \mathcal {N} (0, I _ {d}),
+$$
+
+which models the offline dataset behavior distribution.
+
+Assumption B.6 (Lipschitz behavior vector field). $L \geq 0$ exists for all $s \in \mathcal S , t \in [ 0 , 1 ]$ , and $x , y \in A ,$ , satisfying:
+
+$$
+\left\| v _ {\theta} (s, t, x) - v _ {\theta} (s, t, y) \right\| _ {2} \leq L \| x - y \| _ {2}.
+$$
+
+Lemma B.7 (Endpoint mismatch is controlled by the flow residual). Assume vθ satisfies Assumption B.6. Let $s \in S ,$ , $t \in [ 0 , 1 ] , z \in \mathbb { R } ^ { d }$ , and $x _ { \theta } ( s , t , z )$ solve $\begin{array} { r } { \frac { d } { d t } x _ { \theta } ( s , t , z ) = v _ { \theta } ( s , t , x _ { \theta } ( s , t , z ) ) } \end{array}$ with $x _ { \theta } ( s , 0 , z ) = z .$ . Let $y ( s , t , z )$ be any absolutely continuous path with $y ( s , 0 , z ) = z .$ . Then, the endpoint deviation satisfies:
+
+$$
+\left\| y (s, 1, z) - x _ {\theta} (s, 1, z) \right\| _ {2} ^ {2} \leq e ^ {2 L} \int_ {0} ^ {1} \left\| \frac {d}{d t} y (s, t, z) - v _ {\theta} (s, t, y (s, t, z)) \right\| _ {2} ^ {2} d t. \tag {40}
+$$
+
+Proof. Define the error $e ( s , t , z ) : = y ( s , t , z ) - x _ { \theta } ( s , t , z )$ , so $e ( s , 0 , z ) = 0$ . Using $\begin{array} { r } { \frac { d } { d t } x _ { \theta } ( s , t , z ) = v _ { \theta } ( s , t , x _ { \theta } ( s , t , z ) ) \colon } \end{array}$
+
+$$
+\begin{array}{l} \frac {d}{d t} e (s, t, z) = \frac {d}{d t} y (s, t, z) - \frac {d}{d t} x _ {\theta} (s, t, z) = \frac {d}{d t} y (s, t, z) - v _ {\theta} (s, t, x _ {\theta} (s, t, z)) \\ = \underbrace {\left(\frac {d}{d t} y (s , t , z) - v _ {\theta} (s , t , y (s , t , z))\right)} _ {r (s, t, z)} + \underbrace {\left(v _ {\theta} (s , t , y (s , t , z)) - v _ {\theta} (s , t , x _ {\theta} (s , t , z))\right)} _ {\Delta (s, t, z)}. \\ \end{array}
+$$
+
+Taking norms and applying Triangular inequality and Lipschitzness (Assumption B.6) gives:
+
+$$
+\| \frac {d}{d t} e (s, t, z) \| _ {2} \leq \| r (s, t, z) \| _ {2} + \| \Delta (s, t, z) \| _ {2} \leq \| r (s, t, z) \| _ {2} + L \| e (s, t, z) \| _ {2}. \tag {41}
+$$
+
+Let $g ( s , t , z ) : = \| e ( s , t , z ) \| _ { 2 }$ . Since e is absolutely continuous, g is absolutely continuous and satisfies $\begin{array} { r } { \frac { d } { d t } g ( s , t , z ) \leq } \end{array}$ $\begin{array} { r l } {  { \big \| \frac { d } { d t } e \big ( s , t , z \big ) \big \| _ { 2 } } } \end{array}$ for almost every t. Combining this inequality with Eq.(41) yields
+
+$$
+\frac {d}{d t} g (s, t, z) \leq \| \frac {d}{d t} e (s, t, z) \| _ {2} \leq \| r (s, t, z) \| _ {2} + L \| e (s, t, z) \| _ {2} = \| r (s, t, z) \| _ {2} + L g (s, t, z) \quad \text { for   almost   every } t \in [ 0, 1 ],
+$$
+
+With $b ( s , t , z ) = \| r ( s , t , z ) \| _ { 2 } \operatorname { a n d } g ( s , 0 , z ) = \| e ( s , 0 , z ) \| _ { 2 } = 0$ , we can apply Lemma B.4 by satisfying Eq.(38). Therefore, by Eq.(39),
+
+$$
+\| e (s, 1, z) \| _ {2} = g (s, 1, z) \leq e ^ {L} \int_ {0} ^ {1} \| r (s, t, z) \| _ {2} d t.
+$$
+
+Finally, Cauchy–Schwarz yields
+
+$$
+\| e (s, 1, z) \| _ {2} ^ {2} \leq e ^ {2 L} \left(\int_ {0} ^ {1} \| r (s, t, z) \| _ {2} d t\right) ^ {2} \leq e ^ {2 L} \int_ {0} ^ {1} \| r (s, t, z) \| _ {2} ^ {2} d t.
+$$
+
+Since $\begin{array} { r } { e ( s , 1 , z ) = y ( s , 1 , z ) - x _ { \theta } ( s , 1 , z ) \mathrm { ~ a n d ~ } r ( s , t , z ) = \frac { d } { d t } y ( s , t , z ) - v _ { \theta } ( t , y ( s , t , z ) , s ) } \end{array}$ , this proves Eq.(40).
+
+Theorem 4.3 (Flow Anchoring is a Valid Behavior Regularization) Let $\mu _ { \omega } ( \cdot | s )$ and $\mu _ { \theta } ( \cdot | s )$ be the probability distributions induced by the policy $\pi _ { \omega }$ and the behavior flow vθ respectively (Definition B.5). If vθ satisfies Lipschitzness (Assumption B.6), the following holds for all $s \in S { \mathrm { : } }$ :
+
+$$
+\mathbb {E} _ {s \sim \mathcal {D}} \left[ W _ {2} ^ {2} (\mu_ {\omega} (\cdot | s), \mu_ {\theta} (\cdot | s)) \right] \leq e ^ {2 L} \mathcal {L} _ {B} (\omega), \tag {42}
+$$
+
+where $W _ { 2 }$ is the Wasserstein-2 distance and $L$ is the Lipschitz constant.
+
+Proof. Since $W _ { 2 }$ is the infimum over all couplings, the following inequality holds with $\Phi _ { \theta }$ following Definition B.5:
+
+$$
+W _ {2} ^ {2} (\mu_ {\omega} (\cdot | s), \mu_ {\theta} (\cdot | s)) := \inf _ {\gamma \in \Gamma (\mu_ {\omega}, \mu_ {\theta})} \mathbb {E} _ {(A, B) \sim \gamma} \big [ \| A - B \| _ {2} ^ {2} \big ] \leq \mathbb {E} _ {z} \big [ \| \pi_ {\omega} (s, z) - \Phi_ {\theta} (s, z) \| _ {2} ^ {2} \big ],
+$$
+
+where $\Gamma ( \cdot , \cdot )$ is the set of couplings with the input marginals. Also, following Lemma B.7 with $y ( s , t , z ) = ( 1 - t ) z + t \pi _ { \omega } ( s , z )$ leads to:
+
+$$
+\left\| y (s, 1, z) - x _ {\theta} (s, 1, z) \right\| _ {2} ^ {2} = \left\| \pi_ {\omega} (s, z) - \Phi_ {\theta} (s, z) \right\| _ {2} ^ {2} \leq e ^ {2 L} \int_ {0} ^ {1} \left\| \left(\pi_ {\omega} (s, z) - z\right) - v _ {\theta} (s, t, (1 - t) z + t \pi_ {\omega} (s, z)) \right\| _ {2} ^ {2} d t. \tag {43}
+$$
+
+Therefore,
+
+$$
+\mathbb {E} _ {s \sim \mathcal {D}} \left[ W _ {2} ^ {2} \left(\mu_ {\omega} (\cdot | s), \mu_ {\theta} (\cdot | s)\right) \right] \leq \underset {z \sim \mathcal {N} (0, I _ {d})} {\mathbb {E}} _ {s \sim \mathcal {D},} \left[ \| \pi_ {\omega} (s, z) - \Phi_ {\theta} (s, z) \| _ {2} ^ {2} \right] \tag {44}
+$$
+
+$$
+\leq e ^ {2 L} \mathbb {E} _ {\substack {s \sim \mathcal {D}, \\ z \sim \mathcal {N} (0, I _ {d}), \\ t \sim \operatorname{Unif} ([ 0, 1 ])}} [ \| (\pi_ {\omega} (s, z) - z) - v _ {\theta} (s, t, (1 - t) z + t \pi_ {\omega} (s, z)) \| _ {2} ^ {2} ] = e ^ {2 L} \mathcal {L} _ {B} (\omega) \tag{45}
+$$
+
+Given $s \in S ,$ , the equality holds when $\mu _ { \omega } ( \cdot | s ) = \mu _ { \theta } ( \cdot | s )$ and all flow trajectories of the vector field vθ are straight. This is because it is the case when $W _ { 2 } ^ { 2 } ( \mu _ { \omega } ( \cdot | s ) , \mu _ { \theta } ( \cdot | s ) ) = 0$ and $\pi _ { \omega } ( s , z ) - z = v _ { \theta } ( s , t , ( 1 - t ) z + t \pi _ { \omega } ( s , z ) )$ satisfies for all $z \sim \mathcal { N } ( 0 , I _ { d } )$ and $t \sim \mathrm { U n i f } ( [ 0 , 1 ] )$ . □
+
+# C. Experimental Details
+
+We implement FAN using JAX (Bradbury et al., 2018), building upon the code implementations of FQL (Park et al., 2025c) and Value Flows (Dong et al., 2025). We adopt these frameworks for two reasons: first, FQL provides the fastest training and inference speeds among flow policy-based methods; and second, Value Flows achieves the highest performance among distributional methods that utilize flow policies.
+
+# C.1. Benchmarks
+
+D4RL. D4RL (Fu et al., 2020) is a well-established standard for benchmarking offline RL algorithms. Specifically, we measure normalized returns to compare performance on the relatively harder tasks in this benchmark. Therefore, we include 4 antmaze tasks involving 8-DoF locomotion, and 12 adroit tasks involving dexterous manipulation (i.e., ≥ 24-DoF).
+
+# 1. Antmaze Datasets
+
+• antmaze-medium-play-v2   
+• antmaze-medium-diverse-v2   
+• antmaze-large-play-v2   
+• antmaze-large-diverse-v2
+
+# 2. Adroit Datasets
+
+• pen-human-v1   
+• pen-cloned-v1   
+• pen-expert-v1   
+• door-human-v1   
+• door-cloned-v1   
+• door-expert-v1   
+• hammer-human-v1   
+• hammer-cloned-v1   
+• hammer-expert-v1   
+• relocate-human-v1   
+• relocate-cloned-v1   
+• relocate-expert-v1
+
+The Antmaze tasks require controlling a quadrupedal agent to reach a goal in a given maze. The Adroit tasks require learning complex skills such as spinning a pen, opening a door, relocating a ball, and using a hammer to hit a button.
+
+OGBench. OGBench (Park et al., 2024) was originally designed for offline goal-conditioned RL. However, this benchmark also provides single-task variants to benchmark standard reward-maximizing offline RL approaches. Therefore, we use 27 state-based and 4 pixel-based single-tasks in OGBench, particularly focusing on environments where prior offline RL methods struggle to achieve 100% success rates. To label transition rewards in the dataset, these single-tasks apply semi-sparse reward functions, where the function is defined as the negative of the number of remaining subtasks at a given state. Locomotion tasks involve a single subtask, and the rewards are always −1 or 0. Manipulation tasks normally include multiple subtasks, so the rewards are bounded by −nsubtask (i.e., number of subtasks) and 0. The following state-based and pixel-based datasets are used in our offline RL experiments:
+
+# 1. 1M-sized State-based Datasets (5 tasks each)
+
+• antsoccer-arena-navigate-v0   
+• scene-play-v0   
+• cube-double-play-v0   
+• puzzle-3x3-play-v0   
+• puzzle-4x4-play-v0
+
+# 2. 1M-sized Pixel-based Datasets (1 task each)
+
+• visual-antmaze-medium-navigate-v0   
+• visual-antmaze-teleport-navigate-v0   
+• visual-cube-double-play-v0   
+• visual-puzzle-4x4-play-v0
+
+We utilize these datasets to evaluate diverse RL capabilities, ranging from standard offline learning to visual control. For standard benchmarks, we employ five 1M-sized state-based tasks: antsoccer-arena-navigate for quadrupedal ball dribbling, scene-play for long-horizon object interaction, cube-double-play for pick-and-place manipulation, and puzzle-3x3/4x4-play for combinatorial generalization on ”Lights Out” puzzles. To test representation learning under partial observability, we include 1M-sized pixel-based variants (visual-antmaze, visual-cube, visual-puzzle) that require control solely from 64 × 64 × 3 images.
+
+# C.2. Baseline Methods
+
+We compare FAN to six prior approaches. The first three include computationally efficient non-distributional approaches that report near state-of-the-art performance, and the latter three include distributional approaches using flow policies. Note that IQN and CODAC were originally proposed using Gaussian policies, but we modified the algorithms to use flow policies, leading to better performance in our experience.We fix learning rates (3e−4) and target update rates (5e−3), and use 8 seeds for state-based training and 4 seeds for pixel-based task training. For pixel-based tasks, we additionally use the IMPALA encoder (Espeholt et al., 2018) for state representations.
+
+ReBRAC. ReBRAC (Tarasov et al., 2023a) is an offline actor-critic algorithm building on TD3+BC (Fujimoto & Gu, 2021) that incorporates architectural enhancements such as layer normalization and critic decoupling. The algorithm relies on two primary hyperparameters: $\alpha _ { 1 }$ , which controls the strength of the actor behavior cloning (BC) regularization, and $\alpha _ { 2 } .$ which governs the critic BC regularization. Consistent with the baselines in FQL and Value Flows, we directly report the results from Park et al. (2025c) and Dong et al. (2025). We report the best performance between using flow-based behavior regularization with 10 flow steps (i.e., FBRAC in Park et al. (2025c)) and the standard one in Tarasov et al. (2023a).
+
+IDQL. Implicit Diffusion Q-Learning (IDQL) (Hansen-Estruch et al., 2023) decouples value learning from policy extraction by combining IQL (Kostrikov et al., 2021) with a diffusion-based behavior model. During inference, the agent samples N action candidates and selects the one maximizing the learned Q-value. We also include IFQL (Park et al., 2025c) in this category, a variant that replaces the diffusion component with a flow matching policy. Consistent with other baselines, we report results directly from Park et al. (2025c) and Dong et al. (2025), selecting the best performance between IDQL and IFQL for each task. We use 10 steps for diffusion or flow policy sampling.
+
+FQL. Flow Q-Learning (FQL) (Park et al., 2025c) utilizes a one-step flow policy to maximize Q-value estimates learned via standard TD error. FQL incorporates a behavioral regularization term with coefficient α towards a behavior-cloning flow policy (Eq.6). We also directly report the results from Park et al. (2025c) and Dong et al. (2025) that use 10 flow steps.
+
+IQN. Implicit Quantile Networks (IQN) (Dabney et al., 2018a) is a distributional RL method that approximates the return distribution by predicting quantile values at randomly sampled quantile fractions. Following Dong et al. (2025), we apply 10 flow step rejection sampling to the flow policy for inference, using 16 noise and 16 quantile samples. We perform a hyperparameter sweep for the temperature κ in the quantile regression loss over the values {0.7, 0.8, 0.9, 0.95}.
+
+CODAC. Conservative Offline Distributional Actor Critic (CODAC) (Ma et al., 2021) augments the distributional critic of IQN with conservative constraints. Following Dong et al. (2025), we utilize a one-step flow policy regularized through actions sampled with 10 flow steps, which follows a DDPG-style policy extraction. We fix the conservative penalty coefficient to 0.1 and tune the remaining hyperparameters by sweeping the quantile regression loss temperature $\kappa \in \{ 0 . 7 , 0 . 8 , 0 . 9 , 0 . 9 5 \}$ and the BC coefficient $\alpha _ { 1 } \in \{ 1 0 0 , 3 0 0$ , 1000, 3000, 10000, 30000}.
+
+Value Flows. Value Flows (Dong et al., 2025) is a distributional RL algorithm that leverages flow matching to estimate the full distribution of future returns. By formulating a distributional flow matching objective, it learns a return vector field that satisfies the distributional Bellman equation. For offline policy extraction, it employs 10 flow step rejection sampling with a behavioral cloning flow policy to select actions that maximize expected returns. The key difference with FAN is that Value Flows uses 1-dimensional Gaussian noise to match with the dimensions of rewards. We sweep the regularization coefficient $\lambda \in \{ 0 . 3 , 1 , 3 , 1 0 \}$ and the confidence weight temperature $\tau \in \{ 0 . 0 1 , 0 . 0 3 , 0 . 1 , 0 . 3 , 1 \}$ for results not in Dong et al. (2025).
+
+FAN. Following prior work, we standardize the architecture to [512, 512, 512, 512]-sized MLPs for all networks (e.g., one-step policy, value, behavioral flow policy). Also, we use a fixed expectile $\kappa = 0 . 9$ across all tasks, and sweep only $\alpha _ { 1 }$ and $\alpha _ { 2 }$ . For OGBench tasks, we sweep $\alpha _ { 1 } \in \{ 1 0 , 3 0 , 1 0 0 , 3 0 0 \}$ and $\alpha _ { 2 } \in \{ 0 , 0 . 1 , 0 . 3 , 1 , 3 \}$ . For D4RL antmaze tasks, we sweep $\alpha _ { 1 } ~ \in ~ \{ 1 , 3 , 1 0 \}$ and $\alpha _ { 2 } ~ \in ~ \{ 0 , 0 . 0 1 , 0 . 0 3 , 0 . 1 , 0 . 3 , 1 \}$ . For D4RL adroit tasks, we sweep $\alpha _ { 1 } ~ \in$ {1000, 3000, 10000, 30000} and $\alpha _ { 2 } \in \{ 0 , 0 . 1 , 0 . 3 , 1 , 3 , 1 0 \}$ . Such selection is intended to maintain $\alpha _ { 1 }$ similar to α in Park et al. (2025c), and also similar to the hyperparameter choices in Dong et al. (2025).
+
+NBRAC, NFQL, FAQL. For Ablation Study 1, we propose Noise-conditioned Behavior Regularized Actor Critic (NBRAC), a variant of ReBRAC using noise-conditioned critic. We maintain the behavior regularization of ReBRAC and substitute the standard Q-value update to $\mathcal { T } _ { n } ^ { \pi }$ . For Ablation Study 1, we also propose Noise-conditioned Flow Q-Learning $( \mathrm { N F Q L } ) .$ , a variant of FQL using noise-conditioned critic. We maintain the behavior regularization of FQL and substitute the standard Q-value update to $\mathcal { T } _ { n } ^ { \pi }$ . For Ablation Study 2, we propose Flow Anchored Q-Learning (FAQL), a variant of FQL using Flow Anchoring. We maintain the standard Q-value update and substitute the behavior regularization to Flow Anchoring.
+
+# C.3. Hyperparameters
+
+Table 3. Hyperparameter Configurations for FAN shared across experiments. 
+
+<table><tr><td>Hyperparameter</td><td>Value</td></tr><tr><td>Learning rate</td><td>0.0003</td></tr><tr><td>Optimizer</td><td>Adam (Kingma, 2014)</td></tr><tr><td>Offline Gradient steps</td><td>1000000 (default), 500000 (D4RL, pixel-based OGBench)</td></tr><tr><td>Offline-to-Online Gradient steps (Offline)</td><td>1000000</td></tr><tr><td>Offline-to-Online Gradient steps (Online)</td><td>1000000</td></tr><tr><td>Minibatch size</td><td>256</td></tr><tr><td>MLP dimensions</td><td>[512, 512, 512, 512]</td></tr><tr><td>Nonlinearity</td><td>GELU (Hendrycks, 2016)</td></tr><tr><td>Target network smoothing coefficient</td><td>0.005</td></tr><tr><td>Expectile κ</td><td>0.9</td></tr><tr><td>Discount factor γ</td><td>0.995 (default), 0.99 (D4RL)</td></tr><tr><td>Image augmentation probability</td><td>0.5</td></tr><tr><td>Flow time sampling distribution</td><td>Unif([0, 1])</td></tr><tr><td>Number of Q ensembles</td><td>2</td></tr><tr><td>Number of Z ensembles</td><td>2</td></tr><tr><td>Target value aggregation</td><td>mean (default), min (D4RL, pixel-based OGBench)</td></tr><tr><td>Actor BC coefficient α1</td><td>See Tables 4 to 6</td></tr><tr><td>Critic BC coefficient α2</td><td>See Tables 4 to 6</td></tr></table>
+
+Table 4. Detailed Hyperparameter Configurations for Offline Results. We mostly take configurations from Park et al. (2025c) and Dong et al. (2025). For all baselines other than FAN, the discount factor γ is 0.99 in default and 0.995 for antsoccer, cube-double, and visual-cube-double tasks. ”-” indicates that the results are taken from prior work or excluded. 
+
+<table><tr><td rowspan="2">BENCHMARK</td><td rowspan="2">TASK</td><td colspan="2">REBRAC</td><td>IDQL</td><td>FQL</td><td>IQN</td><td colspan="2">CODAC</td><td colspan="2">VALUE FLOWS</td><td colspan="2">FAN</td></tr><tr><td> $\alpha_1$ </td><td> $\alpha_2$ </td><td>N</td><td> $\alpha$ </td><td> $\kappa$ </td><td> $\kappa$ </td><td> $\alpha$ </td><td> $\lambda$ </td><td> $\tau$ </td><td> $\alpha_1$ </td><td> $\alpha_2$ </td></tr><tr><td rowspan="4">D4RL(ANTMAZE)</td><td>ANTMAZE-MEDIUM-PLAY-V2</td><td>-</td><td>-</td><td>-</td><td>10</td><td>0.8</td><td>0.95</td><td>3</td><td>3</td><td>1</td><td>3</td><td>0.01</td></tr><tr><td>ANTMAZE-MEDIUM-DIVERSE-V2</td><td>-</td><td>-</td><td>-</td><td>10</td><td>0.8</td><td>0.9</td><td>3</td><td>10</td><td>1</td><td>3</td><td>0.01</td></tr><tr><td>ANTMAZE-LARGE-PLAY-V2</td><td>-</td><td>-</td><td>-</td><td>3</td><td>0.9</td><td>0.95</td><td>3</td><td>3</td><td>1</td><td>3</td><td>0.03</td></tr><tr><td>ANTMAZE-LARGE-DIVERSE-V2</td><td>-</td><td>-</td><td>-</td><td>3</td><td>0.9</td><td>0.9</td><td>3</td><td>1</td><td>1</td><td>3</td><td>0.03</td></tr><tr><td rowspan="12">D4RL(ADROIT)</td><td>PEN-HUMAN</td><td>-</td><td>-</td><td>32</td><td>10000</td><td>0.8</td><td>0.8</td><td>10000</td><td>3</td><td>1</td><td>1000</td><td>1</td></tr><tr><td>PEN-CLONED</td><td>-</td><td>-</td><td>32</td><td>10000</td><td>0.8</td><td>0.8</td><td>10000</td><td>3</td><td>1</td><td>1000</td><td>0</td></tr><tr><td>PEN-EXPERT</td><td>-</td><td>-</td><td>32</td><td>3000</td><td>0.8</td><td>0.8</td><td>10000</td><td>3</td><td>0.01</td><td>1000</td><td>0</td></tr><tr><td>DOOR-HUMAN</td><td>-</td><td>-</td><td>32</td><td>30000</td><td>0.9</td><td>0.9</td><td>10000</td><td>3</td><td>0.01</td><td>10000</td><td>10</td></tr><tr><td>DOOR-CLONED</td><td>-</td><td>-</td><td>32</td><td>30000</td><td>0.9</td><td>0.9</td><td>30000</td><td>10</td><td>0.3</td><td>3000</td><td>10</td></tr><tr><td>DOOR-EXPERT</td><td>-</td><td>-</td><td>32</td><td>30000</td><td>0.9</td><td>0.9</td><td>10000</td><td>10</td><td>0.3</td><td>3000</td><td>10</td></tr><tr><td>HAMMER-HUMAN</td><td>-</td><td>-</td><td>128</td><td>30000</td><td>0.7</td><td>0.8</td><td>30000</td><td>3</td><td>0.3</td><td>10000</td><td>1</td></tr><tr><td>HAMMER-CLONED</td><td>-</td><td>-</td><td>32</td><td>10000</td><td>0.7</td><td>0.8</td><td>10000</td><td>3</td><td>0.3</td><td>10000</td><td>0.3</td></tr><tr><td>HAMMER-EXPERT</td><td>-</td><td>-</td><td>32</td><td>30000</td><td>0.9</td><td>0.8</td><td>10000</td><td>10</td><td>1</td><td>10000</td><td>1</td></tr><tr><td>RELOCATE-HUMAN</td><td>-</td><td>-</td><td>32</td><td>10000</td><td>0.9</td><td>0.9</td><td>30000</td><td>10</td><td>0.01</td><td>10000</td><td>10</td></tr><tr><td>RELOCATE-CLONED</td><td>-</td><td>-</td><td>32</td><td>30000</td><td>0.9</td><td>0.9</td><td>30000</td><td>3</td><td>0.01</td><td>10000</td><td>10</td></tr><tr><td>RELOCATE-EXPERT</td><td>-</td><td>-</td><td>32</td><td>30000</td><td>0.9</td><td>0.9</td><td>10000</td><td>3</td><td>0.1</td><td>30000</td><td>10</td></tr><tr><td rowspan="5">OGBENCH (STATE-BASED)</td><td>ANTSOCCER-ARENA-NAVIGATE</td><td>0.01</td><td>0.01</td><td>32</td><td>10</td><td>0.9</td><td>0.95</td><td>10</td><td>1</td><td>1</td><td>10</td><td>0.1</td></tr><tr><td>SCENE-PLAY</td><td>0.1</td><td>0.001</td><td>32</td><td>300</td><td>0.95</td><td>0.95</td><td>100</td><td>1</td><td>0.3</td><td>100</td><td>3</td></tr><tr><td>CUBE-DOUBLE-PLAY</td><td>0.1</td><td>0</td><td>32</td><td>100</td><td>0.9</td><td>0.95</td><td>300</td><td>1</td><td>3</td><td>100</td><td>0</td></tr><tr><td>PUZZLE-3X3-PLAY</td><td>0.3</td><td>0.001</td><td>32</td><td>1000</td><td>0.8</td><td>0.95</td><td>100</td><td>0.5</td><td>0.3</td><td>100</td><td>3</td></tr><tr><td>PUZZLE-4X4-PLAY</td><td>0.3</td><td>0.01</td><td>32</td><td>1000</td><td>0.95</td><td>0.95</td><td>1000</td><td>3</td><td>100</td><td>100</td><td>3</td></tr><tr><td rowspan="4">OGBENCH (PIXEL-BASED)</td><td>VISUAL-ANTMAZE-MEDIUM-NAVIGATE</td><td>0.01</td><td>0.003</td><td>32</td><td>100</td><td>0.9</td><td>0.9</td><td>10</td><td>0.3</td><td>0.03</td><td>10</td><td>0.1</td></tr><tr><td>VISUAL-ANTMAZE-TELEPORT-NAVIGATE</td><td>0.01</td><td>0.003</td><td>32</td><td>100</td><td>0.8</td><td>0.95</td><td>3</td><td>0.3</td><td>0.03</td><td>10</td><td>0.3</td></tr><tr><td>VISUAL-CUBE-DOUBLE-PLAY</td><td>0.1</td><td>0</td><td>32</td><td>100</td><td>0.9</td><td>0.95</td><td>100</td><td>1</td><td>0.3</td><td>100</td><td>0.1</td></tr><tr><td>VISUAL-PUZZLE-4X4-PLAY</td><td>0.3</td><td>0.01</td><td>32</td><td>300</td><td>0.9</td><td>0.9</td><td>100</td><td>1</td><td>0.3</td><td>100</td><td>0.1</td></tr></table>
+
+Table 5. Hyperparameter Configurations for Ablation Studies 1 (Flow Anchoring) and $2 ( \mathcal { T } _ { n } ^ { \pi } )$ . We use discount factor of $\gamma = 0 . 9 9 5$ , and follow the similar hyperparameter choices in Table 4. 
+
+<table><tr><td rowspan="3">BENCHMARK</td><td rowspan="3">TASK</td><td colspan="3">NON-DISTRIBUTIONAL</td><td colspan="5">DISTRIBUTIONAL</td></tr><tr><td>FQL</td><td colspan="2">FAQL (FLOW ANCHORING)</td><td colspan="2">NBRAC (REBRAC-STYLE BC)</td><td>NFQL (FQL-STYLE BC)</td><td colspan="2">FAN (FLOW ANCHORING)</td></tr><tr><td> $\alpha$ </td><td> $\alpha_1$ </td><td> $\alpha_2$ </td><td> $\alpha_1$ </td><td> $\alpha_2$ </td><td> $\alpha$ </td><td> $\alpha_1$ </td><td> $\alpha_2$ </td></tr><tr><td rowspan="5">OGBENCH (STATE-BASED)</td><td>ANTSOCCER-NAVIGATE</td><td>10</td><td>10</td><td>0.1</td><td>10</td><td>0.1</td><td>30</td><td>10</td><td>0.1</td></tr><tr><td>SCENE-PLAY</td><td>1000</td><td>100</td><td>3</td><td>100</td><td>3</td><td>1000</td><td>100</td><td>3</td></tr><tr><td>CUBE-DOUBLE-PLAY</td><td>300</td><td>100</td><td>0</td><td>100</td><td>0</td><td>300</td><td>100</td><td>0</td></tr><tr><td>PUZZLE-3X3-PLAY</td><td>1000</td><td>100</td><td>3</td><td>100</td><td>3</td><td>1000</td><td>100</td><td>3</td></tr><tr><td>PUZZLE-4X4-PLAY</td><td>1000</td><td>100</td><td>3</td><td>100</td><td>3</td><td>1000</td><td>100</td><td>3</td></tr></table>
+
+Table 6. Hyperparameter Configurations for Ablation Study 3 (Offline-to-Online). We use discount factor of $\gamma = 0 . 9 9 5$ for results not present in prior work. ”-” indicates that the results are taken from prior work or excluded, and → indicates the hyperparameter change for online training. 
+
+<table><tr><td rowspan="3">BENCHMARK</td><td rowspan="3">TASK</td><td colspan="4">NON-DISTRIBUTIONAL</td><td colspan="6">DISTRIBUTIONAL</td></tr><tr><td colspan="2">REBRAC</td><td>IDQL</td><td>FQL</td><td>IQN</td><td colspan="3">VALUE FLOWS</td><td colspan="2">FAN</td></tr><tr><td> $\alpha_1$ </td><td> $\alpha_2$ </td><td>N</td><td> $\alpha$ </td><td> $\kappa$ </td><td> $\lambda$ </td><td> $\tau$ </td><td> $\alpha$ </td><td> $\alpha_1$ </td><td> $\alpha_2$ </td></tr><tr><td rowspan="5">OGBENCH (STATE-BASED)</td><td>ANTSOCCER-MEDIUM-NAVIGATE</td><td>0.01</td><td>0.01</td><td>64</td><td>30</td><td>0.9</td><td>1</td><td>1</td><td>0 → 30</td><td>30 → 10</td><td>1 → 1</td></tr><tr><td>SCENE-PLAY</td><td>0.1</td><td>0.01</td><td>32</td><td>300</td><td>0.95</td><td>1</td><td>0.3</td><td>0 → -</td><td>100 → 10</td><td>3 → 0</td></tr><tr><td>CUBE-DOUBLE-PLAY</td><td>0.1</td><td>0</td><td>32</td><td>300</td><td>0.9</td><td>1</td><td>3</td><td>0 → -</td><td>100 → 30</td><td>0 → 0</td></tr><tr><td>PUZZLE-3X3-PLAY</td><td>0.3</td><td>0.01</td><td>32</td><td>1000</td><td>0.8</td><td>0.5</td><td>0.3</td><td>0 → 1000</td><td>100 → 10</td><td>3 → 0</td></tr><tr><td>PUZZLE-4X4-PLAY</td><td>0.3</td><td>0.01</td><td>32</td><td>1000</td><td>0.95</td><td>3</td><td>100</td><td>0 → -</td><td>100 → 100</td><td>3 → 0</td></tr></table>
+
+# C.4. Full Results
+
+Table 7. Full Offline Results on the reward-based OGBench and D4RL tasks stated in Table 1. The results are collected over 8 seeds for state-based and 4 seeds for pixel-based tasks. The numbers are bolded if they are above or equal to 95% of the best performance. 
+
+<table><tr><td rowspan="2">BENCHMARK</td><td rowspan="2">TASK</td><td colspan="3">NON-DISTRIBUTIONAL</td><td colspan="4">DISTRIBUTIONAL</td></tr><tr><td>REBRAC</td><td>IDQL</td><td>FQL</td><td>IQN</td><td>CODAC</td><td>VALUE FLOWS</td><td>FAN</td></tr><tr><td rowspan="4">D4RL (ANTMAZE)</td><td>ANTMAZE-MEDIUM-PLAY-V2</td><td>90</td><td>84</td><td>78±7</td><td>38±5</td><td>82±2</td><td>16±3</td><td>82±3</td></tr><tr><td>ANTMAZE-MEDIUM-DIVERSE-V2</td><td>84</td><td>85</td><td>71±13</td><td>40±4</td><td>10±2</td><td>10±5</td><td>76±3</td></tr><tr><td>ANTMAZE-LARGE-PLAY-V2</td><td>52</td><td>64</td><td>84±7</td><td>51±5</td><td>71±3</td><td>12±2</td><td>77±5</td></tr><tr><td>ANTMAZE-LARGE-DIVERSE-V2</td><td>64</td><td>68</td><td>83±4</td><td>55±3</td><td>22±5</td><td>30±10</td><td>70±5</td></tr><tr><td rowspan="12">D4RL (ADROIT)</td><td>PEN-HUMAN-V1</td><td>103</td><td>71±12</td><td>53±6</td><td>69±3</td><td>67±0</td><td>66±4</td><td>64±11</td></tr><tr><td>PEN-CLONED-V1</td><td>103</td><td>80±11</td><td>74±11</td><td>80±11</td><td>76±2</td><td>73±5</td><td>90±9</td></tr><tr><td>PEN-EXPERT-V1</td><td>152</td><td>139±5</td><td>142±6</td><td>118±19</td><td>136±2</td><td>117±3</td><td>138±6</td></tr><tr><td>DOOR-HUMAN-V1</td><td>0</td><td>7±2</td><td>0±0</td><td>0±0</td><td>3±1</td><td>7±2</td><td>8±2</td></tr><tr><td>DOOR-CLONED-V1</td><td>0</td><td>2±1</td><td>2±1</td><td>0±0</td><td>0±0</td><td>0±0</td><td>5±3</td></tr><tr><td>DOOR-EXPERT-V1</td><td>106</td><td>104±2</td><td>104±1</td><td>105±0</td><td>104±0</td><td>104±1</td><td>104±1</td></tr><tr><td>HAMMER-HUMAN-V1</td><td>0</td><td>3±1</td><td>1±1</td><td>2±1</td><td>3±1</td><td>1±0</td><td>3±1</td></tr><tr><td>HAMMER-CLONED-V1</td><td>5</td><td>2±1</td><td>11±9</td><td>0±0</td><td>6±0</td><td>1±0</td><td>3±2</td></tr><tr><td>HAMMER-EXPERT-V1</td><td>134</td><td>117±9</td><td>125±3</td><td>121±7</td><td>126±1</td><td>125±5</td><td>115±5</td></tr><tr><td>RELOCATE-HUMAN-V1</td><td>0</td><td>0±0</td><td>0±0</td><td>0±0</td><td>0±0</td><td>0±0</td><td>0±1</td></tr><tr><td>RELOCATE-CLONED-V1</td><td>2</td><td>0±0</td><td>0±0</td><td>0±0</td><td>0±0</td><td>0±0</td><td>0±0</td></tr><tr><td>RELOCATE-EXPERT-V1</td><td>108</td><td>104±3</td><td>107±1</td><td>103±0</td><td>103±2</td><td>102±2</td><td>106±1</td></tr><tr><td rowspan="5">OGBENCH (STATE-BASED)</td><td>ANTSOCCER-NAVIGATE-TASK1</td><td>0±0</td><td>61±25</td><td>77±4</td><td>30±5</td><td>24±18</td><td>56±8</td><td>89±4</td></tr><tr><td>ANTSOCCER-NAVIGATE-TASK2</td><td>0±1</td><td>75±3</td><td>88±3</td><td>14±7</td><td>63±19</td><td>39±10</td><td>91±7</td></tr><tr><td>ANTSOCCER-NAVIGATE-TASK3</td><td>0±0</td><td>14±22</td><td>61±6</td><td>34±12</td><td>25±8</td><td>7±3</td><td>49±8</td></tr><tr><td>ANTSOCCER-NAVIGATE-TASK4</td><td>0±0</td><td>16±9</td><td>39±6</td><td>27±9</td><td>32±15</td><td>21±7</td><td>49±8</td></tr><tr><td>ANTSOCCER-NAVIGATE-TASK5</td><td>0±0</td><td>0±1</td><td>36±9</td><td>16±5</td><td>19±4</td><td>10±7</td><td>21±14</td></tr><tr><td rowspan="5">OGBENCH (STATE-BASED)</td><td>SCENE-PLAY-TASK1</td><td>96±8</td><td>98±3</td><td>100±0</td><td>100±0</td><td>99±0</td><td>99±0</td><td>100±0</td></tr><tr><td>SCENE-PLAY-TASK2</td><td>50±13</td><td>0±0</td><td>76±9</td><td>1±0</td><td>85±4</td><td>97±1</td><td>96±3</td></tr><tr><td>SCENE-PLAY-TASK3</td><td>78±4</td><td>54±19</td><td>98±1</td><td>94±2</td><td>90±3</td><td>94±2</td><td>93±4</td></tr><tr><td>SCENE-PLAY-TASK4</td><td>4±4</td><td>0±0</td><td>5±1</td><td>3±1</td><td>0±0</td><td>7±17</td><td>0±0</td></tr><tr><td>SCENE-PLAY-TASK5</td><td>0±0</td><td>0±0</td><td>0±0</td><td>0±0</td><td>0±0</td><td>0±0</td><td>0±0</td></tr><tr><td rowspan="5">OGBENCH (STATE-BASED)</td><td>CUBE-DOUBLE-PLAY-TASK1</td><td>47±11</td><td>35±9</td><td>61±9</td><td>70±14</td><td>80±11</td><td>97±1</td><td>84±5</td></tr><tr><td>CUBE-DOUBLE-PLAY-TASK2</td><td>22±12</td><td>9±5</td><td>36±6</td><td>24±9</td><td>63±4</td><td>76±7</td><td>59±10</td></tr><tr><td>CUBE-DOUBLE-PLAY-TASK3</td><td>4±1</td><td>8±5</td><td>22±5</td><td>25±6</td><td>66±9</td><td>73±4</td><td>40±17</td></tr><tr><td>CUBE-DOUBLE-PLAY-TASK4</td><td>1±1</td><td>1±1</td><td>5±2</td><td>10±1</td><td>13±2</td><td>30±5</td><td>5±5</td></tr><tr><td>CUBE-DOUBLE-PLAY-TASK5</td><td>4±2</td><td>17±6</td><td>19±10</td><td>81±8</td><td>82±4</td><td>69±5</td><td>43±18</td></tr><tr><td rowspan="5">OGBENCH (STATE-BASED)</td><td>PUZZLE-3X3-PLAY-TASK1</td><td>97±4</td><td>94±3</td><td>90±4</td><td>71±3</td><td>78±8</td><td>99±0</td><td>100±1</td></tr><tr><td>PUZZLE-3X3-PLAY-TASK2</td><td>1±1</td><td>1±2</td><td>16±5</td><td>2±2</td><td>5±2</td><td>98±2</td><td>100±0</td></tr><tr><td>PUZZLE-3X3-PLAY-TASK3</td><td>3±1</td><td>0±0</td><td>10±3</td><td>0±0</td><td>4±3</td><td>97±1</td><td>99±2</td></tr><tr><td>PUZZLE-3X3-PLAY-TASK4</td><td>2±1</td><td>0±0</td><td>16±5</td><td>0±0</td><td>5±5</td><td>84±24</td><td>100±1</td></tr><tr><td>PUZZLE-3X3-PLAY-TASK5</td><td>5±3</td><td>0±0</td><td>16±3</td><td>0±0</td><td>6±5</td><td>58±39</td><td>99±2</td></tr><tr><td rowspan="5">OGBENCH (STATE-BASED)</td><td>PUZZLE-4X4-PLAY-TASK1</td><td>32±9</td><td>49±9</td><td>34±8</td><td>41±2</td><td>37±32</td><td>36±3</td><td>83±4</td></tr><tr><td>PUZZLE-4X4-PLAY-TASK2</td><td>16±4</td><td>4±4</td><td>16±5</td><td>12±4</td><td>10±10</td><td>27±5</td><td>21±9</td></tr><tr><td>PUZZLE-4X4-PLAY-TASK3</td><td>20±10</td><td>50±14</td><td>18±5</td><td>45±7</td><td>33±29</td><td>30±4</td><td>81±13</td></tr><tr><td>PUZZLE-4X4-PLAY-TASK4</td><td>10±3</td><td>21±11</td><td>11±3</td><td>23±2</td><td>12±10</td><td>28±5</td><td>12±8</td></tr><tr><td>PUZZLE-4X4-PLAY-TASK5</td><td>7±3</td><td>2±2</td><td>7±3</td><td>16±6</td><td>10±8</td><td>13±2</td><td>13±16</td></tr><tr><td rowspan="4">OGBENCH (PIXEL-BASED)</td><td>VISUAL-ANTMAZE-MEDIUM-TASK1</td><td>54±15</td><td>81±3</td><td>32±3</td><td>62±7</td><td>94±1</td><td>77±4</td><td>92±4</td></tr><tr><td>VISUAL-ANTMAZE-TELEPORT-TASK1</td><td>2±0</td><td>7±4</td><td>2±1</td><td>2±1</td><td>3±3</td><td>10±4</td><td>5±3</td></tr><tr><td>VISUAL-CUBE-DOUBLE-PLAY-TASK1</td><td>6±2</td><td>8±6</td><td>23±4</td><td>4±1</td><td>3±2</td><td>35±2</td><td>35±15</td></tr><tr><td>VISUAL-PUZZLE-4X4-PLAY-TASK1</td><td>26±6</td><td>8±15</td><td>33±6</td><td>7±4</td><td>0±0</td><td>24±5</td><td>30±16</td></tr></table>
+
+# D. Further Ablation Studies
+
+We provide three additional ablation studies for FAN. First, we examine the rationale behind maximizing both $Z _ { \psi }$ and $Q _ { \phi }$ . Second, we analyze how performance varies with an increased number of noise samples for $Q _ { \phi }$ training. Finally, we assess how varying κ affects training.
+
+# D.1. Why Maximize both $Z _ { \psi }$ and $Q _ { \phi } \mathbf { ? }$
+
+For policy training, we evaluated how performance varies across three configurations: (1) maximizing both $Z _ { \psi }$ and $Q _ { \phi } ,$ , (2) maximizing only $Q _ { \phi } ,$ , and (3) maximizing only $Z _ { \psi }$ . We conducted evaluations on five tasks within the OGBench antsoccer-arena-navigate environment, setting $\alpha _ { 1 } = 1 0$ and $\alpha _ { 2 } = 0 . 1$ .
+
+![](images/3cd28bad30abd8c1f21c6928b21801981dd56e2a74714acb8e5a872180ecc67e.jpg)  
+Figure 5. Ablation Study on Value Maximization in Policy Training. The black line (maximizing both $Z _ { \psi }$ and $Q _ { \phi } )$ empirically achieves the best average performance compared to maximizing either component individually.
+
+Figure 5 demonstrates that maximizing both $Z _ { \psi }$ and $Q _ { \phi }$ yields superior performance, justifying our design choice in Eq.(12).
+
+# D.2. More Noise Samples for Training $Q _ { \phi } \mathbf { ? }$
+
+Although we utilize a single noise sample per $Q _ { \phi }$ update, we investigate how increasing the number of noise samples (analogous to using multiple quantiles) affects policy performance. To this end, we conducted evaluations on the default tasks of the OGBench puzzle-4x4-play $( \alpha _ { 1 } = 1 0 0 , \alpha _ { 2 } = 3 )$ and cube-double-play $( \alpha _ { 1 } = 1 0 0 , \alpha _ { 2 } = 0 )$ environments.
+
+![](images/474e1d985d0020e6b3240651fc4543d01516be47a440f368239a3ce5ad42a260.jpg)  
+Figure 6. Ablation Study on Increased Number of Noise Samples for Value Training. (Left) Performance curves with varying numbers of noise samples. (Right) Runtime comparison with varying numbers of noise samples.
+
+Figure 6 shows that performance does not significantly improve even if we increase the number of noise samples for training the value function. While we observe that the training runtime increases sub-linearly, the added computational cost does not yield proportional performance gains. Consequently, we adopt a single noise sample for training $Q _ { \phi }$ .
+
+# D.3. Sensitivity to κ
+
+We additionally analyze how varying κ affects the final performance of the policy. We present evaluations on OGBench antsoccer-arena-navigate-task1 (α1 = 10, α2 = 0.1) and $\mathtt { p u z z l e - 4 x 4 - p l a y - t a s k 1 } ( \alpha _ { 1 } = 1 0 0 , \alpha _ { 2 } =$ 3), with $\kappa \in \{ 0 . 5 , 0 . 7 , 0 . 9 , 0 . 9 9 \}$ .
+
+![](images/5aa13570c11ce00a34f11f3fa58e8b286decce82ecfad44dc71da91ae638ab2e.jpg)  
+Figure 7. Ablation Study on Sensitivity to $\kappa _ { \ast }$ The black line $( \kappa = 0 . 9 )$ empirically achieves the best average performance.
+
+As shown in Figure 7, setting $\kappa = 0 . 9$ yields the best performance on these two tasks. Performance improves as κ increases from 0.5 to 0.9. However, setting κ too close to $1 \left( \mathrm { e . g . , } \kappa = 0 . 9 9 \mathrm { o r } 1 \right)$ leads to performance degradation. Therefore, we fix $\kappa = 0 . 9$ for all experiments in this work, reducing the hyperparameter search space to only $\alpha _ { 1 }$ and $\alpha _ { 2 }$ .

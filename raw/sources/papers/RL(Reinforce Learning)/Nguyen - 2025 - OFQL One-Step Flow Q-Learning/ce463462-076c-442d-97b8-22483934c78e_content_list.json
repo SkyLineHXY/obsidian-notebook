@@ -1,0 +1,4432 @@
+[
+    {
+        "type": "text",
+        "text": "ONE-STEP FLOW Q-LEARNING: ADDRESSING THE DIF-FUSION POLICY BOTTLENECK IN OFFLINE REINFORCE-MENT LEARNING",
+        "text_level": 1,
+        "bbox": [
+            171,
+            98,
+            831,
+            174
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Thanh Nguyen & Chang D. Yoo ",
+        "bbox": [
+            181,
+            195,
+            410,
+            210
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Department of Electrical Engineering ",
+        "bbox": [
+            183,
+            210,
+            431,
+            223
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Korea Advanced Institute of Science and Technology (KAIST) ",
+        "bbox": [
+            183,
+            223,
+            596,
+            238
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Daejeon, Korea ",
+        "bbox": [
+            183,
+            238,
+            287,
+            251
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "{thanhnguyen,cd yoo}@kaist.ac.kr ",
+        "bbox": [
+            183,
+            251,
+            491,
+            266
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "ABSTRACT ",
+        "text_level": 1,
+        "bbox": [
+            450,
+            301,
+            547,
+            316
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Diffusion Q-Learning (DQL) has established diffusion policies as a highperforming paradigm for offline reinforcement learning, but its reliance on multistep denoising for action generation renders both training and inference slow and fragile. Existing efforts to accelerate DQL toward one-step denoising typically rely on auxiliary modules or policy distillation, sacrificing either simplicity or performance. It remains unclear whether a one-step policy can be trained directly without such trade-offs. To this end, we introduce One-Step Flow Q-Learning (OFQL), a novel framework that enables effective one-step action generation during both training and inference, without auxiliary modules or distillation. OFQL reformulates the DQL policy within the Flow Matching (FM) paradigm but departs from conventional FM by learning an average velocity field that directly supports accurate one-step action generation. This design removes the need for multi-step denoising and backpropagation-through-time updates, resulting in substantially faster and more robust learning. Extensive experiments on the D4RL benchmark show that OFQL, despite generating actions in a single step, not only significantly reduces computation during both training and inference but also outperforms multistep DQL by a large margin. Furthermore, OFQL surpasses all other baselines, achieving state-of-the-art performance in D4RL. ",
+        "bbox": [
+            228,
+            330,
+            769,
+            583
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "1 INTRODUCTION ",
+        "text_level": 1,
+        "bbox": [
+            173,
+            607,
+            336,
+            623
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "In recent years, offline reinforcement learning (Offline RL) has achieved impressive progress through the integration of diffusion models, leading to many high-performance algorithms. A prominent example is Diffusion Q-Learning (DQL) (Wang et al., 2022), which replaces the conventional diagonal Gaussian policy in TD3-BC (Fujimoto & Gu, 2021) with a denoising diffusion probabilistic model (DDPM) (Ho et al., 2020). This approach has demonstrated substantial performance gains and has spurred widespread interest in leveraging generative models for policy learning. Notably, DQL remains competitive and often outperforms many more recent methods in both diffusionbased planning and policy optimization (Lu et al., 2025a; Dong et al., 2024). ",
+        "bbox": [
+            169,
+            638,
+            486,
+            875
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "chart",
+        "img_path": "images/8b5561b64aa95a52bcc52dbefe53679d782aa55a34d6aad32eefb952b7dfe0be.jpg",
+        "content": "| Method   | Decision Frequency (Hz) | Performance |\n| -------- | ----------------------- | ----------- |\n| Ours     | 850                     | 92.5        |\n| FQL      | 950                     | 79.5        |\n| DQL      | 250                     | 88.0        |\n| IDQL     | 200                     | 84.0        |\n| DD       | 50                      | 83.0        |\n| Diffuser | 50                      | 78.0        |",
+        "chart_caption": [
+            "Figure 1: Performance and decision frequency. Performance (i.e., normalized score) and decision frequency are measured on an A100 GPU and averaged across MuJoCo tasks from D4RL. OFQL achieves both high inference speed and strong performance, clearly outperforming prior baselines. "
+        ],
+        "chart_footnote": [],
+        "sub_type": "scatter",
+        "bbox": [
+            500,
+            628,
+            823,
+            785
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Despite its strong empirical results, DQL faces key practical limitations, including high computational demands during training and inference (Kang et al., 2023; Wang et al., 2022), as well as optimization fragility causing reduced performance (Park et al., 2025). Upon closer analysis, we identify that the key bottleneck lies in its use of DDPM diffusion policy (Ho et al., 2020), which involves multiple denoising steps per action, leading to slow inference. Furthermore, the training speed is doubly affected: beyond the diffusion loss, DQL requires two rounds of policy sampling per iteration—one for the current action and another for the next—to compute all loss components. In addition, DQL leverages the reparameterization trick to backpropagate through the entire denoising chain, amplifying computational load and impeding convergence to optimal solutions. These characteristics collectively hinder DQL’s efficiency and robustness. ",
+        "bbox": [
+            169,
+            881,
+            826,
+            926
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            31,
+            480,
+            47
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "aside_text",
+        "text": "arXiv:2508.13904v3 [cs.LG] 24 Feb 2026 ",
+        "bbox": [
+            22,
+            276,
+            58,
+            720
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "page_number",
+        "text": "1 ",
+        "bbox": [
+            493,
+            948,
+            503,
+            959
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            169,
+            103,
+            826,
+            202
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "It is worth noting that several recent approaches have partially addressed these limitations—through improved denoising solvers (Kang et al., 2023), IQL-based learning (Hansen-Estruch et al., 2023), or the use of an auxiliary policy and policy distillation strategies (Park et al., 2025; Chen et al., 2023; 2024; Lu et al., 2025b). Nevertheless, such solutions typically introduce additional complexity, multi-phase training procedures, or undesirable trade-offs in scalability and policy quality. ",
+        "bbox": [
+            169,
+            208,
+            826,
+            279
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Recognizing that the diffusion policy itself is the bottleneck, we adopt a more direct approach by introducing One-Step Flow Q-Learning (OFQL), a novel framework specifically designed to enable effective one-step action generation during both training and inference, without the need for auxiliary models, policy distillation, or multi-stage training. At the heart of OFQL is the elimination of DDPM’s computationally intensive multi-step denoising and associated reparameterization trick. By recasting DQL policy under the Flow Matching (Lipman et al., 2022) paradigm, we facilitate its efficient action sampling. However, conventional Flow Matching frequently yields curved trajectories, limiting one-step inference accuracy—an issue rooted in the intrinsic properties of the marginal velocity field it models. We address this by learning an average velocity field instead, enabling accurate direct action prediction from a single step. As a result, OFQL eliminates the necessity of iterative denoising and recursive gradient propagation, providing a faster, more stable, one-step training-inference pipeline. Extensive empirical evaluations on the D4RL benchmark demonstrate that OFQL not only surpasses DQL in performance but also significantly improves both training and inference efficiency, all while maintaining a simple learning pipeline. Compared to other approaches, OFQL delivers consistently stronger results, establishing it as a fast and state-of-the-art algorithm on D4RL. ",
+        "bbox": [
+            169,
+            285,
+            826,
+            507
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "2 RELATED WORK ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            529,
+            346,
+            544
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Diffusion Models in Offline Reinforcement Learning. Offline RL aims to learn effective policies from fixed datasets without environment interaction (Levine et al., 2020), with early methods addressing distributional shift via conservative objectives—e.g., CQL (Kumar et al., 2020), TD3+BC (Fujimoto & Gu, 2021), and IQL (Kostrikov et al., 2021). However, these approaches often rely on unimodal Gaussian policies, which struggle to model complex, multi-modal action distributions. To address this, recent approaches have adopted diffusion models (Ho et al., 2020; Song et al., 2020b) for offline RL. These models excel in representing complex distributions and have been applied in various forms: as planners for trajectory generation (Janner et al., 2022; Ajay et al., 2022), as expressive policy networks (Wang et al., 2022; Hansen-Estruch et al., 2023), and as data synthesizers to augment training (Zhu et al., 2023). ",
+        "bbox": [
+            169,
+            561,
+            826,
+            702
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Among diffusion-based methods, Diffusion Q-Learning (DQL) (Wang et al., 2022) stands out as a strong baseline, replacing Gaussian policies in TD3+BC with a diffusion model to better capture multimodal actions. Follow-up evaluations, including those by Clean Diffuser (Dong et al., 2024) and recent empirical studies (Lu et al., 2025a;b), confirm DQL’s consistent advantage over policy-based and planner-based methods. Despite its effectiveness, DQL remains significant computational overhead during both training and inference (Kang et al., 2023), and is prone to suboptimal convergence (Park et al., 2025). ",
+        "bbox": [
+            169,
+            708,
+            826,
+            806
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Subsequent works have attempted to mitigate these issues. For instance, early approaches use an efficient solver that reduces the number of denoising steps (Kang et al., 2023). Other approaches bypass backpropagation through time (BPTT) of the DQL policy update by training a diffusion policy to clone the behavior policy, with actions reweighted by a separately learned IQL-based value function (Hansen-Estruch et al., 2023). Others further apply distillation to obtain a one-step policy (Chen et al., 2023; 2024). However, IQL-based methods are generally less effective than actor–critic learning (Park et al., 2025). To address this, (Park et al., 2025) adopts a flow model to clone the behavior policy and distill it into a one-step policy for actor–critic updates. While yielding a one-step inference policy, the distillation process still requires repeated queries to the underlying multi-step diffusion or flow model. Overall, although these methods partially alleviate DQL’s limitations, they introduce additional components and multi-phase training procedures, thereby increasing system complexity and limiting practical generality. Departs from prior work, our method pinpoints the diffusion policy itself as the primary source of inefficiency and instability in DQL. We directly solve it with a highly performant one-step policy alternative that provides a simpler and more robust solution—without relying on auxiliary policies, distillation, or sacrificing policy expressivity. ",
+        "bbox": [
+            169,
+            811,
+            826,
+            925
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "page_number",
+        "text": "",
+        "bbox": [
+            493,
+            948,
+            504,
+            959
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            169,
+            103,
+            826,
+            203
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Efficient One-Step Diffusion. Our work is inspired by advances in efficient generative modeling with diffusion models and flow-based models (Sohl-Dickstein et al., 2015; Ho et al., 2020; Song & Ermon, 2019). To accelerate generation, one line of work focuses on distillation techniques that compress multi-step models into fewer steps (Salimans & Ho, 2022; Sauer et al., 2024; Yin et al., 2024), while another pursues flow matching approaches that learn time-dependent velocity fields for straight-through sampling (Lipman et al., 2022; Liu et al., 2022). Consistency Models (Song et al., 2023) offer another path to one-step generation, but suffer from training instabilities (Song & Dhariwal, 2023; Lu & Song, 2024). More recent methods (Frans et al., 2024; Geng et al., 2025; Zhou et al., 2025) address these limitations by exploiting different physical parametrization using dual time variables, showing improved stability and performance. Leveraging the Mean Flow modeling (Geng et al., 2025), OFQL realizes a one-step flow-based policy while uniquely incorporating the Q-gradient to guide velocity learning, instead of relying solely on supervised learning. ",
+        "bbox": [
+            169,
+            208,
+            826,
+            377
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "3 PRELIMINARIES ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            395,
+            341,
+            411
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "3.1 OFFLINE RL. ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            426,
+            307,
+            440
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Reinforcement learning (RL) is typically formalized as a Markov Decision Process (MDP), defined by $\\mathcal { M } = ( \\mathcal { S } , \\mathcal { A } , P , R , \\gamma )$ . Here, $\\bar { \\boldsymbol { s } }$ and A denote the state and action spaces, $P ( s ^ { \\prime } \\mid s , a )$ denotes the transition probability of moving from s to $s ^ { \\prime }$ given action a, and $R ( s , a )$ denotes the reward function. The discount factor $\\gamma \\in [ 0 , 1 )$ governs the trade-off between immediate and future rewards. In RL, the objective is to learn a policy $\\pi _ { \\boldsymbol { \\theta } } ( \\boldsymbol { a } \\mid \\boldsymbol { s } )$ , parameterized by θ, that maximizes the expected discounted return $\\begin{array} { r } { \\mathbb { E } _ { \\pi } \\left[ \\sum _ { h = 0 } ^ { \\infty } \\gamma ^ { h } R ( s _ { h } , a _ { h } ) \\right] } \\end{array}$ . ",
+        "bbox": [
+            169,
+            452,
+            826,
+            540
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "To support policy learning, the action-value (Q) function is defined: ",
+        "bbox": [
+            169,
+            544,
+            617,
+            559
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "text": "$$\nQ ^ {\\pi} (s, a) = \\mathbb {E} _ {\\pi} \\left[ \\sum_ {h = 0} ^ {\\infty} \\gamma^ {h} R (s _ {h}, a _ {h}) \\mid s _ {0} = s, a _ {0} = a \\right], \\tag {1}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            318,
+            565,
+            825,
+            606
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "which measures the expected cumulative return starting from state s and action a under policy π. ",
+        "bbox": [
+            169,
+            613,
+            807,
+            628
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Offline RL is a setting of RL where the agent does not interact with the environment but instead learns from a fixed dataset of transitions $\\mathcal { D } = \\{ ( s _ { h } , a _ { h } , s _ { h + 1 } , r _ { h } ) \\}$ . The challenge lies in learning an optimal policy solely from this static dataset that often contains suboptimal behavior, without any further exploration. ",
+        "bbox": [
+            169,
+            633,
+            823,
+            691
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "3.2 DIFFUSION Q-LEARNING (DQL) ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            707,
+            442,
+            722
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Modeling Policy as a Diffusion Model. The Denoising Diffusion Probabilistic Model (DDPM) (Ho et al., 2020) is a powerful generative framework that formulates a forward diffusion process as a fixed Markov chain, progressively corrupting data into noise, and learns a parametric reverse process to reconstruct the data. Once trained, DDPM is capable of generating complex data distributions by reversing the diffusion process, starting from pure noise. ",
+        "bbox": [
+            169,
+            732,
+            823,
+            804
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Viewing actions as data, (Wang et al., 2022) formulate the reverse process of a DDPM, conditioned on state s, as a parametric policy πθ: ",
+        "bbox": [
+            169,
+            810,
+            823,
+            839
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\pi_ {\\theta} := p _ {\\theta} \\left(a ^ {0: K} \\mid s\\right) = p (a ^ {K}) \\prod_ {k = 1} ^ {K} p _ {\\theta} \\left(a ^ {k - 1} \\mid a ^ {k}, s\\right), \\tag {2}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            323,
+            845,
+            825,
+            887
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "where $a ^ { K } \\sim \\mathcal { N } ( \\mathbf { 0 } , I )$ and $a ^ { 0 }$ denotes the clean action corresponding to the actual policy output. For training, following DDPM (Ho et al., 2020), DQL parameterizes the Gaussian distribution $p _ { \\theta } ( a ^ { k - 1 } | a ^ { k } , s )$ with the variance fixed as $\\Sigma ( a ^ { k } , k ; s ) = \\beta ^ { k } I$ where the $\\{ \\beta ^ { k } \\} _ { k = 1 } ^ { K }$ are predefined variance schedule values and the mean is defined via a noise prediction model: ",
+        "bbox": [
+            169,
+            893,
+            826,
+            925
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "page_number",
+        "text": "3 ",
+        "bbox": [
+            493,
+            948,
+            503,
+            959
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            169,
+            102,
+            823,
+            133
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\boldsymbol {\\mu} _ {\\theta} (a ^ {k}, k; s) = \\frac {1}{\\sqrt {\\alpha^ {k}}} \\left(a ^ {k} - \\frac {\\beta^ {k}}{\\sqrt {1 - \\bar {\\alpha} ^ {k}}} \\epsilon_ {\\theta} (a ^ {k}, k; s)\\right), \\tag {3}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            320,
+            138,
+            825,
+            172
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "where $\\begin{array} { r } { \\alpha ^ { k } = 1 - \\beta ^ { k } , \\bar { \\alpha } ^ { k } = \\prod _ { i = 1 } ^ { k } \\alpha ^ { i } } \\end{array}$ , and ϵθ is a neural network predicting Gaussian noise. ",
+        "bbox": [
+            169,
+            180,
+            767,
+            199
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "To enforce behavior cloning, the score matching loss can be used as a training objective. Specifically, the model minimizes: ",
+        "bbox": [
+            169,
+            203,
+            826,
+            231
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathcal {L} _ {\\mathrm{DBC}} (\\theta) = \\mathbb {E} _ {k, \\epsilon , (a ^ {0}, s) \\sim \\mathcal {D}} \\left[ \\left\\| \\epsilon - \\epsilon_ {\\theta} \\left(\\sqrt {\\bar {\\alpha} ^ {k}} a ^ {0} + \\sqrt {1 - \\bar {\\alpha} ^ {k}} \\epsilon , k; s\\right) \\right\\| ^ {2} \\right], \\tag {4}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            274,
+            234,
+            825,
+            262
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "where $k \\sim \\mathcal { U } \\{ 1 , \\dots , K \\} , ( a ^ { 0 } , s )$ are sampled from the offline dataset ${ \\mathcal { D } } ,$ and $\\epsilon \\sim \\mathcal { N } ( 0 , I )$ denotes Gaussian noise. ",
+        "bbox": [
+            169,
+            268,
+            823,
+            296
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Once trained, to generate an action $( \\mathrm { i } . \\mathrm { e } . , a ^ { 0 } )$ , the model sequentially samples from K conditional Gaussians, starting from $a ^ { K } \\sim \\mathcal { N } ( \\mathbf { 0 } , \\mathbf { \\bar { \\it { I } } } )$ : ",
+        "bbox": [
+            169,
+            304,
+            823,
+            333
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "text": "$$\na ^ {k - 1} = \\frac {1}{\\sqrt {\\alpha^ {k}}} \\left(a ^ {k} - \\frac {\\beta^ {k}}{\\sqrt {1 - \\bar {\\alpha} ^ {k}}} \\epsilon_ {\\theta} (a ^ {k}, k; s)\\right) + \\sqrt {\\beta^ {k}} \\epsilon , \\tag {5}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            315,
+            339,
+            825,
+            375
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Behavior-regularized actor-critic. To form a complete offline RL algorithm, DQL adopts the behavior-regularized actor–critic framework (Wu et al., 2019; Fujimoto & Gu, 2021), alternating between minimizing the actor and critic losses. ",
+        "bbox": [
+            169,
+            386,
+            823,
+            429
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Specifically, the critic loss, which focuses on training the Q network, is defined as: ",
+        "bbox": [
+            169,
+            436,
+            714,
+            450
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathcal {L} (\\phi) = \\mathbb {E} _ {(s, a, r, s ^ {\\prime}) \\sim \\mathcal {D}, a ^ {\\prime} \\sim \\pi_ {\\theta^ {\\prime}}} \\left[ \\left(r + \\gamma \\min _ {i} Q _ {\\phi_ {i} ^ {\\prime}} (s ^ {\\prime}, a ^ {\\prime}) - Q _ {\\phi_ {i}} (s, a)\\right) ^ {2} \\right], \\tag {6}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            263,
+            455,
+            825,
+            491
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "where $i \\in { 1 , 2 }$ indexes the two Q networks for double Q-learning, and $( \\phi ^ { \\prime } , \\theta ^ { \\prime } )$ denote target network parameters updated via exponential moving average (EMA) (Fujimoto & Gu, 2021). The actor loss, which focuses on learning the policy, is defined as: ",
+        "bbox": [
+            169,
+            496,
+            825,
+            539
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathcal {L} (\\theta) = \\mathcal {L} _ {\\mathrm{DBC}} (\\theta) - \\alpha \\cdot \\mathbb {E} _ {s \\sim \\mathcal {D}, a \\sim \\pi_ {\\theta}} [ Q _ {\\phi} (s, a) ], \\tag {7}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            339,
+            545,
+            825,
+            564
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "where α is the weighting coefficient. To normalize for dataset-specific Q-value scales, α is adapted as $\\begin{array} { r } { \\alpha = \\frac { \\eta } { \\mathbb { E } _ { ( s , a ) \\sim \\mathcal { D } } \\left[ \\left. Q _ { \\phi } ( s , a ) \\right. \\right] } } \\end{array}$ ηE(s,a)∼D[∥Qϕ(s,a)∥] , with η being a tunable hyperparameter. The denominator is treated as a m constant for optimization. ",
+        "bbox": [
+            169,
+            566,
+            823,
+            614
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Despite being implemented with a relatively simple MLP architecture for both the diffusion policy and Q-functions, DQL has demonstrated strong performance across standard offline RL benchmarks such as D4RL (Fu et al., 2020), outperforming many recent diffusion-based policies and planners (Dong et al., 2024; Lu et al., 2025a;b). ",
+        "bbox": [
+            169,
+            619,
+            823,
+            676
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Nevertheless, DQL exhibits two notable limitations: (1) slow training and inference (Kang et al., 2023), and (2) susceptibility to unstable or suboptimal training (Park et al., 2025). ",
+        "bbox": [
+            169,
+            683,
+            826,
+            712
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "4 RATIONALE AND METHODOLOGY ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            732,
+            483,
+            748
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "The slow inference time stems from its reliance on a denoising diffusion process, where actions are sampled through a reverse chain of K Gaussian transitions (Eq. 5). Due to the Markovian nature of the DDPM framework, sampling an action during inference requires the same number of denoising steps K as those used during training. Additionally, a large K is typically necessary to ensure that $a ^ { K ^ { ^ { \\bullet } } }$ approximates an isotropic Gaussian. Reducing K breaks this assumption, often resulting in significant performance degradation. ",
+        "bbox": [
+            169,
+            763,
+            825,
+            848
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "In training, DQL also exhibits compounding inefficiencies. First, the critic loss $( \\operatorname { E q . 6 } )$ requires sampling target actions $a ^ { \\prime } \\sim \\pi _ { \\theta ^ { \\prime } }$ , each of which must be generated via the full K-step denoising, introducing considerable computational overhead. Enforcing one-step action generation, however, can destabilize training due to diffusion sampling errors. Second, the actor loss (Eq. 7) requires sampling actions from $\\pi _ { \\theta }$ and performing backpropagation through all K denoising steps (i.e., BPTT) ",
+        "bbox": [
+            169,
+            854,
+            826,
+            925
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "page_number",
+        "text": "4 ",
+        "bbox": [
+            493,
+            948,
+            504,
+            959
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "image",
+        "img_path": "images/a5d520764ec12c6950539e568432617c92ab94fa09279164ebab670fbcfd4eea.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "content": "```mermaid\ngraph TD\n    A[\"Input Layer\"] --> B[\"Hidden Layer\"]\n    B --> C[\"Output Layer\"]\n    style A fill:#90EE90,stroke:#333\n    style B fill:#66CCFF,stroke:#333\n    style C fill:#FFD700,stroke:#333\n    subgraph Input Layer\n        A1[\"Green Node\"]\n        A2[\"Blue Node\"]\n    end\n    subgraph Hidden Layer\n        B1[\"Green Node\"]\n        B2[\"Blue Node\"]\n    end\n    subgraph Output Layer\n        C1[\"Green Node\"]\n        C2[\"Blue Node\"]\n    end\n    A1 --> C1\n    A2 --> C2\n    B1 --> C1\n    B2 --> C2\n    C1 --> D[\"Output Layer\"]\n    C2 --> D\n    style A1 fill:#90EE90,stroke:#333\n    style B1 fill:#66CCFF,stroke:#333\n    style C1 fill:#FFD700,stroke:#333\n    style C2 fill:#FFD700,stroke:#333\n```",
+        "sub_type": "flowchart",
+        "bbox": [
+            176,
+            66,
+            302,
+            188
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "image",
+        "img_path": "images/0ccf6e64462d3e8279409e364118a5b4887c81d0e63d863a214bac0c03d8d0e6.jpg",
+        "image_caption": [
+            "(b) "
+        ],
+        "image_footnote": [],
+        "content": "Abstract diagram with curved lines and a blue arrow, no text or symbols present",
+        "sub_type": "natural_image",
+        "bbox": [
+            313,
+            66,
+            454,
+            170
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "image",
+        "img_path": "images/4f197a218281b90a1e20c0b50ad42812b2ad90675f9f5b600ed2fb8a1eb0d392.jpg",
+        "image_caption": [
+            "(c) "
+        ],
+        "image_footnote": [],
+        "content": "```mermaid\ngraph TD\n    A[\"Start\"] --> B{Flow Path}\n    B --> C[\"Red Arrow\"]\n    B --> D[\"Blue Arrow\"]\n    C --> E[\"Green Gradient Area\"]\n    D --> E\n    E --> F[\"End\"]\n```",
+        "sub_type": "flowchart",
+        "bbox": [
+            460,
+            66,
+            638,
+            172
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "image",
+        "img_path": "images/2e963c098b1377e9be1845b922ce5c106098b78150afb8ca1efca973a8ee4180.jpg",
+        "image_caption": [
+            "(d) "
+        ],
+        "image_footnote": [],
+        "content": "Diffusion Path",
+        "sub_type": "text_image",
+        "bbox": [
+            643,
+            68,
+            820,
+            172
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "image",
+        "img_path": "images/636290ccef3e535984439861a85e45081074750e09e23434a2bd72aabe91995b.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "content": "",
+        "bbox": [
+            279,
+            193,
+            403,
+            208
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "image",
+        "img_path": "images/7ea9c17cde9d627cea445da55aa800cd94cbc1ebb1787b5868a4ef2a724cd377.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "content": "",
+        "bbox": [
+            421,
+            193,
+            540,
+            208
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "image",
+        "img_path": "images/dbbcf9b0808f54c3e62a898e40d570952b8d72628ae4ad273517b22c6eaed2f5.jpg",
+        "image_caption": [
+            "Figure 2: Comparison between diffusion and flow matching. (a) Conditional flows arise from different (ϵ, x) pairs, resulting in varying conditional velocities. (b) Marginal velocity is obtained by averaging over these conditional velocities. (c) Flow paths are inherently curved, but average velocity fields enable direct one-step transport from noise to data. (d) Diffusion paths are also curved but noisy, making one-step denoising challenging. Note that all the velocities exhibit symmetry under time reversal. As the model is trained to parameterize the forward flow (from data to noise), inference inverts this direction to generate samples. Accordingly, for clarity, we plot the negative velocity vector to represent the reverse generation trajectory. "
+        ],
+        "image_footnote": [],
+        "content": "",
+        "bbox": [
+            560,
+            193,
+            684,
+            208
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "using the reparameterization trick (Eq. 5). Although this enables end-to-end training, the recursive gradient flow through a long stochastic computation graph is well-known to be prone to numerical instability and can potentially lead to suboptimal outcomes (Chen et al., 2023; Park et al., 2025). ",
+        "bbox": [
+            169,
+            359,
+            823,
+            402
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "At first glance, diffusion policy sampling appears to be the bottleneck, but resolving DQL’s limitations is far from straightforward. For example, using an efficient solver, e.g., the DDIM solver (Song et al., 2020a), could reduce denoising steps, yet in our experiments, applying DDIM for one-step action generation severely degraded policy performance. Similarly, replacing diffusion with consistency models, such as Consistency-AC (Ding & Jin, 2023), still requires multiple denoising steps and yields lower performance. The most effective one-step approaches are distillation-based methods (Park et al., 2025; Chen et al., 2024; 2023; Lu et al., 2025b), which accelerate inference through student policies but incur an additional training phase or shift the inefficiencies to the distillation stage. This raises a natural question: Can we design a one-step policy that directly eliminates inefficiencies in both training and inference? ",
+        "bbox": [
+            169,
+            407,
+            826,
+            547
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Designing One-Step Policy. Diffusion models generate samples through stochastic and often curved trajectories, which makes one-step sampling challenging. Flow Matching (FM) (Lipman et al., 2022) offers a principled alternative by mapping noise directly to data along smoother, more direct paths (Liu et al., 2022), as illustrated in Figure 4 (c,d). Modeling the policy via flow matching can potentially improve both efficiency and stability. Let us model the policy as a variant of flow matching based on linear paths and uniform time sampling. Given data $a , s \\sim \\mathcal { D }$ and noise $\\epsilon \\sim \\mathcal { N } ( 0 , I )$ , FM defines a linear flow path $a _ { t }$ and conditional velocity $v _ { t } ( a _ { t } | a ; s )$ for a particular s as : ",
+        "bbox": [
+            169,
+            561,
+            823,
+            660
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "equation",
+        "text": "$$\na _ {t} = (1 - t) a + t \\epsilon , \\quad v _ {t} = \\frac {d a _ {t}}{d t} = \\epsilon - a, \\quad \\text { where } \\quad t \\in [ 0, 1 ] \\tag {8}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            292,
+            667,
+            825,
+            696
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Note that by formulation, $a \\equiv a _ { 0 }$ , and we use a without a subscript to denote the clean action for simplicity. ",
+        "bbox": [
+            169,
+            708,
+            823,
+            737
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "FM essentially learns the marginal velocity, parametrized by the neural network $v _ { \\theta } ( a _ { t } , t ; s )$ , using the Conditional Flow Matching loss: ",
+        "bbox": [
+            169,
+            743,
+            823,
+            771
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathcal {L} _ {\\mathrm{CFM}} (\\theta) = \\mathbb {E} _ {t \\sim U [ 0, 1 ], (a, s) \\sim \\mathcal {D}, \\epsilon} \\| v _ {\\theta} (a _ {t}, t; s) - v _ {t} (a _ {t} \\mid a; s) \\| ^ {2}. \\tag {9}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            290,
+            777,
+            825,
+            797
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Once trained, sampling an action for a state s proceeds by solving the ODE dat = $\\begin{array} { r l } { \\frac { d a _ { t } } { d t } } & { { } = } \\end{array}$ $v ( a _ { t } , t ; s )$ , starting from $a _ { 1 } \\equiv \\epsilon \\sim \\mathcal { N } ( \\mathbf { 0 } , I )$ , approximated using a solver such as Euler’s method: $\\begin{array} { r } { a _ { t - \\Delta t } = a _ { t } - \\Delta t \\cdot v ( a _ { t } , t ; s ) } \\end{array}$ . ",
+        "bbox": [
+            169,
+            804,
+            825,
+            848
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Intuitively, since flows are designed so that the overall transport trajectory becomes approximately straight (Liu et al., 2022), one might expect that modeling the policy via Flow Matching could support one-step generation by setting $\\Delta t = 1$ . However, in practice, the sampling trajectory is straight only when the target distribution collapses to a delta distribution or when rectification or similar techniques are explicitly applied. Without such conditions, the marginal velocity field typically induces a curved overall trajectory, preventing reliable one-step action generation. Importantly, the curvature is not simply a consequence of imperfect neural approximation, but rather an inherent property of the ground-truth marginal velocity field. This phenomenon is illustrated in Figure ${ 2 \\left( { { \\mathrm { a } } , { \\mathrm { b } } , { \\mathrm { c } } } \\right) }$ . ",
+        "bbox": [
+            169,
+            854,
+            825,
+            925
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            173,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "page_number",
+        "text": "5 ",
+        "bbox": [
+            493,
+            948,
+            503,
+            959
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            169,
+            103,
+            823,
+            148
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "To enable high-quality one-step generation, we reinterpret the velocity field $v ( a _ { t } , t ; s )$ in Flow Matching as the instantaneous velocity, and instead propose to model the average velocity, which directly connects any two arbitrary time steps. Specifically, we define the average velocity over an interval [r, t] as: ",
+        "bbox": [
+            169,
+            152,
+            823,
+            208
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "$$\nu (a _ {t}, r, t; s) \\triangleq \\frac {1}{t - r} \\int_ {r} ^ {t} v (a _ {\\tau}, \\tau ; s) d \\tau , \\tag {10}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            366,
+            208,
+            825,
+            242
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "representing the total displacement across the interval divided by its duration. Here, r and t denote the target and current times, respectively, with the constraint $0 \\leq r \\leq t \\leq 1$ . ",
+        "bbox": [
+            169,
+            243,
+            823,
+            273
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "In general, the average velocity is a functional of the instantaneous velocity, $i . e . , u = \\mathcal { F } [ v ]$ . This field u is fully determined by the instantaneous velocity field v and is independent of any neural network. We therefore treat u as the ground-truth average velocity field and train a neural network $u _ { \\theta }$ to approximate it using a loss, referred to as the Average-Velocity Matching loss: ",
+        "bbox": [
+            169,
+            279,
+            825,
+            335
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathcal {L} _ {\\mathrm{FBC} ^ {*}} (\\theta) = \\mathbb {E} _ {0 \\leq r \\leq t \\leq 1; s, \\epsilon} \\left[ \\left\\| u _ {\\theta} (a _ {t}, r, t; s) - u (a _ {t}, r, t; s) \\right\\| ^ {2} \\right]. \\tag {11}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            292,
+            340,
+            825,
+            367
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Once $u _ { \\theta }$ is learned, actions can be generated in a single step through the approximate endpoint map ",
+        "bbox": [
+            169,
+            378,
+            823,
+            395
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "$$\na = T _ {\\theta} (\\epsilon , s) = \\epsilon - u _ {\\theta} (\\epsilon , r = 0, t = 1; s), \\quad \\epsilon \\sim \\mathcal {N} (0, I), \\tag {12}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            305,
+            400,
+            825,
+            417
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "which eliminates the iterative ODE integration required by standard Flow Matching. This avoids both the computational overhead and the discretization error associated with numerical ODE solvers. A formal justification for why this one-step procedure preserves the FM action accuracy is provided in Appendix G. ",
+        "bbox": [
+            169,
+            422,
+            823,
+            479
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "As a result, the learned policy $\\pi _ { \\theta } ( a \\mid s )$ is the push-forward of the Gaussian prior through the approximate endpoint map: ",
+        "bbox": [
+            169,
+            484,
+            823,
+            513
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\pi_ {\\theta} = (T _ {\\theta}) _ {\\#} \\mathcal {N} (0, I).\n$$",
+        "text_format": "latex",
+        "bbox": [
+            426,
+            513,
+            568,
+            529
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Moreover, when used as a regularizer, optimizing the average-velocity matching loss ${ \\mathcal { L } } _ { \\mathrm { F B C } ^ { \\star } } ( \\theta )$ encourages the learned one-step policy $\\pi _ { \\theta } ( \\cdot \\mid s )$ to remain close to the behavior policy $\\textstyle \\mu ( \\cdot \\mid s )$ , effectively performing behavior cloning. Importantly, this behavior cloning still preserves the ability to model complex, multimodal action distributions through the nonlinear transport map inherited from Flow Matching (see Appendix H for a formal justification). ",
+        "bbox": [
+            169,
+            539,
+            825,
+            609
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Practical Loss. In practice, computing u from its definition requires integration, which is computationally intractable for optimization. To address this, we adopt an equivalent reformulation based on the MeanFlow Identity (Geng et al., 2025): ",
+        "bbox": [
+            169,
+            614,
+            826,
+            657
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "$$\nu (a _ {t}, r, t; s) = v (a _ {t}, t; s) - (t - r) \\frac {d}{d t} u (a _ {t}, r, t; s), \\tag {13}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            328,
+            664,
+            825,
+            694
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "where the total derivative expands as $\\begin{array} { r } { \\frac { d } { d t } u ( a _ { t } , r , t ; s ) = v ( a _ { t } , t ; s ) \\cdot \\partial _ { a _ { t } } u + \\partial _ { t } u } \\end{array}$ . The computation of the derivative also remains efficient by leveraging Jacobian–vector products. Notably, when $t = r ,$ the target u reduces to the instantaneous velocity. ",
+        "bbox": [
+            169,
+            700,
+            826,
+            743
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Equation 13 is mathematically equivalent to Eq. 10 (the detailed derivation is provided in Appendix O). We therefore use the Eq. 13 to compute the average velocity $u _ { \\mathrm { t g t } }$ , avoiding explicit integration in Eq. 10. The resulting field can be fitted by a neural network using the following loss: ",
+        "bbox": [
+            169,
+            750,
+            826,
+            792
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathcal {L} _ {\\mathrm{FBC}} (\\theta) = \\mathbb {E} _ {t, r, r \\leq t, (a, s) \\sim \\mathcal {D}, \\epsilon} \\| u _ {\\theta} (a _ {t}, r, t; s) - \\operatorname{sg} (u _ {\\mathrm{tgt}}) \\| _ {2} ^ {2}. \\tag {14}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            305,
+            797,
+            825,
+            818
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "In this loss, $a _ { t } = ( 1 - t ) a + t \\epsilon$ . The $v ( a _ { t } , t ; s )$ in Eq. 13 is additionally replaced with the conditional velocity $v _ { t }$ , following FM, to approximate the instantaneous velocity on the fly during training. Consequently, the target velocity is defined as: ",
+        "bbox": [
+            169,
+            823,
+            825,
+            866
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "$$\nu _ {\\mathrm{tgt}} = v _ {t} - (t - r) \\left(v _ {t} \\cdot \\partial_ {a _ {t}} u _ {\\theta} + \\partial_ {t} u _ {\\theta}\\right), \\tag {15}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            364,
+            872,
+            825,
+            890
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "where $v _ { t } = \\epsilon - a$ . The operator $\\operatorname { s g } ( \\cdot )$ denotes stop-gradient, preventing higher-order gradients on the target during optimization. ",
+        "bbox": [
+            169,
+            895,
+            823,
+            925
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "page_number",
+        "text": "6 ",
+        "bbox": [
+            493,
+            948,
+            504,
+            959
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "One-step Flow Q-Learning. To form OFQL, we model the policy with the average velocity parameterization $u _ { \\theta } .$ Its behavior regularization loss is ${ \\mathcal { L } } _ { \\mathrm { F B C } } ( \\theta )$ , defined in Eq. 14. In addition, since the target average velocity is computed based on the estimate of the instantaneous velocity (Eq. 13), accurate estimation of the instantaneous velocity is crucial for effective average-velocity learning. To encourage this, when sampling $( t , r )$ we enforce a certain flow ratio λ, i.e., the probability that $t = r$ . This design biases training toward learning the instantaneous velocity, while still allowing regression to the average velocity, improving the bootstrapping. ",
+        "bbox": [
+            169,
+            103,
+            826,
+            203
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Given the policy $u _ { \\theta } ,$ sampling an action becomes a differentiable one-step operation: ",
+        "bbox": [
+            171,
+            208,
+            732,
+            223
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "equation",
+        "text": "$$\na \\sim \\pi_ {\\theta} (\\cdot | s) \\quad \\Leftrightarrow \\quad a = \\epsilon - u _ {\\theta} (\\epsilon , r = 0, t = 1; s), \\quad \\text { where } \\quad \\epsilon \\sim \\mathcal {N} (0, I) \\tag {16}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            243,
+            226,
+            825,
+            242
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "The critic and actor losses are updated as: ",
+        "bbox": [
+            171,
+            253,
+            449,
+            268
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathcal {L} (\\phi) = \\mathbb {E} _ {(s, a, r, s ^ {\\prime}) \\sim \\mathcal {D}, a ^ {\\prime} \\sim \\pi_ {\\theta^ {\\prime}}} \\left[ \\left(r + \\gamma \\min _ {i \\in \\{1, 2 \\}} Q _ {\\phi_ {i} ^ {\\prime}} (s ^ {\\prime}, a ^ {\\prime}) - Q _ {\\phi_ {i}} (s, a)\\right) ^ {2} \\right], \\tag {17}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            259,
+            272,
+            825,
+            304
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathcal {L} (\\theta) = \\mathcal {L} _ {\\mathrm{FBC}} (\\theta) - \\alpha \\mathbb {E} _ {s \\sim \\mathcal {D}, a \\sim \\pi_ {\\theta}} \\big [ Q _ {\\phi} (s, a) \\big ].\n$$",
+        "text_format": "latex",
+        "bbox": [
+            264,
+            305,
+            566,
+            323
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "With the new one-step policy, the main modification from DQL losses is that the behavior regularization term and action sampling require only a single step. ",
+        "bbox": [
+            169,
+            325,
+            826,
+            356
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "5 EXPERIMENT SETTING ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            368,
+            397,
+            383
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Benchmarks. We evaluate OFQL on a diverse set of tasks from the D4RL benchmark suite (Fu et al., 2020), a widely adopted standard for offline reinforcement learning. Our evaluation spans various domains, including locomotion, navigation and manipulation tasks to demonstrate the method’s generalizability. Detailed task descriptions and experimental protocols are provided in Appendix A. ",
+        "bbox": [
+            169,
+            398,
+            826,
+            455
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Baselines. To rigorously assess OFQL’s performance, we compare it against a broad spectrum of representative baselines, categorized as follows: (1) Non-Diffusion policies: Behavior Cloning (BC), TD3-BC (Fujimoto & Gu, 2021), and IQL (Kostrikov et al., 2021); (2) Diffusion-based planners: Diffuser (Janner et al., 2022), Decision Diffuser (DD) (Ajay et al., 2022); (3) Multi-step Diffusionbased policies: IDQL (Hansen-Estruch et al., 2023), DQL (Wang et al., 2022), and EDP (Kang et al., 2023); and (4) One-step Flow policies: FQL (Park et al., 2025) ",
+        "bbox": [
+            169,
+            460,
+            826,
+            546
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Implementation Details. Our approach builds directly on DQL (Wang et al., 2022), inheriting its training and inference procedures to ensure a fair comparison. We adopt the original DQL architecture for both the Q-function and policy networks. The only minor modification lies in the policy input, which is augmented by concatenating an additional positional embedding corresponding to the target step r, in addition to the standard timestep embedding t. For timestep sampling, the t and r are sampled from a logit-normal distribution (Esser et al., 2024) with parameters (−0.4, 1.0). The main hyperparameters are the flow ratio and η. Unless otherwise specified, we set the flow ratio to 0.5 and tune η via grid search over {0.001,0.01,0.1,0.3,0.5}. We adopt the Adam optimizer with a learning rate of $3 \\times 1 0 ^ { - 4 }$ . We ensure reliability by reporting OFQL results as the average D4RL normalized score (Fu et al., 2020), computed over three training seeds, with each model evaluated on 150 episodes per task. Other hyperparameters remain consistent with DQL. Additional implementation details are provided in Appendix B. ",
+        "bbox": [
+            169,
+            551,
+            826,
+            720
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "6 EXPERIMENTAL RESULT ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            733,
+            408,
+            748
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Benchmark results are summarized in Table 1, with details discussed below. ",
+        "bbox": [
+            171,
+            763,
+            671,
+            777
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Locomotion Domain (MuJoCo). OFQL achieves strong performance in locomotion tasks, surpassing competitive diffusion-based baselines such as DQL, DD . In particular, OFQL improves the average performance of DQL from 87.9 to 92.5, with notable gains on medium and medium-replay tasks, which are known to contain suboptimal and noisy trajectories. These tasks often induce complex, multi-modal action distributions that challenge standard policy learning, making expressive action modeling and stable value learning essential. The observed improvements may be attributed to two key aspects of OFQL: (1) its policy modeling remains expressive for capturing complex action distributions, and (2) the avoidance of BPTT in Q-learning, which may yield more stable value estimation, leading to better convergence. Together, these factors provide a plausible explanation for OFQL’s consistent performance gains. ",
+        "bbox": [
+            169,
+            784,
+            826,
+            925
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "page_number",
+        "text": "7 ",
+        "bbox": [
+            493,
+            948,
+            504,
+            959
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "table",
+        "img_path": "images/a70f866bdfed24de3829cb792fc384f43c397e976cb753c2a9bf09104d97f6db.jpg",
+        "table_caption": [
+            "Table 1: Comparison of normalized scores on D4RL benchmark across MuJoCo, Kitchen, and AntMaze domains. Bold values indicate the best performance per row. "
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td></td><td colspan=\"3\">Non-Diffusion Policies</td><td colspan=\"2\">Diffusion Planners</td><td colspan=\"3\">Multi-step Diffusion Policies</td><td colspan=\"2\">One-step Flow Policies</td></tr><tr><td>Dataset</td><td>BC</td><td>TD3-BC</td><td>IQL</td><td>Diffuser</td><td>DD</td><td>EDP</td><td>IDQL</td><td>DQL</td><td>FQL</td><td>OFQL (Ours)</td></tr><tr><td>HalfCheetah-Medium-Expert</td><td>55.2</td><td>90.7</td><td>86.7</td><td> $90.3 \\pm 0.1$ </td><td> $88.9 \\pm 1.9$ </td><td> $95.8 \\pm 0.1$ </td><td> $91.3 \\pm 0.6$ </td><td> $96.8 \\pm 0.3$ </td><td> $99.8 \\pm 0.1$ </td><td> $95.2 \\pm 0.4$ </td></tr><tr><td>Hopper-Medium-Expert</td><td>52.5</td><td>98.0</td><td>91.5</td><td> $107.2 \\pm 0.9$ </td><td> $110.4 \\pm 0.6$ </td><td> $110.8 \\pm 0.4$ </td><td> $110.1 \\pm 0.7$ </td><td> $111.1 \\pm 1.3$ </td><td> $86.2 \\pm 1.3$ </td><td> $110.2 \\pm 1.3$ </td></tr><tr><td>Walker2d-Medium-Expert</td><td>107.5</td><td>110.1</td><td>109.6</td><td> $107.4 \\pm 0.1$ </td><td> $108.4 \\pm 0.1$ </td><td> $110.4 \\pm 0.0$ </td><td> $110.6 \\pm 0.0$ </td><td> $110.1 \\pm 0.3$ </td><td> $100.5 \\pm 0.1$ </td><td> $113.0 \\pm 0.1$ </td></tr><tr><td>HalfCheetah-Medium</td><td>42.6</td><td>48.3</td><td>47.4</td><td> $43.8 \\pm 0.1$ </td><td> $45.3 \\pm 0.3$ </td><td> $50.8 \\pm 0.0$ </td><td> $51.5 \\pm 0.1$ </td><td> $51.1 \\pm 0.5$ </td><td> $60.1 \\pm 0.1$ </td><td> $63.8 \\pm 0.1$ </td></tr><tr><td>Hopper-Medium</td><td>52.9</td><td>59.3</td><td>66.3</td><td> $89.5 \\pm 0.7$ </td><td> $98.2 \\pm 0.1$ </td><td> $72.6 \\pm 0.2$ </td><td> $70.1 \\pm 2.0$ </td><td> $90.5 \\pm 4.6$ </td><td> $74.5 \\pm 0.2$ </td><td> $103.6 \\pm 0.1$ </td></tr><tr><td>Walker2d-Medium</td><td>75.3</td><td>83.7</td><td>78.3</td><td> $79.4 \\pm 1.0$ </td><td> $79.6 \\pm 0.9$ </td><td> $86.5 \\pm 0.2$ </td><td> $88.1 \\pm 0.4$ </td><td> $87.0 \\pm 0.9$ </td><td> $72.7 \\pm 0.8$ </td><td> $87.4 \\pm 0.1$ </td></tr><tr><td>HalfCheetah-Medium-Replay</td><td>36.6</td><td>44.6</td><td>44.2</td><td> $36.0 \\pm 0.7$ </td><td> $42.9 \\pm 0.1$ </td><td> $44.9 \\pm 0.4$ </td><td> $46.5 \\pm 0.3$ </td><td> $47.8 \\pm 0.3$ </td><td> $51.1 \\pm 0.1$ </td><td> $51.2 \\pm 0.1$ </td></tr><tr><td>Hopper-Medium-Replay</td><td>18.1</td><td>60.9</td><td>94.7</td><td> $91.8 \\pm 0.5$ </td><td> $99.2 \\pm 0.2$ </td><td> $83.0 \\pm 1.7$ </td><td> $99.4 \\pm 0.1$ </td><td> $101.3 \\pm 0.6$ </td><td> $85.4 \\pm 0.5$ </td><td> $101.9 \\pm 0.7$ </td></tr><tr><td>Walker2d-Medium-Replay</td><td>26.0</td><td>81.8</td><td>73.9</td><td> $58.3 \\pm 1.8$ </td><td> $75.6 \\pm 0.6$ </td><td> $87.0 \\pm 2.6$ </td><td> $89.1 \\pm 2.4$ </td><td> $95.5 \\pm 1.5$ </td><td> $82.1 \\pm 1.2$ </td><td> $106.2 \\pm 0.6$ </td></tr><tr><td>Average (MuJoCo)</td><td>51.9</td><td>75.3</td><td>77.0</td><td>78.2</td><td>83.2</td><td>82.4</td><td>84.1</td><td>87.9</td><td>79.2</td><td>92.5</td></tr><tr><td>AntMaze-Medium-Play</td><td>0.0</td><td>10.6</td><td>71.2</td><td> $6.7 \\pm 5.7$ </td><td> $8.0 \\pm 4.3$ </td><td> $73.3 \\pm 6.2$ </td><td> $67.3 \\pm 5.7$ </td><td> $76.6 \\pm 10.8$ </td><td> $78.0 \\pm 7.0$ </td><td> $88.1 \\pm 5.0$ </td></tr><tr><td>AntMaze-Large-Play</td><td>0.0</td><td>0.2</td><td>39.6</td><td> $17.3 \\pm 1.9$ </td><td> $0.0 \\pm 0.0$ </td><td> $33.3 \\pm 1.9$ </td><td> $48.7 \\pm 4.7$ </td><td> $46.4 \\pm 8.3$ </td><td> $84.0 \\pm 7.0$ </td><td> $84.0 \\pm 6.1$ </td></tr><tr><td>AntMaze-Medium-Diverse</td><td>0.8</td><td>3.0</td><td>70.0</td><td> $2.0 \\pm 1.6$ </td><td> $4.0 \\pm 2.8$ </td><td> $52.7 \\pm 1.9$ </td><td> $83.3 \\pm 5.0$ </td><td> $78.6 \\pm 10.3$ </td><td> $71.0 \\pm 13.0$ </td><td> $90.2 \\pm 4.2$ </td></tr><tr><td>AntMaze-Large-Diverse</td><td>0.0</td><td>0.0</td><td>47.5</td><td> $27.3 \\pm 2.4$ </td><td> $0.0 \\pm 0.0$ </td><td> $41.3 \\pm 3.4$ </td><td> $40.0 \\pm 11.4$ </td><td> $56.6 \\pm 7.6$ </td><td> $83.0 \\pm 4.0$ </td><td> $76.1 \\pm 6.6$ </td></tr><tr><td>Average (AntMaze)</td><td>0.2</td><td>3.5</td><td>57.1</td><td>13.3</td><td>3.0</td><td>50.2</td><td>59.8</td><td>64.6</td><td>79.0</td><td>84.6</td></tr><tr><td>Kitchen-Mixed</td><td>51.5</td><td>0.0</td><td>51.0</td><td> $52.5 \\pm 2.5$ </td><td> $75.0 \\pm 0.0$ </td><td> $50.2 \\pm 1.8$ </td><td> $60.5 \\pm 4.1$ </td><td> $62.6 \\pm 5.1$ </td><td> $50.5 \\pm 1.6$ </td><td> $69.0 \\pm 1.5$ </td></tr><tr><td>Kitchen-Partial</td><td>38.0</td><td>0.0</td><td>46.3</td><td> $55.7 \\pm 1.3$ </td><td> $56.5 \\pm 5.8$ </td><td> $40.8 \\pm 1.5$ </td><td> $66.7 \\pm 2.5$ </td><td> $60.5 \\pm 6.9$ </td><td> $55.7 \\pm 2.5$ </td><td> $65.0 \\pm 2.3$ </td></tr><tr><td>Average (Kitchen)</td><td>44.8</td><td>0.0</td><td>48.7</td><td>54.1</td><td>65.8</td><td>45.5</td><td>66.6</td><td>61.6</td><td>53.1</td><td>67.0</td></tr></table>",
+        "bbox": [
+            174,
+            101,
+            823,
+            321
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "Compared to other acceleration approaches, although EDP and IDQL enhance efficiency and stability, they do so at the expense of reducing final performance relative to DQL, whereas OFQL achieves improvements. When compared with one-step FQL (based on distillation), OFQL surpasses it by a significant margin (+13.3). Overall, OFQL offers a superior combination of efficiency and effectiveness, with consistent gains across varying data regimes. ",
+        "bbox": [
+            169,
+            376,
+            826,
+            446
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "AntMaze Domain. AntMaze tasks are particularly challenging due to sparse rewards and suboptimal demonstrations, requiring accurate and stable Q-value guidance to perform well. Prior approaches (e.g., BC and Diffuser) struggle without Q-learning, whereas methods incorporating Q-learning signals (e.g., IDQL and DQL) achieve consistently better results. ",
+        "bbox": [
+            169,
+            452,
+            823,
+            508
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "Building on the Q-learning framework, while EDP and IDQL underperform relative to DQL, OFQL achieves a substantial improvement over DQL, raising performance from 64.6 to 84.6 and outperforming all diffusion-based baselines and the one-step FQL. Notably, FQL, which employs a one-step policy for actor–critic training, improves upon DQL from 64.6 to 79.0. We assume Q-learning is crucial in this domain, and that OFQL and FQL may benefit from avoiding BPTT. ",
+        "bbox": [
+            169,
+            515,
+            826,
+            585
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "Kitchen Domain. . The Kitchen datasets contain low-entropy, narrowly distributed behaviors (Dong et al., 2024), where action modeling plays a larger role than Q-learning. OFQL surpasses DQL (61.6 → 67.0), achieving the strongest performance across methods. Although IDQL proves competitive, FQL drops to 53.1, likely because its one-step policy lacks sufficient expressivity. Remarkably, OFQL’s one-step formulation does not suffer this drawback, instead preserving expressivity while achieving state-of-the-art results. ",
+        "bbox": [
+            169,
+            592,
+            828,
+            676
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "7 ABLATION STUDY ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            699,
+            359,
+            714
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "table",
+        "img_path": "images/1adaefe12ed78cb6567838b5fb1a2057fafd5d6606790f4d1a3eed40309bece6.jpg",
+        "table_caption": [
+            "Table 2: Comparison of methods (steps) using different improvement strategies toward one-step action generation across 9 MuJoCo tasks. The average normalized score is reported. "
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Method (Steps)</td><td>DQL (5)</td><td>DQL+DDIM (1)</td><td>FBRAC (1)</td><td>FQL (1)</td><td>OFQL (1)</td></tr><tr><td>Score</td><td>87.9</td><td>11.6 (-76.3)</td><td>67.1 (-20.8)</td><td>79.2 (-8.7)</td><td>92.6 (+4.7)</td></tr></table>",
+        "bbox": [
+            215,
+            724,
+            782,
+            768
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "Comparison of Strategies Toward One-Step Prediction. To investigate how to effectively adapt DQL for one-step prediction, we evaluate the following strategies: (1) DQL: The base model, trained and evaluated with 5 denoising steps. (2) DQL+DDIM: A pretrained DQL model with a one-step DDIM sampler applied only at inference time. (3) FBRAC: The flow policy-based counterpart of DQL, trained with 5 denoising steps for actor–critic updates but using a single step at inference. (4) FQL: Learns a behavioral policy with a flow model, then distills it into a one-step policy for actor–critic training and inference. (5) OFQL: Trained and evaluated entirely in the one-step regime. ",
+        "bbox": [
+            169,
+            825,
+            828,
+            926
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            173,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "page_number",
+        "text": "8 ",
+        "bbox": [
+            493,
+            948,
+            504,
+            959
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "Table 2 reports the average performance across 9 MuJoCo tasks. DQL+DDIM shows severe degradation (−76.3), suggesting that direct application of improved samplers for one-step inference is ineffective. FBRAC performs better (−20.8), but still lags behind DQL, likely due to the discretization error introduced when performing one-step prediction with curved trajectories. FQL further narrows the gap (−8.7) by distilling a one-step policy from a multi-step flow model. In contrast, OFQL achieves the best results, exceeding DQL by (+4.7) while consistently supporting one-step sampling in both training and inference. ",
+        "bbox": [
+            169,
+            103,
+            826,
+            202
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "chart",
+        "img_path": "images/948df9f5e2fbb1643dd932bab7449ad977f4430a2a068192dbfd5368c2e67cfd.jpg",
+        "content": "| Diffusion/Flow NFE Steps | OFQL (Training Time in hours) | DQL (Training Time in hours) | FQL (Training Time in hours) |\n| :--- | :--- | :--- | :--- |\n| 1 | 6.3 | | |\n| 5 | 11.7 | 7.9 | |\n| 10 | 16.1 | 8.5 | |\n| 20 | 24.8 | 9.3 | |\n| 50 | 49.5 | 13.5 | |",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "sub_type": "bar",
+        "bbox": [
+            176,
+            214,
+            485,
+            339
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "chart",
+        "img_path": "images/92d504a532328204279035c5c51797e7b536187b12dcf0846bf2131a5af4f310.jpg",
+        "content": "| Diffusion/Flow NFE Steps | OFQL   | FQL    | DQL    |\n| ------------------------ | ------ | ------ | ------ |\n| 1                        | 846.5  | 929.6  |        |\n| 5                        |        |        | 238.7  |\n| 10                       |        |        | 150.1  |\n| 20                       |        |        | 75.2   |\n| 50                       |        |        | 35.5   |",
+        "chart_caption": [
+            "Figure 3: Training Time (↓) and Decision Frequency (↑) over one million steps, averaged on MuJoCo tasks. NFE (Number of Function Evaluations) denotes the denoising steps required by a flow/diffusion model to generate one action from pure noise. During training and inference, OFQL uses only one NFE, while DQL requires multiple ones. It is worth noting that for inference, FQL runs with a one-step policy, but training still relies on a multi-step flow policy to construct distillation targets. "
+        ],
+        "chart_footnote": [],
+        "sub_type": "bar",
+        "bbox": [
+            509,
+            217,
+            816,
+            339
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "image",
+        "img_path": "images/89a02b1caabb69cce79e9e416816686bfb6bea7d1cdc121d99d49406ce53fda1.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "content": "1 step",
+        "sub_type": "text_image",
+        "bbox": [
+            176,
+            441,
+            302,
+            537
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "chart",
+        "img_path": "images/d691bb152e56cefddd1e489809f3686622c8158eeec1a2f95324e2cf2b705127.jpg",
+        "content": "| x | y | group |\n| --- | --- | --- |\n| 0.1 | 0.95 | blue |\n| 0.2 | 0.85 | blue |\n| 0.3 | 0.75 | blue |\n| 0.4 | 0.65 | blue |\n| 0.5 | 0.55 | blue |\n| 0.6 | 0.45 | blue |\n| 0.7 | 0.35 | blue |\n| 0.8 | 0.25 | blue |\n| 0.9 | 0.15 | blue |\n| 0.15 | 0.88 | orange |\n| 0.25 | 0.78 | orange |\n| 0.35 | 0.68 | orange |\n| 0.45 | 0.58 | orange |\n| 0.55 | 0.48 | orange |\n| 0.65 | 0.38 | orange |\n| 0.75 | 0.28 | orange |\n| 0.85 | 0.18 | orange |\n| 0.95 | 0.08 | orange |",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "sub_type": "scatter",
+        "bbox": [
+            305,
+            441,
+            428,
+            537
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "chart",
+        "img_path": "images/ad1e9c2f8b0d647b48be668668b325aa85e69a3b61a659e804253403a1c0f08e.jpg",
+        "content": "| x | y | group |\n|---|---|-------|\n| 0.1 | 0.9 | A |\n| 0.2 | 0.85 | B |\n| 0.3 | 0.75 | A |\n| 0.4 | 0.65 | B |\n| 0.5 | 0.55 | A |\n| 0.6 | 0.45 | B |\n| 0.7 | 0.35 | A |\n| 0.8 | 0.25 | B |\n| 0.9 | 0.15 | A |\n| 1.0 | 0.05 | B |",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "sub_type": "scatter",
+        "bbox": [
+            431,
+            441,
+            553,
+            537
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "chart",
+        "img_path": "images/b9a643a8be4a95a9bd93a798da0dfa1c941501d97a99bbc121cd3a15b6583480.jpg",
+        "content": "| x | y | group |\n|---|---|-------|\n| 0.0 | 0.0 | A |\n| 0.1 | 0.1 | B |\n| 0.2 | 0.2 | A |\n| 0.3 | 0.3 | B |\n| 0.4 | 0.4 | A |\n| 0.5 | 0.5 | B |\n| 0.6 | 0.6 | A |\n| 0.7 | 0.7 | B |\n| 0.8 | 0.8 | A |\n| 0.9 | 0.9 | B |\n| 1.0 | 1.0 | A |\n| 1.1 | 0.9 | B |\n| 1.2 | 0.8 | A |\n| 1.3 | 0.7 | B |\n| 1.4 | 0.6 | A |\n| 1.5 | 0.5 | B |\n| 1.6 | 0.4 | A |\n| 1.7 | 0.3 | B |\n| 1.8 | 0.2 | A |\n| 1.9 | 0.1 | B |\n| 2.0 | 0.0 | A |\n| 2.1 | 0.1 | B |\n| 2.2 | 0.2 | A |\n| 2.3 | 0.3 | B |\n| 2.4 | 0.4 | A |\n| 2.5 | 0.5 | B |\n| 2.6 | 0.6 | A |\n| 2.7 | 0.7 | B |\n| 2.8 | 0.8 | A |\n| 2.9 | 0.9 | B |\n| 3.0 | 1.0 | A |\n| 3.1 | 0.9 | B |\n| 3.2 | 0.8 | A |\n| 3.3 | 0.7 | B |\n| 3.4 | 0.6 | A |\n| 3.5 | 0.5 | B |\n| 3.6 | 0.4 | A |\n| 3.7 | 0.3 | B |\n| 3.8 | 0.2 | A |\n| 3.9 | 0.1 | B |\n| 4.0 | 0.0 | A |\n| 4.1 | 0.1 | B |\n| 4.2 | 0.2 | A |\n| 4.3 | 0.3 | B |\n| 4.4 | 0.4 | A |\n| 4.5 | 0.5 | B |\n| 4.6 | 0.6 | A |\n| 4.7 | 0.7 | B |\n| 4.8 | 0.8 | A |\n| 4.9 | 0.9 | B |\n| 5.0 | 1.0 | A |\n| 5.1 | 0.9 | B |\n| 5.2 | 0.8 | A |\n| 5.3 | 0.7 | B |\n| 5.4 | 0.6 | A |\n| 5.5 | 0.5 | B |\n| 5.6 | 0.4 | A |\n| 5.7 | 0.3 | B |\n| 5.8 | 0.2 | A |\n| 5.9 | 0.1 | B |\n| 6.0 | 0.0 | A |\n| 6.1 | 0.1 | B |\n| 6.2 | 0.2 | A |\n| 6.3 | 0.3 | B |\n| 6.4 | 0.4 | A |\n| 6.5 | 0.5 | B |\n| 6.6 | 0.6 | A |\n| 6.7 | 0.7 | B |\n| 6.8 | 0.8 | A |\n| 6.9 | 0.9 | B |\n| 7.0 | 1.0 | A |\n| 7.1 | 0.9 | B |\n| 7.2 | 0.8 | A |\n| 7.3 | 0.7 | B |\n| 7.4 | 0.6 | A |\n| 7.5 | 0.5 | B |\n| 7.6 | 0.4 | A |\n| 7.7 | 0.3 | B |\n| 7.8 | 0.2 | A |\n| 7.9 | 0.1 | B |\n| 8.0 | 0.0 | A |\n| 8.1 | -0.1 | B |\n| 8.2 | -0.2 | A |\n| 8.3 | -0.3 | B |\n| 8.4 | -0.4 | A |\n| 8.5 | -0.5 | B |\n| 8.6 | -0.6 | A |\n| 8.7 | -0.7 | B |\n| 8.8 | -0.8 | A |\n| 8.9 | -0.9 | B |\n| 9.0 | -1.0 | A |\n| 9.1 | -0.9 | B |\n| 9.2 | -0.8 | A |\n| 9.3 | -0.7 | B |\n| 9.4 | -0.6 | A |\n| 9.5 | -0.5 | B |\n| 9.6 | -0.4 | A |\n| 9.7 | -0.3 | B |\n| 9.8 | -0.2 | A |\n| 9.9 | -0.1 | B |\n|10 .<fcel>  <fcel>     |\n    (continued) for the remaining points from left to right are not explicitly labeled in the image.",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "sub_type": "scatter",
+        "bbox": [
+            557,
+            441,
+            679,
+            537
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "chart",
+        "img_path": "images/c2648cf423bea951f8b9f32773545475a87bbcd160fc93f36fc26c28284115f9.jpg",
+        "content": "| x | y | group |\n| --- | --- | --- |\n| 0.1 | 0.8 | A |\n| 0.2 | 0.75 | B |\n| 0.3 | 0.85 | A |\n| 0.4 | 0.7 | B |\n| 0.5 | 0.8 | A |\n| 0.6 | 0.75 | B |\n| 0.7 | 0.85 | A |\n| 0.8 | 0.7 | B |\n| 0.9 | 0.8 | A |\n| 1.0 | 0.75 | B |",
+        "chart_caption": [
+            "Figure 4: Comparison of distribution modeling capabilities between FM with marginal velocity parameterization (left; evaluated at 1,2,5,10 steps generation) and average velocity parameterization (right; evaluated with one-step generation) on a toy dataset with complex multi-modal structure. "
+        ],
+        "chart_footnote": [],
+        "sub_type": "scatter",
+        "bbox": [
+            681,
+            441,
+            816,
+            539
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "Training and Inference Efficiency Comparison. Figure 3 reports the wall-clock training time (1M steps) and decision frequency (Lu et al., 2025b) on an A100 GPU (see Appendix D for experimental protocol). DQL’s training time scales nearly linearly with the number of denoising steps—from 11.7 hours at 5 steps to 49.5 hours at 50 steps—while OFQL completes training in only 6.3 hours. At inference, OFQL reaches 846.5 Hz, compared to 238.7 Hz for 5-step DQL and just 35.5 Hz for 50-step DQL. ",
+        "bbox": [
+            169,
+            595,
+            823,
+            680
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "Compared to a one-step FQL baseline, OFQL achieves nearly the same decision frequency but enjoys shorter training time. This advantage arises because FQL requires multiple NFEs to compute distillation targets, leading to a slower training loop. Note that, despite comparable speed, FQL consistently underperforms OFQL in terms of policy performance. ",
+        "bbox": [
+            169,
+            686,
+            823,
+            744
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "Overall, OFQL achieves substantially faster training and higher decision frequency without sacrificing model expressivity, making it more practical than multi-step DQL or distillation-based FQL. ",
+        "bbox": [
+            169,
+            750,
+            823,
+            777
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "Ablation on flow ratio. We study the effect of varying the flow ratio across different datasets in HalfCheetah (Table 3). The best performance is obtained at a flow ratio of 0.5, achieving 95.2 on Medium Expert, 63.8 on Medium, and 52.2 on Medium Replay. In contrast, using either the flow ratio equal to 1 (equivalent to pure flow match-",
+        "bbox": [
+            169,
+            785,
+            454,
+            896
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "ing) or setting it to 0 results in noticeable performance degradation. A moderate flow ratio serves as an effective regularizer, yielding the most stable and robust learning behavior. ",
+        "bbox": [
+            169,
+            896,
+            823,
+            924
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "table",
+        "img_path": "images/d9176156b96a62cef40c06dd599a83ce7701ea25445348e0da9ebd2d050c83da.jpg",
+        "table_caption": [
+            "Table 3: D4RL scores across HalfCheetah datasets under varying flow ratios. "
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Flow Ratio</td><td>1</td><td>0.75</td><td>0.5</td><td>0.25</td><td>0</td></tr><tr><td>Medium Expert</td><td>38.3</td><td>90.86</td><td>95.2</td><td>92.03</td><td>90.47</td></tr><tr><td>Medium</td><td>46.3</td><td>62.03</td><td>63.8</td><td>63.76</td><td>63.2</td></tr><tr><td>Medium Replay</td><td>45.2</td><td>50.2</td><td>51.2</td><td>50.3</td><td>10.5</td></tr></table>",
+        "bbox": [
+            468,
+            789,
+            818,
+            856
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "page_number",
+        "text": "9 ",
+        "bbox": [
+            491,
+            948,
+            504,
+            959
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "Compare Marginal Velocity and Average Velocity Parameterization. DQL has convincingly shown that employing a more expressive policy leads to superior final performance in the actor-critic training framework. To examine the expressiveness of one-step generation, we conduct a toy dataset experiment comparing Flow Matching with marginal velocity (v-param) versus average velocity (u-param) parameterization across different generation steps.. As illustrated in the rightmost panel of Figure 4, samples generated by u-param in a single step already demonstrate strong mode coverage and close alignment with the target distribution. In contrast, v-param requires multiple steps to achieve comparable quality and often produces collapsed samples with fewer steps. These results underscore the advantage of modeling the average velocity field for one-step generation and give strong confidence to modeling policy. Additional experimental results and experiment setting are provided in the Appendix C. ",
+        "bbox": [
+            169,
+            103,
+            826,
+            257
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "8 CONCLUSION ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            270,
+            320,
+            285
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "We presented One-Step Flow Q-Learning (OFQL), a novel policy learning framework that overcomes key limitations of Diffusion Q-Learning by enabling efficient, single-step action generation during both training and inference. By reformulating DQL within the Flow Matching framework and learning an average velocity field rather than a marginal one, OFQL eliminates the need for multi-step denoising, recursive gradient propagation. This leads to faster training and inference, while surpassing the performance of state-of-the-art diffusion-based offline RL methods. Empirical results on the D4RL benchmark confirm the effectiveness and efficiency of OFQL, underscoring the promise of onestep flow policies for advancing offline RL. More broadly, OFQL facilitates accurate high-frequency decision-making, suggesting potential for real-time control and scalable deployment in complex, latency-sensitive domains. ",
+        "bbox": [
+            169,
+            301,
+            826,
+            441
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "9 ACKNOWLEDGMENTS ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            460,
+            387,
+            474
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "This work was supported by the Institute for Information & communications Technology Planning & Evaluation (IITP) grant funded by the Korea government (MSIT) (No. RS-2022-II0951, Development of Uncertainty-Aware Agents Learning by Asking Questions) and the National Research Foundation of Korea (NRF) grant funded by the Korea government (MSIT) (RS-2025-24742969, Intelligent Robotic System using Continual Learning and Multimodal Language Model based Multi Attribute Feedback). ",
+        "bbox": [
+            169,
+            491,
+            826,
+            575
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "REFERENCES ",
+        "text_level": 1,
+        "bbox": [
+            173,
+            595,
+            287,
+            609
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "Anurag Ajay, Yilun Du, Abhi Gupta, Joshua Tenenbaum, Tommi Jaakkola, and Pulkit Agrawal. Is conditional generative modeling all you need for decision-making? arXiv preprint arXiv:2211.15657, 2022. ",
+            "David M Blei, Alp Kucukelbir, and Jon D McAuliffe. Variational inference: A review for statisticians. Journal of the American statistical Association, 112(518):859–877, 2017. ",
+            "Huayu Chen, Cheng Lu, Zhengyi Wang, Hang Su, and Jun Zhu. Score regularized policy optimization through diffusion behavior. arXiv preprint arXiv:2310.07297, 2023. ",
+            "Tianyu Chen, Zhendong Wang, and Mingyuan Zhou. Diffusion policies creating a trust region for offline reinforcement learning. Advances in Neural Information Processing Systems, 37: 50098–50125, 2024. ",
+            "Ting Chen, Simon Kornblith, Mohammad Norouzi, and Geoffrey Hinton. A simple framework for contrastive learning of visual representations. In International conference on machine learning, pp. 1597–1607. PmLR, 2020. ",
+            "Cheng Chi, Zhenjia Xu, Siyuan Feng, Eric Cousineau, Yilun Du, Benjamin Burchfiel, Russ Tedrake, and Shuran Song. Diffusion policy: Visuomotor policy learning via action diffusion. The International Journal of Robotics Research, pp. 02783649241273668, 2023. ",
+            "Zihan Ding and Chi Jin. Consistency models as a rich and efficient policy class for reinforcement learning. arXiv preprint arXiv:2309.16984, 2023. "
+        ],
+        "bbox": [
+            173,
+            618,
+            826,
+            924
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "page_number",
+        "text": "10 ",
+        "bbox": [
+            490,
+            948,
+            508,
+            959
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "Zibin Dong, Yifu Yuan, Jianye Hao, Fei Ni, Yi Ma, Pengyi Li, and Yan Zheng. Cleandiffuser: An easy-to-use modularized library for diffusion models in decision making. Advances in Neural Information Processing Systems, 37:86899–86926, 2024. ",
+            "Patrick Esser, Sumith Kulal, Andreas Blattmann, Rahim Entezari, Jonas Muller, Harry Saini, Yam ¨ Levi, Dominik Lorenz, Axel Sauer, Frederic Boesel, et al. Scaling rectified flow transformers for high-resolution image synthesis. In Forty-first international conference on machine learning, 2024. ",
+            "Kevin Frans, Danijar Hafner, Sergey Levine, and Pieter Abbeel. One step diffusion via shortcut models. arXiv preprint arXiv:2410.12557, 2024. ",
+            "Justin Fu, Aviral Kumar, Ofir Nachum, George Tucker, and Sergey Levine. D4rl: Datasets for deep data-driven reinforcement learning. arXiv preprint arXiv:2004.07219, 2020. ",
+            "Scott Fujimoto and Shixiang Shane Gu. A minimalist approach to offline reinforcement learning. Advances in neural information processing systems, 34:20132–20145, 2021. ",
+            "Zhengyang Geng, Mingyang Deng, Xingjian Bai, J Zico Kolter, and Kaiming He. Mean flows for one-step generative modeling. arXiv preprint arXiv:2505.13447, 2025. ",
+            "Philippe Hansen-Estruch, Ilya Kostrikov, Michael Janner, Jakub Grudzien Kuba, and Sergey Levine. Idql: Implicit q-learning as an actor-critic method with diffusion policies. arXiv preprint arXiv:2304.10573, 2023. ",
+            "Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition, pp. 770–778, 2016. ",
+            "Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffusion probabilistic models. Advances in neural information processing systems, 33:6840–6851, 2020. ",
+            "Michael Janner, Yilun Du, Joshua B Tenenbaum, and Sergey Levine. Planning with diffusion for flexible behavior synthesis. arXiv preprint arXiv:2205.09991, 2022. ",
+            "Bingyi Kang, Xiao Ma, Chao Du, Tianyu Pang, and Shuicheng Yan. Efficient diffusion policies for offline reinforcement learning. Advances in Neural Information Processing Systems, 36: 67195–67212, 2023. ",
+            "Diederik P Kingma and Jimmy Ba. Adam: A method for stochastic optimization. arXiv preprint arXiv:1412.6980, 2014. ",
+            "B Ravi Kiran, Ibrahim Sobh, Victor Talpaert, Patrick Mannion, Ahmad A. Al Sallab, Senthil Yogamani, and Patrick Perez. Deep reinforcement learning for autonomous driving: A survey, ´ 2021. URL https://arxiv.org/abs/2002.00444. ",
+            "Ilya Kostrikov, Ashvin Nair, and Sergey Levine. Offline reinforcement learning with implicit q-learning. arXiv preprint arXiv:2110.06169, 2021. ",
+            "Aviral Kumar, Aurick Zhou, George Tucker, and Sergey Levine. Conservative q-learning for offline reinforcement learning. Advances in neural information processing systems, 33:1179–1191, 2020. ",
+            "Sergey Levine, Aviral Kumar, George Tucker, and Justin Fu. Offline reinforcement learning: Tutorial, review, and perspectives on open problems. arXiv preprint arXiv:2005.01643, 2020. ",
+            "Yaron Lipman, Ricky TQ Chen, Heli Ben-Hamu, Maximilian Nickel, and Matt Le. Flow matching for generative modeling. arXiv preprint arXiv:2210.02747, 2022. ",
+            "Xingchao Liu, Chengyue Gong, and Qiang Liu. Flow straight and fast: Learning to generate and transfer data with rectified flow. arXiv preprint arXiv:2209.03003, 2022. ",
+            "Cheng Lu and Yang Song. Simplifying, stabilizing and scaling continuous-time consistency models. arXiv preprint arXiv:2410.11081, 2024. ",
+            "Haofei Lu, Dongqi Han, Yifei Shen, and Dongsheng Li. What makes a good diffusion planner for decision making? arXiv preprint arXiv:2503.00535, 2025a. "
+        ],
+        "bbox": [
+            166,
+            98,
+            834,
+            928
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "page_number",
+        "text": "11 ",
+        "bbox": [
+            488,
+            948,
+            506,
+            959
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "Haofei Lu, Yifei Shen, Dongsheng Li, Junliang Xing, and Dongqi Han. Habitizing diffusion planning for efficient and effective decision making. arXiv preprint arXiv:2502.06401, 2025b. ",
+            "Tung M Luu, Thang Vu, Thanh Nguyen, and Chang D Yoo. Visual pretraining via contrastive predictive model for pixel-based reinforcement learning. Sensors, 22(17):6504, 2022. ",
+            "Tung M Luu, Thanh Nguyen, Tee Joshua Tian Jin, Sungwoon Kim, and Chang D Yoo. Mitigating adversarial perturbations for deep reinforcement learning via vector quantization. In 2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), pp. 595–602. IEEE, 2024. ",
+            "Tung M Luu, Donghoon Lee, Younghwan Lee, and Chang D Yoo. Policy learning from large visionlanguage model feedback without reward modeling. In 2025 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), pp. 11685–11692. IEEE, 2025a. ",
+            "Tung Minh Luu, Younghwan Lee, Donghoon Lee, Sunho Kim, Min Jun Kim, and Chang D Yoo. Enhancing rating-based reinforcement learning to effectively leverage feedback from large visionlanguage models. arXiv preprint arXiv:2506.12822, 2025b. ",
+            "Thanh Nguyen, Tung Luu, Trung Pham, Sanzhar Rakhimkul, and Chang D Yoo. Robust maml: Prioritization task buffer with adaptive learning process for model-agnostic meta-learning. In ICASSP 2021-2021 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), pp. 3460–3464. IEEE, 2021a. ",
+            "Thanh Nguyen, Tung M Luu, Thang Vu, and Chang D Yoo. Sample-efficient reinforcement learning representation learning with curiosity contrastive forward dynamics model. In 2021 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), pp. 3471–3477. IEEE, 2021b. ",
+            "Thanh Nguyen, Trung Xuan Pham, Chaoning Zhang, Tung M Luu, Thang Vu, and Chang D Yoo. Dimcl: dimensional contrastive learning for improving self-supervised learning. IEEE Access, 11: 21534–21545, 2023. ",
+            "Thanh Nguyen, Tung M Luu, Tri Ton, Sungwoong Kim, and Chang D Yoo. Uncertainty-aware rank-one mimo q network framework for accelerated offline reinforcement learning. IEEE Access, 12:100972–100982, 2024a. ",
+            "Thanh Nguyen, Tung M Luu, Tri Ton, and Chang D Yoo. Towards robust policy: enhancing offline reinforcement learning with adversarial attacks and defenses. In International Conference on Pattern Recognition and Artificial Intelligence, pp. 310–324. Springer, 2024b. ",
+            "Long Ouyang, Jeff Wu, Xu Jiang, Diogo Almeida, Carroll L. Wainwright, Pamela Mishkin, Chong Zhang, Sandhini Agarwal, Katarina Slama, Alex Ray, John Schulman, Jacob Hilton, Fraser Kelton, Luke Miller, Maddie Simens, Amanda Askell, Peter Welinder, Paul Christiano, Jan Leike, and Ryan Lowe. Training language models to follow instructions with human feedback, 2022. URL https://arxiv.org/abs/2203.02155. ",
+            "Seohong Park, Kevin Frans, Benjamin Eysenbach, and Sergey Levine. Ogbench: Benchmarking offline goal-conditioned rl. arXiv preprint arXiv:2410.20092, 2024. ",
+            "Seohong Park, Qiyang Li, and Sergey Levine. Flow q-learning. arXiv preprint arXiv:2502.02538, 2025. ",
+            "Tim Pearce, Tabish Rashid, Anssi Kanervisto, Dave Bignell, Mingfei Sun, Raluca Georgescu, Sergio Valcarcel Macua, Shan Zheng Tan, Ida Momennejad, Katja Hofmann, et al. Imitating human behaviour with diffusion models. arXiv preprint arXiv:2301.10677, 2023. ",
+            "Trung Xuan Pham, Jin Woong Choi, Rusty John Lloyd Mina, Thanh Xuan Nguyen, Sultan Rizky Madjid, and Chang D. Yoo. Lad: A hybrid deep learning system for benign paroxysmal positional vertigo disorders diagnostic. IEEE Access, 10:113995–114007, 2022. doi: 10.1109/ACCESS.2022. 3215625. ",
+            "Simon Ramstedt and Chris Pal. Real-time reinforcement learning. Advances in neural information processing systems, 32, 2019. "
+        ],
+        "bbox": [
+            166,
+            98,
+            834,
+            928
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "page_number",
+        "text": "12 ",
+        "bbox": [
+            488,
+            946,
+            508,
+            959
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "Tim Salimans and Jonathan Ho. Progressive distillation for fast sampling of diffusion models. arXiv preprint arXiv:2202.00512, 2022. ",
+            "Axel Sauer, Dominik Lorenz, Andreas Blattmann, and Robin Rombach. Adversarial diffusion distillation. In European Conference on Computer Vision, pp. 87–103. Springer, 2024. ",
+            "Jascha Sohl-Dickstein, Eric Weiss, Niru Maheswaranathan, and Surya Ganguli. Deep unsupervised learning using nonequilibrium thermodynamics. In International conference on machine learning, pp. 2256–2265. pmlr, 2015. ",
+            "Jiaming Song, Chenlin Meng, and Stefano Ermon. Denoising diffusion implicit models. arXiv preprint arXiv:2010.02502, 2020a. ",
+            "Yang Song and Prafulla Dhariwal. Improved techniques for training consistency models. arXiv preprint arXiv:2310.14189, 2023. ",
+            "Yang Song and Stefano Ermon. Generative modeling by estimating gradients of the data distribution. Advances in neural information processing systems, 32, 2019. ",
+            "Yang Song, Jascha Sohl-Dickstein, Diederik P Kingma, Abhishek Kumar, Stefano Ermon, and Ben Poole. Score-based generative modeling through stochastic differential equations. arXiv preprint arXiv:2011.13456, 2020b. ",
+            "Yang Song, Prafulla Dhariwal, Mark Chen, and Ilya Sutskever. Consistency models. arXiv preprint arXiv:2303.01469, 2023. ",
+            "Sreyas Venkataraman, Yufei Wang, Ziyu Wang, Navin Sriram Ravie, Zackory Erickson, and David Held. Real-world offline reinforcement learning from vision language model feedback. In 2025 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), pp. 13452–13459. IEEE, 2025. ",
+            "Thang Vu, Kookhoi Kim, Haeyong Kang, Xuan Thanh Nguyen, Tung M Luu, and Chang D Yoo. Sphererpn: Learning spheres for high-quality region proposals on 3d point clouds object detection. In 2021 IEEE International Conference on Image Processing (ICIP), pp. 3173–3177. IEEE, 2021. ",
+            "Thang Vu, Kookhoi Kim, Tung M Luu, Thanh Nguyen, and Chang D Yoo. Softgroup for 3d instance segmentation on point clouds. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pp. 2708–2717, 2022. ",
+            "Thang Vu, Kookhoi Kim, Thanh Nguyen, Tung M Luu, Junyeong Kim, and Chang D Yoo. Scalable softgroup for 3d instance segmentation on point clouds. IEEE transactions on pattern analysis and machine intelligence, 46(4):1981–1995, 2023. ",
+            "Zhendong Wang, Jonathan J Hunt, and Mingyuan Zhou. Diffusion policies as an expressive policy class for offline reinforcement learning. arXiv preprint arXiv:2208.06193, 2022. ",
+            "Yifan Wu, George Tucker, and Ofir Nachum. Behavior regularized offline reinforcement learning. arXiv preprint arXiv:1911.11361, 2019. ",
+            "Tianwei Yin, Michael Gharbi, Richard Zhang, Eli Shechtman, Fredo Durand, William T Freeman, ¨ and Taesung Park. One-step diffusion with distribution matching distillation. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pp. 6613–6623, 2024. ",
+            "Hee Suk Yoon, Eunseop Yoon, Mark A. Hasegawa-Johnson, Sungwoong Kim, and Chang D. Yoo. ConfPO: Exploiting policy model confidence for critical token selection in preference optimization. In Forty-second International Conference on Machine Learning, 2025. URL https://openreview.net/forum?id=ZG7bkp6ScT. ",
+            "Linqi Zhou, Stefano Ermon, and Jiaming Song. Inductive moment matching. arXiv preprint arXiv:2503.07565, 2025. ",
+            "Yin Zhou and Oncel Tuzel. Voxelnet: End-to-end learning for point cloud based 3d object detection. In Proceedings of the IEEE conference on computer vision and pattern recognition, pp. 4490–4499, 2018. "
+        ],
+        "bbox": [
+            166,
+            98,
+            834,
+            926
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "page_number",
+        "text": "13 ",
+        "bbox": [
+            488,
+            946,
+            506,
+            959
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "Zhengbang Zhu, Hanye Zhao, Haoran He, Yichao Zhong, Shenyu Zhang, Haoquan Guo, Tingting Chen, and Weinan Zhang. Diffusion models for reinforcement learning: A survey. arXiv preprint arXiv:2311.01223, 2023. ",
+        "bbox": [
+            171,
+            103,
+            826,
+            147
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "A BENCHMARKING TASKS AND EVALUATION PROTOCOL ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            169,
+            658,
+            184
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "image",
+        "img_path": "images/e64fa905b330c61c4bc10ad4f0033a5d085126683d092ff51f2d5dca4f698a8d.jpg",
+        "image_caption": [
+            "HalfCheetah "
+        ],
+        "image_footnote": [],
+        "content": "",
+        "bbox": [
+            196,
+            204,
+            305,
+            289
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "image",
+        "img_path": "images/351652be4d7fe309867fe2c5f179f6adfb3bda327a32220aa1d21579afad0dd0.jpg",
+        "image_caption": [
+            "Hopper "
+        ],
+        "image_footnote": [],
+        "content": "",
+        "bbox": [
+            312,
+            205,
+            418,
+            289
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "image",
+        "img_path": "images/8afa76fb86a10047ad58ce3f00f850562f2ad429cba00b3df1fe58c84538632d.jpg",
+        "image_caption": [
+            "Walker2D "
+        ],
+        "image_footnote": [],
+        "content": "",
+        "bbox": [
+            419,
+            205,
+            526,
+            289
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "image",
+        "img_path": "images/6c21228226fa4e2ef17129f1d2a8b3883173004c3447df611b03ecde48cadbcb.jpg",
+        "image_caption": [
+            "Locomotion (MuJoCo) "
+        ],
+        "image_footnote": [],
+        "content": "",
+        "bbox": [
+            196,
+            324,
+            305,
+            407
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "image",
+        "img_path": "images/06f6cc5461ffae4fe70655c71eea0d4918bf7b6e06caf63ab6914b6432b1c152.jpg",
+        "image_caption": [
+            "Manipulation (Kitchen) "
+        ],
+        "image_footnote": [],
+        "content": "",
+        "bbox": [
+            308,
+            324,
+            415,
+            407
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "image",
+        "img_path": "images/7d3382752b5d106aca7d9d9d8203bfe861aa971b63eb055d1f646940424dc3d7.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "content": "",
+        "bbox": [
+            418,
+            324,
+            524,
+            407
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "image",
+        "img_path": "images/0edf389f651c64caa050dff4b463793eb71d6deab29cede43a1793c1abf26453.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "content": "",
+        "bbox": [
+            544,
+            204,
+            653,
+            289
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "image",
+        "img_path": "images/2f8a4344f1cae2f88d9d80192bcb7519a5271cddae8d8567736e8355f0434083.jpg",
+        "image_caption": [
+            "AntMaze Medium "
+        ],
+        "image_footnote": [],
+        "content": "Abstract geometric pattern with blue and yellow pixelated shapes (no text or symbols)",
+        "sub_type": "natural_image",
+        "bbox": [
+            663,
+            205,
+            792,
+            289
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "image",
+        "img_path": "images/04e1bd68944b26061830e48ec0610383ab78a5d27c0cd729afd329f888b91c32.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "content": "",
+        "bbox": [
+            545,
+            306,
+            653,
+            391
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "image",
+        "img_path": "images/fee9a22f4c389cf167b5e9f7ceea756ae53b0b53f3c68051a55906cfcf7e4cf0.jpg",
+        "image_caption": [
+            "AntMaze Large ",
+            "Navigation (AntMaze) ",
+            "Figure 5: Illustration of the benchmarking tasks examined in this study. The tasks include locomotion challenges for short-term decision-making, robotic arm manipulation tasks requiring long-term strategic decision-making, and navigation tasks focused on path optimization. "
+        ],
+        "image_footnote": [],
+        "content": "Abstract geometric pattern with interlocking blue and yellow shapes (no text or symbols)",
+        "sub_type": "natural_image",
+        "bbox": [
+            663,
+            306,
+            795,
+            391
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "Benchmarking tasks. As shown in Figure 5, we evaluate the performance of OFQL using a diverse set of benchmarking tasks that span various domains of reinforcement learning. These tasks are chosen to assess OFQL’s capability across a broad spectrum of environment setups, which is essential for understanding the model’s robustness and generalization. The selected tasks include locomotion challenges that emphasize short-term decision-making, robotic arm manipulation tasks requiring long-term strategic decision-making, and navigation tasks focused on pathfinding. By covering this wide array of tasks, we ensure a comprehensive evaluation of OFQL’s performance in both simple and complex settings, facilitating a deeper understanding of its strengths and limitations. ",
+        "bbox": [
+            169,
+            503,
+            823,
+            614
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "Locomotion (MuJoCo): The MuJoCo Locomotion task is a well-established benchmark in reinforcement learning, where the agent is tasked with controlling a simulated robot to navigate through a dynamic and complex environment. This task is designed to test the agent’s ability to perform locomotion tasks, emphasizing short-term decision-making and agility in navigating unpredictable terrains. ",
+        "bbox": [
+            169,
+            621,
+            826,
+            691
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "Manipulation (Kitchen): The Kitchen (Franka Kitchen) task is a robotic arm manipulation challenge in which the agent is required to interact with objects in a kitchen environment. This task is specifically designed to evaluate the agent’s proficiency in long-term strategic decision-making, as it involves making sequences of actions for tasks such as object manipulation and coordination, which require higher levels of temporal reasoning. ",
+        "bbox": [
+            169,
+            698,
+            823,
+            768
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "Navigation (AntMaze): The AntMaze task combines locomotion and planning challenges in a maze environment, where the agent must navigate through increasingly complex and variable maze configurations. This task is designed to test the agent’s ability to perform locomotion tasks while incorporating advanced planning strategies, balancing exploration and exploitation in a maze with dynamic elements. ",
+        "bbox": [
+            169,
+            775,
+            823,
+            845
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "Evaluation Metric. We adopt the D4RL (Fu et al., 2020) benchmark to report the normalized score, which allows for fair comparison across approaches. The normalized score is computed for each environment, using the following formula: ",
+        "bbox": [
+            169,
+            851,
+            826,
+            895
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\text { Normalized   Score } = 1 0 0 \\times \\frac {\\text { score } - \\text { random   score }}{\\text { expert   score } - \\text { random   score }} \\tag {18}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            305,
+            897,
+            825,
+            928
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "page_number",
+        "text": "14 ",
+        "bbox": [
+            490,
+            948,
+            508,
+            959
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "A normalized score of 0 represents the average returns (over 100 episodes) of an agent that selects actions uniformly at random across the action space. A normalized score of 100 corresponds to the average returns of a domain-specific expert (chosen by D4RL). ",
+        "bbox": [
+            169,
+            103,
+            823,
+            148
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "B ARCHITECTURAL AND IMPLEMENTATION DETAILS ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            166,
+            627,
+            181
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "code",
+        "sub_type": "algorithm",
+        "code_caption": [
+            "Algorithm 1 OFQL Algorithm "
+        ],
+        "code_body": "1: Initialize policy network $\\pi_{\\theta}$ , $\\pi_{\\theta'}$ , critic networks $Q_{\\phi_{1}}$ and $Q_{\\phi_{2}}$ , $Q_{\\phi_{1}'}$ , $Q_{\\phi_{2}'}$ 2: for each iteration do\n3: Sample transition mini-batch $\\mathcal{B} = \\{(s_{h}, a_{h}, r_{h}, s_{h+1})\\} \\sim \\mathcal{D}$ 4: # Q-value function learning\n5: Sample $a_{h+1} \\sim \\pi_{\\theta'}(a_{h+1} \\mid s_{h+1})$ by Eq. 16\n6: Update $Q_{\\phi_{1}}$ and $Q_{\\phi_{2}}$ using Eq. 6 {Max-Q backup (Kumar et al., 2020) optional}\n7: # Policy learning\n8: Sample $a_{h} \\sim \\pi_{\\theta}(a_{h} \\mid s_{h})$ by Eq. 16\n9: Update policy $\\pi_{\\theta}$ by minimizing Eq. 7\n10: # Update target networks every K iteration\n11: $\\theta' \\leftarrow \\rho\\theta' + (1 - \\rho)\\theta$ 12: $\\phi_{i}' \\leftarrow \\rho\\phi_{i}' + (1 - \\rho)\\phi_{i}$ for $i = \\{1, 2\\}$ 13: end for ",
+        "bbox": [
+            173,
+            218,
+            751,
+            401
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "Our approach generally builds directly on DQL (Wang et al., 2022), inheriting its training and inference. Below, we outline the key architectural and implementation details. ",
+        "bbox": [
+            169,
+            419,
+            823,
+            448
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "Architectural Details. We adopt the original DQL architecture for both the Q-function and policy networks, with a minor modification to the policy input. Specifically, we augment the input by concatenating an additional positional embedding corresponding to the target step r, alongside the standard timestep embedding t. More specifically, the architectures are as below: ",
+        "bbox": [
+            169,
+            454,
+            823,
+            511
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "Policy Network: The policy is modeled as the average velocity function $u _ { \\theta } ( a _ { t } , r , t ; s )$ , where $a _ { t }$ denotes the action latent, t and r are timestep variables, and s is the state conditioning input. We adopt the same MLP-based architecture as used in DQL, with the modification of incorporating the additional timestep r. Specifically, $u _ { \\theta }$ is parameterized as a 3-layer multilayer perceptron (MLP) with Mish activations and 256 hidden units per layer, followed by a linear output layer that maps to the action dimension. The input to $u _ { \\theta }$ is the concatenation of the action latent vector, the current state vector, and the sinusoidal positional embeddings of timesteps t and r (time embedding size 64). The output is the predicted average velocity that flows from timestep t to r. ",
+        "bbox": [
+            169,
+            517,
+            823,
+            630
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "Q Networks: We utilize the same Q network architecture as in DQL. Specifically, we employ two Q networks, each implemented as a 3-layer MLP with Mish activations and 256 hidden units per layer, followed by a linear output layer that maps to a single action-value dimension. The input to each Q network is the concatenation of the action and the observation, and the output is the estimated state-action value. ",
+        "bbox": [
+            169,
+            635,
+            823,
+            705
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "Training Details. The pseudo algorithm of OFQL is provided in Algorithm 1, where Max-Q backup is applied to AntMaze tasks only, as in DQL. In the training, the time variables t and r are sampled from a logit-normal distribution (Esser et al., 2024) with parameters (−0.4, 1.0), which improves stability compared to uniform sampling. During sampling, time pairs are selected such that $r \\neq t$ holds for 50% of the samples $( \\mathrm { i } . \\mathrm { e } . , \\hbar o w$ ratio equal to 0.5). In the actor loss, the hyperparameter α balances behavior regularization and Q value maximization. To normalize for dataset-specific Q-value scales, α is adapted as $\\alpha = \\frac { \\eta } { \\mathbb { E } _ { ( s , a ) \\sim \\mathcal { D } } \\left[ \\left. Q _ { \\phi } ( s , a ) \\right. \\right] }$ where η is a tunable hyperparameter. We search η over $\\{ 0 . 0 0 1 , 0 . 0 1 , 0 . 1 , 0 . 3 , 0 . 5 \\}$ since the relative importance of Q-guidance varies by domain (e.g., the Kitchen tasks require more policy regularization and the AntMaze tasks require more Q-learning). ",
+        "bbox": [
+            169,
+            712,
+            826,
+            849
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "Training is conducted for 1000 epochs (2000 for MuJoCo tasks), with each epoch consisting of 1000 gradient steps and a batch size of 256. Both the policy and Q networks are optimized with Adam (Kingma & Ba, 2014), using a learning rate of $3 \\times 1 0 ^ { - 4 }$ . For rewards, we adopt the original task rewards in MuJoCo Gym and Kitchen, while following CQL’s modification (Kumar et al., 2020) for AntMaze, consistent with DQL. For evaluation, we follow the protocol of Dong et al. (2024), including the same sampling procedure. We report the mean normalized return averaged over three training seeds, with each model evaluated on 150 episodes per task. ",
+        "bbox": [
+            169,
+            854,
+            828,
+            926
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "page_number",
+        "text": "15 ",
+        "bbox": [
+            488,
+            946,
+            506,
+            959
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            169,
+            103,
+            823,
+            133
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "C DDPM, FLOW MATCHING WITH MARGINAL VELOCITY COMPARED TO AVERAGE VELOCITY PARAMETERIZATION ON TOY DATASETS ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            155,
+            789,
+            189
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "image",
+        "img_path": "images/fe3275b9768851a6881d67caa50c9c303185f6846332251c1469cc9b832f238a.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "content": "",
+        "bbox": [
+            173,
+            213,
+            818,
+            412
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "image",
+        "img_path": "images/974b5d022dc4325636fcf9095af4ed2f12ab7d6b7d822b9fbe8ffc45e1e93065.jpg",
+        "image_caption": [
+            "Figure 6: Comparison of sample quality between v-parameterization (left, steps = 1, 2, 5, 10) and u-parameterization (right, one step) on toy datasets. ",
+            "Figure 7: Comparison of sample quality between DDPM in DQL (left, steps = 1, 2, 5, 10) and u-parameterization in OFQL (right, one step) on toy datasets. "
+        ],
+        "image_footnote": [],
+        "content": "",
+        "bbox": [
+            173,
+            482,
+            815,
+            777
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "Experiment Setup. As DQL convincingly demonstrates, greater model expressiveness leads to stronger final performance in the actor–critic framework. To illustrate the capability of modeling complex distributions in a one-step setting, we compare (1) Flow Matching with two velocity parameterizations; marginal velocity (v-param) and average velocity (u-param) (2) DDPM in DQL with average velocity in OFQL; across three synthetic datasets: Crescent, Spiral, and Checkerboard. Each dataset challenges the models to capture distinct geometric structures. ",
+        "bbox": [
+            169,
+            840,
+            826,
+            925
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "page_number",
+        "text": "16 ",
+        "bbox": [
+            488,
+            948,
+            508,
+            959
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "1. Crescent: Points form a crescent shape, with an outer and inner circle, testing the models’ ability to avoid points in the inner circle. ",
+            "2. Spiral: Points follow a noisy spiral, evaluating the models’ robustness in recovering the structure amidst noise. ",
+            "3. Checkerboard: Points are arranged in a checkerboard pattern, testing the models’ capacity to capture multimodal distributions. "
+        ],
+        "bbox": [
+            207,
+            101,
+            826,
+            202
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "Architecture. (1) v-param: estimates marginal velocity using a multi-layer perceptron (MLP) with 3 hidden layers (64 units each), with inputs: noise latent, timestep. (2) u-param: estimates average velocity using a similar MLP architecture but with an additional target time input. (3) DDPM: estimate the time step noise using a multi-layer perceptron (MLP) with 3 hidden layers (64 units each), with inputs: noise latent, timestep. All models use Mish activations. ",
+        "bbox": [
+            169,
+            215,
+            826,
+            286
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "Training and Evaluation. We train both models for 100 epochs with a batch size of 2048 and 40 batches for each epoch. The DDPM, v-param is evaluated with varying prediction steps (1, 2, 5, 10), while the u-param is evaluated with one denoising step. We visualize the ground truth distribution (blue points) and the generated samples (orange points) on a 2D plot to assess how well each model captures the dataset’s geometric structure. ",
+        "bbox": [
+            169,
+            291,
+            826,
+            362
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "Results on v-param vs u-param While the main paper reports results on the Checkerboard dataset, Figure 6 additionally presents results on two other toy datasets: Spiral and Moon. The results show that the u-param consistently generates well-structured samples that match the target distribution even in a single step. In contrast, the v-param exhibits significant mode collapse and noise in early steps (1–2), requiring up to 10 steps to approximate the target shape. These findings reinforce our main conclusion: modeling the average velocity field enables the u-param to achieve accurate and efficient one-step generation, outperforming standard flow models across various geometrically complex distributions. ",
+        "bbox": [
+            169,
+            368,
+            826,
+            479
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "Results on DDPM vs u-param. Figure 7 illustrates that the one-step u-parameterization in OFQL achieves expressivity comparable to a full DDPM, despite requiring only a single forward pass. In contrast, DDPM produces highly noisy outputs when restricted to a small number of steps (1–2) and typically requires around 10 denoising steps to approximate the target distribution reliably. Importantly, one-step generation is particularly advantageous in actor–critic RL, as it eliminates the need for backpropagation through time. This makes the one-step u-parameterization a more practical choice than DDPM for policy learning, even though both approaches exhibit similar expressive capacity. ",
+        "bbox": [
+            169,
+            486,
+            826,
+            599
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "D TRAINING AND INFERENCE EFFICIENCY COMPARISON ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            619,
+            663,
+            636
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "We evaluate the decision frequency and training time of our method and baseline across 9 Mujoco tasks. The decision frequency (Lu et al., 2025b) reflects the number of actions (or action batches) generated per second by the evaluated model. ",
+        "bbox": [
+            169,
+            652,
+            826,
+            696
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "Experiments are conducted on an Ubuntu server with an Intel(R) Xeon(R) Gold 5317 CPU @ 3.00GHz (48 cores, 96 threads) and an A100 PCIe 80 GB GPU. The wall-clock training time (in hours) is measured over 1 million training steps and averaged across the 9 Mujoco tasks. Decision frequency is measured over 3000 action batches (batch size 2500) for each task and averaged across all tasks. ",
+        "bbox": [
+            169,
+            700,
+            826,
+            772
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "E LIMITATIONS AND FUTURE WORK ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            792,
+            495,
+            809
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "The efficiency and expressivity of OFQL position it as a compelling approach for advancing realworld reinforcement learning, in conjunction with existing approaches (Venkataraman et al., 2025; Nguyen et al., 2021a; Luu et al., 2024; 2025b;a; Nguyen et al., 2024b;a). In particular, OFQL enables one-step action generation while achieving state-of-the-art performance, thereby supporting decision-making at frequencies suitable for real-time robotics, autonomous driving, medical and related domains (Ramstedt & Pal, 2019; Kiran et al., 2021; Ouyang et al., 2022; Yoon et al., 2025; Pham et al., 2022). Its reduced training and inference cost also lowers the computational barrier for scaling reinforcement learning to larger datasets and more complex tasks, providing a practical path toward widespread industrial adoption. ",
+        "bbox": [
+            169,
+            825,
+            826,
+            925
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "page_number",
+        "text": "17 ",
+        "bbox": [
+            488,
+            946,
+            508,
+            959
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            169,
+            103,
+            823,
+            133
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "While OFQL demonstrates compelling efficiency and performance gains in offline reinforcement learning, our current evaluation focuses primarily on single-goal state-based decision-making tasks—specifically those relying on low-dimensional proprioceptive observations from the D4RL benchmark. This leaves several promising directions for future exploration. ",
+        "bbox": [
+            169,
+            138,
+            826,
+            196
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "First, extending OFQL to online reinforcement learning presents a natural next step. Our one-step formulation removes the computational bottlenecks that typically hinder real-time interaction, making OFQL a promising candidate for scalable online learning. Investigating stability and sample-efficiency in this setting remains an important open question. ",
+        "bbox": [
+            169,
+            200,
+            823,
+            258
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "Second, we aim to generalize OFQL to vision-based or point-cloud-based control settings, where observations are high-dimensional. An open question is whether we can leverage encoder components from domain-specific architectures for feature extraction (e.g., (He et al., 2016; Zhou & Tuzel, 2018; Vu et al., 2022; 2023; 2021)) or whether a specialized encoder tailored to OFQL should be designed. Figuring out effective architectures and integrating them with one-step flow-based policies could pave the way for end-to-end learning in more complex and unstructured environments. ",
+        "bbox": [
+            169,
+            263,
+            826,
+            349
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "Third, future work could explore extending OFQL to goal-conditioned and multi-task RL settings. Learning conditional average velocity fields to support diverse goal-directed behaviors—without resorting to separate diffusion or reward models—would offer greater flexibility and generalization. ",
+        "bbox": [
+            169,
+            354,
+            826,
+            398
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "Overall, OFQL provides a general foundation for fast and expressive policy learning, and we hope future work expands its applicability across broader domains and learning paradigms. ",
+        "bbox": [
+            169,
+            404,
+            823,
+            434
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "F DETAILED ON DIFFUSION MODELS, FLOW MATCHING ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            452,
+            653,
+            468
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "For completeness, we provide background on diffusion models and flow matching, which serve as the foundations for our method. ",
+        "bbox": [
+            169,
+            482,
+            823,
+            512
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "Diffusion Models. Diffusion models are a high-performing class of generative models that learn to sample from an unknown data distribution $q ( \\bar { x ^ { 0 } } )$ using a dataset drawn from it (Ho et al., 2020; Song & Ermon, 2019; Song et al., 2020b; Sohl-Dickstein et al., 2015). Denoising Diffusion Probabilistic Models (DDPMs) (Ho et al., 2020), the canonical diffusion model used in DQL, define a forward diffusion process $\\begin{array} { r } { q ( x ^ { 1 : K } \\mid x ^ { 0 } ) = \\prod _ { k = 1 } ^ { K } q ( x ^ { k } \\mid x ^ { k - 1 } ) } \\end{array}$ as a fixed Markov chain that gradually corrupts data with Gaussian noise over K steps, where $q ( x ^ { k } \\mid x ^ { k - 1 } ) = { \\mathcal { N } } \\left( x ^ { k } ; { \\sqrt { 1 - \\beta ^ { k } } } x ^ { k - 1 } , \\beta ^ { k } I \\right)$ , and the variance schedule $\\{ \\beta ^ { k } \\} _ { k = 1 } ^ { K }$ 1 is predefined such that as $K  \\infty , x ^ { K }$ approaches an isotropic Gaussian. ",
+        "bbox": [
+            169,
+            517,
+            825,
+            643
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "The corresponding reverse process, enables generating data from pure noise, is parameterized by ψ and defined as: ",
+        "bbox": [
+            169,
+            650,
+            823,
+            676
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "equation",
+        "text": "$$\np _ {\\psi} (x ^ {0: K}) = \\mathcal {N} (x ^ {K}; \\mathbf {0}, \\boldsymbol {I}) \\prod_ {k = 1} ^ {K} p _ {\\psi} (x ^ {k - 1} \\mid x ^ {k}), \\tag {19}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            344,
+            676,
+            825,
+            715
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "which is learned by maximizing the variational lower bound $\\mathbb { E } _ { q } \\left[ \\log \\frac { p _ { \\psi } ( x ^ { 0 : K } ) } { q ( x ^ { 1 : K } | x ^ { 0 } ) } \\right]$ pψ(x0:K ) (Blei et al., 2017; Ho et al., 2020). ",
+        "bbox": [
+            169,
+            717,
+            826,
+            756
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "After training, sampling from $q ( x ^ { 0 } )$ is approximated by drawing $x ^ { K } \\sim \\mathcal { N } ( \\mathbf { 0 } , I )$ and applying the reverse Markov chain from $k = K$ to k = 1 via the learn model $p _ { \\psi }$ . Conditional generation is straightforwardly supported via $p _ { \\psi } ( x ^ { k - 1 } \\mid x ^ { k } , c )$ . ",
+        "bbox": [
+            169,
+            761,
+            823,
+            806
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "Flow Matching. Flow Matching (FM) (Lipman et al., 2022) is a generative modeling framework that learns deterministic velocity fields to directly transport noise to data along smooth, stable trajectories. ",
+        "bbox": [
+            169,
+            811,
+            826,
+            843
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "Given data $x \\sim q ( x )$ and noise $\\epsilon \\sim p _ { \\mathrm { p r i o r } } ( \\epsilon )$ , FM defines a linear flow path: ",
+        "bbox": [
+            169,
+            848,
+            665,
+            864
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "equation",
+        "text": "$$\nz _ {t} = \\alpha_ {t} x + \\beta_ {t} \\epsilon , \\quad v _ {t} = \\frac {d z _ {t}}{d t} = \\dot {\\alpha} _ {t} x + \\dot {\\beta} _ {t} \\epsilon , \\tag {20}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            354,
+            866,
+            825,
+            893
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "where $\\alpha _ { t } , \\beta _ { t }$ are predefined schedules $( \\mathrm { e . g . } , \\alpha _ { t } = 1 - t , \\beta _ { t } = t )$ , and the dot notation $( \\mathrm { e } . \\mathrm { g } . , \\dot { \\alpha } _ { t } )$ denotes the time derivative with respect to the continuous flow step $t \\in [ 0 , 1 ]$ . The conditional velocity $v _ { t } ( z _ { t } \\mid x )$ captures the direction of flow for a specific sample, and the marginal velocity field is defined as the expectation: ",
+        "bbox": [
+            169,
+            895,
+            826,
+            925
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "page_number",
+        "text": "18 ",
+        "bbox": [
+            488,
+            948,
+            506,
+            959
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            169,
+            103,
+            823,
+            131
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "equation",
+        "text": "$$\nv (z _ {t}, t) \\triangleq \\mathbb {E} _ {p _ {t} (v _ {t} | z _ {t})} [ v _ {t} ]. \\tag {21}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            416,
+            133,
+            825,
+            150
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "FM essentially models the marginal velocity, as it is feasible to approximate this field; parametrized by the neural network $v _ { \\theta } ( z _ { t } , t )$ ;using the Conditional Flow Matching loss: ",
+        "bbox": [
+            169,
+            161,
+            823,
+            191
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathcal {L} _ {\\mathrm{CFM}} (\\theta) = \\mathbb {E} _ {t, x, \\epsilon} \\left\\| v _ {\\theta} (z _ {t}, t) - v _ {t} (z _ {t} \\mid x) \\right\\| ^ {2}, \\tag {22}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            349,
+            199,
+            825,
+            217
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "where, under the commonly used schedule $\\alpha _ { t } = 1 - t , \\beta _ { t } = t .$ , the conditional velocity simplifies to $v _ { t } ( z _ { t } \\mid x ) = \\epsilon - x .$ . ",
+        "bbox": [
+            169,
+            224,
+            823,
+            253
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "In inference, sampling is performed by solving the ODE in reverse time: ",
+        "bbox": [
+            169,
+            260,
+            650,
+            275
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\frac {d z _ {t}}{d t} = v (z _ {t}, t), \\quad \\text { starting   from } z _ {1} = \\epsilon \\sim p _ {\\text { prior }} (\\epsilon), \\tag {23}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            331,
+            282,
+            825,
+            313
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "where the solution is approximated using a numerical solver, such as Euler’s method: $z _ { t - \\Delta t } =$ $\\boldsymbol { z } _ { t } - \\Delta t \\cdot \\boldsymbol { v } ( \\boldsymbol { z } _ { t } , t )$ . ",
+        "bbox": [
+            169,
+            319,
+            823,
+            348
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "On the classifier-free guidance While classifier-free guidance (CFG) might be considered to better align generated samples with the conditioning variable c in the image generation domain, prior work has shown that CFG can lead to undesirable behaviors in sequential decision-making tasks. Specifically, CFG tends to bias the generation process toward high-density regions associated with $c ,$ which may cause agents to overlook high-return trajectories critical for long-horizon planning (Pearce et al., 2023). Additionally, DQL adopts a no-guidance approach. For a fair comparison, we follow the design choices made in DQL and prior works (Chi et al., 2023; Wang et al., 2022) and adopt a no-guidance paradigm, ensuring stable and unbiased policy generation. ",
+        "bbox": [
+            169,
+            354,
+            826,
+            467
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "G FORMAL JUSTIFICATION OF ACTION ACCURACY PRESERVATION IN ONE-STEP GENERATION THROUGH AVERAGE VELOCITY FIELD ",
+        "text_level": 1,
+        "bbox": [
+            169,
+            487,
+            767,
+            520
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "We show that under perfect learning (no estimation error), learning the conditional average velocity $u _ { \\theta } ( a _ { t } , r , t ; s )$ and applying the one-step update in Eq. 12 recovers the same endpoint map as integrating the conditional Flow Matching dynamics, thereby enabling accurate one-step action generation. ",
+        "bbox": [
+            169,
+            537,
+            825,
+            594
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "Let $v ^ { \\star } ( a , t ; s )$ be the ground-truth conditional marginal velocity field assumed to govern the Flow Matching (FM) dynamics that generate the target action distribution $\\mu ( \\cdot \\mid s )$ . In FM, this velocity field transports Gaussian noise to data through the ODE ",
+        "bbox": [
+            169,
+            599,
+            823,
+            642
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\frac {d a _ {t}}{d t} = v ^ {\\star} (a _ {t}, t; s), \\quad a _ {1} = \\epsilon \\sim \\mathcal {N} (0, I). \\tag {24}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            354,
+            651,
+            825,
+            680
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "Solving this ODE backward from t = 1 to t = 0 yields an endpoint $a _ { 0 }$ that depends on both the noise sample ϵ and the conditioning state s. This defines the FM endpoint map ",
+        "bbox": [
+            169,
+            686,
+            823,
+            715
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "equation",
+        "text": "$$\nT ^ {\\star} (\\epsilon , s) = a _ {0} = \\epsilon - \\int_ {0} ^ {1} v ^ {\\star} (a _ {\\tau}, \\tau ; s) d \\tau . \\tag {25}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            359,
+            723,
+            825,
+            757
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "The push-forward of this map over the Gaussian prior, $( T ^ { \\star } ) _ { \\# } \\mathcal { N } ( 0 , I )$ , recovers the target action distribution $\\mu ( \\cdot \\mid s )$ . ",
+        "bbox": [
+            169,
+            765,
+            823,
+            795
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "For any interval $[ r , t ] \\subseteq [ 0 , 1 ]$ ], define the average velocity as ",
+        "bbox": [
+            169,
+            800,
+            568,
+            816
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "equation",
+        "text": "$$\nu ^ {\\star} (a _ {t}, r, t; s) = \\frac {1}{t - r} \\int_ {r} ^ {t} v ^ {\\star} (a _ {\\tau}, \\tau ; s) d \\tau , \\tag {26}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            357,
+            824,
+            825,
+            858
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "which represents the net displacement of the FM trajectory over this interval. Applying this definition to [0, 1] gives ",
+        "bbox": [
+            169,
+            864,
+            823,
+            893
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "equation",
+        "text": "$$\nu ^ {\\star} (a _ {1}, 0, 1; s) = u ^ {\\star} (\\epsilon , 0, 1; s) = \\int_ {0} ^ {1} v ^ {\\star} (a _ {\\tau}, \\tau ; s) d \\tau , \\tag {27}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            323,
+            893,
+            825,
+            928
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "page_number",
+        "text": "19 ",
+        "bbox": [
+            488,
+            946,
+            506,
+            959
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "and therefore the endpoint map satisfies ",
+        "bbox": [
+            171,
+            104,
+            437,
+            119
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "equation",
+        "text": "$$\nT ^ {\\star} (\\epsilon , s) = \\epsilon - \\int_ {0} ^ {1} v ^ {\\star} (a _ {\\tau}, \\tau ; s) d \\tau = \\epsilon - u ^ {\\star} (\\epsilon , 0, 1; s).\n$$",
+        "text_format": "latex",
+        "bbox": [
+            313,
+            125,
+            679,
+            159
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "Suppose a learned model uθ (e.g., a model by a neural network) approximates this average velocity $u ^ { \\star }$ on the support of the Gaussian prior without estimation error. In that case, the one-step generator in Eq. 12 becomes: ",
+        "bbox": [
+            171,
+            171,
+            823,
+            213
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "equation",
+        "text": "$$\nT _ {\\theta} (\\epsilon , s) = \\epsilon - u _ {\\theta} (\\epsilon , 0, 1; s) = \\epsilon - u ^ {\\star} (\\epsilon , 0, 1; s) = T ^ {\\star} (\\epsilon , s). \\tag {28}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            299,
+            233,
+            825,
+            250
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "Because both maps push the Gaussian prior forward in the same way, their induced action distributions coincide: ",
+        "bbox": [
+            169,
+            258,
+            823,
+            286
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "equation",
+        "text": "$$\n(T _ {\\theta}) _ {\\#} \\mathcal {N} (0, I) = (T ^ {\\star}) _ {\\#} \\mathcal {N} (0, I) = \\mu (\\cdot | s).\n$$",
+        "text_format": "latex",
+        "bbox": [
+            352,
+            286,
+            642,
+            303
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "Hence, the learned policy ",
+        "bbox": [
+            171,
+            305,
+            341,
+            320
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\pi_ {\\theta} (a \\mid s) \\triangleq (T _ {\\theta}) _ {\\#} \\mathcal {N} (0, I)\n$$",
+        "text_format": "latex",
+        "bbox": [
+            408,
+            319,
+            588,
+            335
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "matches the target distribution exactly, demonstrating that the learned average velocity preserves the FM action accuracy in a single forward pass without ODE integration. ",
+        "bbox": [
+            169,
+            339,
+            823,
+            368
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "H FORMAL JUSTIFICATION OF AVERAGE-VELOCITY LEARNING ENCOURAGESTHE LEARNED ONE-STEP POLICY TO STAY CLOSE TO THE BEHAVIORPOLICY",
+        "text_level": 1,
+        "bbox": [
+            171,
+            387,
+            823,
+            436
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "We show that, under general (imperfect) learning conditions, minimizing the average-velocity matching loss ${ \\mathcal { L } } _ { \\mathrm { F B C } ^ { \\star } } ( \\theta )$ ensures that the learned one-step policy $\\pi _ { \\boldsymbol { \\theta } } ( \\cdot \\mid s )$ converges toward the behavior distribution $\\mu ( \\cdot \\mid s )$ . In particular, ${ \\mathcal { L } } _ { \\mathrm { F B C } ^ { \\star } } ( \\theta )$ upper-bounds the squared 2-Wasserstein distance between $\\pi \\theta ( \\cdot \\mid s )$ and $\\mu ( \\cdot \\mid s ) - \\mathsf { u p }$ to a positive constant—implying that small average-velocity error enforces closeness between the two distributions. ",
+        "bbox": [
+            169,
+            453,
+            826,
+            523
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "Let $\\epsilon \\sim \\mathcal { N } ( 0 , I _ { d } )$ be a d-dimensional standard Gaussian. For each state $s \\in S$ , define ",
+        "bbox": [
+            169,
+            530,
+            730,
+            545
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "equation",
+        "text": "$$\nT ^ {\\star} (\\epsilon , s) = \\epsilon - \\int_ {0} ^ {1} v ^ {\\star} (a _ {\\tau}, \\tau ; s) d \\tau = \\epsilon - u ^ {\\star} (\\epsilon , 0, 1; s), \\qquad T _ {\\theta} (\\epsilon , s) = \\epsilon - u _ {\\theta} (\\epsilon , 0, 1; s),\n$$",
+        "text_format": "latex",
+        "bbox": [
+            204,
+            551,
+            790,
+            585
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "so that the induced action distributions are the push-forwards ",
+        "bbox": [
+            171,
+            590,
+            575,
+            604
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mu (\\cdot \\mid s) = (T ^ {\\star} (\\cdot , s)) _ {\\#} \\mathcal {N} (0, I), \\quad \\pi_ {\\theta} (\\cdot \\mid s) = (T _ {\\theta} (\\cdot , s)) _ {\\#} \\mathcal {N} (0, I).\n$$",
+        "text_format": "latex",
+        "bbox": [
+            272,
+            609,
+            720,
+            628
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "Recall the average-velocity matching loss: ",
+        "bbox": [
+            171,
+            640,
+            452,
+            655
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathcal {L} _ {\\mathrm{FBC} ^ {\\star}} (\\theta) = \\mathbb {E} _ {0 \\leq r \\leq t \\leq 1; s; \\epsilon} \\left[ \\| u _ {\\theta} (a _ {t}, r, t; s) - u ^ {\\star} (a _ {t}, r, t; s) \\| _ {2} ^ {2} \\right], \\tag {29}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            290,
+            659,
+            825,
+            678
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "where $a _ { t }$ is the (deterministic) solution of the flow-matching ODE at time t given the initial noise ϵ and state s. ",
+        "bbox": [
+            169,
+            681,
+            823,
+            709
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "Assume that the sampling distribution over time pairs $( r , t )$ assigns a non-zero probability $p _ { 0 1 } > 0$ to the endpoint pair $( 0 , \\bar { 1 } ) , \\bar { \\mathrm { i . e . } } \\ \\mathbb { P } [ ( r , t ) = ( 0 , 1 ) ] = \\bar { p } _ { 0 1 } > 0$ . Then ",
+        "bbox": [
+            169,
+            718,
+            823,
+            747
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathcal {L} _ {\\mathrm{FBC} ^ {\\star}} (\\theta) = \\mathbb {E} _ {(r, t); s; \\epsilon} \\left[ \\left| \\left| u _ {\\theta} (a _ {t}, r, t; s) - u ^ {\\star} (a _ {t}, r, t; s) \\right| \\right| _ {2} ^ {2} \\right] \\tag {30}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            277,
+            752,
+            825,
+            779
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\geq p _ {0 1} \\mathbb {E} _ {(r, t) = (0, 1); s; \\epsilon} \\left[ \\left\\| u _ {\\theta} \\left(a _ {t}, r, t; s\\right) - u ^ {\\star} \\left(a _ {t}, r, t; s\\right) \\right\\| _ {2} ^ {2} \\right] \\tag {31}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            344,
+            780,
+            825,
+            806
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "equation",
+        "text": "$$\n= p _ {0 1} \\mathbb {E} _ {s; \\epsilon} \\left[ \\left\\| u _ {\\theta} (\\epsilon , 0, 1; s) - u ^ {\\star} (\\epsilon , 0, 1; s) \\right\\| _ {2} ^ {2} \\right]. \\tag {32}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            344,
+            808,
+            825,
+            834
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "Using the endpoint parameterization ",
+        "bbox": [
+            171,
+            845,
+            415,
+            859
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "equation",
+        "text": "$$\nT _ {\\theta} (\\epsilon , s) = \\epsilon - u _ {\\theta} (\\epsilon , 0, 1; s), \\qquad T ^ {\\star} (\\epsilon , s) = \\epsilon - u ^ {\\star} (\\epsilon , 0, 1; s),\n$$",
+        "text_format": "latex",
+        "bbox": [
+            290,
+            866,
+            704,
+            883
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "we obtain the identity ",
+        "bbox": [
+            171,
+            888,
+            316,
+            902
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\| u _ {\\theta} (\\epsilon , 0, 1; s) - u ^ {\\star} (\\epsilon , 0, 1; s) \\| _ {2} ^ {2} = \\| T _ {\\theta} (\\epsilon , s) - T ^ {\\star} (\\epsilon , s) \\| _ {2} ^ {2}.\n$$",
+        "text_format": "latex",
+        "bbox": [
+            303,
+            907,
+            689,
+            926
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "page_number",
+        "text": "20 ",
+        "bbox": [
+            488,
+            946,
+            509,
+            959
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "Thus ",
+        "bbox": [
+            171,
+            104,
+            209,
+            116
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathcal {L} _ {\\mathrm{FBC} ^ {\\star}} (\\theta) \\geq p _ {0 1} \\mathbb {E} _ {s;   \\epsilon \\sim \\mathcal {N} (0, I)} \\left[ \\| T _ {\\theta} (\\epsilon , s) - T ^ {\\star} (\\epsilon , s) \\| _ {2} ^ {2} \\right]. \\tag {33}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            318,
+            118,
+            825,
+            138
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "For each state $s ,$ let $\\lambda _ { s }$ denote the joint distribution of $( T _ { \\theta } ( \\epsilon , s ) , T ^ { \\star } ( \\epsilon , s ) )$ induced by $\\epsilon \\sim \\mathcal { N } ( 0 , I )$ Then $\\lambda _ { s }$ is a valid coupling between $\\pi _ { \\boldsymbol { \\theta } } ( \\cdot \\mid s )$ and $\\mu ( \\cdot \\mid s ) , { \\mathrm { i . e . } } \\ \\lambda _ { s } \\in \\Lambda ( \\pi _ { \\theta } ( \\cdot \\mid s ) , \\mu ( \\cdot \\mid s ) )$ . Therefore, ",
+        "bbox": [
+            169,
+            146,
+            826,
+            175
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathbb {E} _ {\\epsilon} \\left[ \\| T _ {\\theta} (\\epsilon , s) - T ^ {\\star} (\\epsilon , s) \\| _ {2} ^ {2} \\right] = \\mathbb {E} _ {(a, a ^ {*}) \\sim \\lambda_ {s}} \\left[ \\| a - a ^ {*} \\| _ {2} ^ {2} \\right] \\tag {34}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            264,
+            176,
+            825,
+            195
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\geq \\inf _ {\\lambda \\in \\Lambda (\\pi_ {\\theta} (\\cdot | s), \\mu (\\cdot | s))} \\mathbb {E} _ {(a, a ^ {*}) \\sim \\lambda} \\left[ \\| a - a ^ {*} \\| _ {2} ^ {2} \\right] \\tag {35}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            450,
+            196,
+            825,
+            222
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "equation",
+        "text": "$$\n= W _ {2} ^ {2} \\left(\\pi_ {\\theta} (\\cdot \\mid s), \\mu (\\cdot \\mid s)\\right), \\tag {36}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            450,
+            224,
+            825,
+            242
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "where $W _ { 2 }$ denotes the 2-Wasserstein distance on the action space with Euclidean ground metric. Combining the inequalities yields ",
+        "bbox": [
+            169,
+            243,
+            826,
+            272
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathcal {L} _ {\\mathrm{FBC} ^ {\\star}} (\\theta) \\geq p _ {0 1} \\mathbb {E} _ {s} \\left[ W _ {2} ^ {2} \\left(\\pi_ {\\theta} (\\cdot | s), \\mu (\\cdot | s)\\right) \\right]. \\tag {37}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            341,
+            272,
+            825,
+            292
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "Thus, up to the positive constant factor, ${ \\mathcal { L } } _ { \\mathrm { F B C ^ { \\star } } } ( \\theta )$ upper-bounds the expected squared 2-Wasserstein distance between the learned policy $\\pi _ { \\theta } ( \\cdot \\mid s )$ and the target policy $\\mu ( \\cdot \\mid s )$ induced by flow matching. In particular, if ${ \\mathcal { L } } _ { \\mathrm { F B C } ^ { \\star } } ( \\theta ) \\to 0$ , then $\\mathbb { E } _ { s } \\bigl [ W _ { 2 } ^ { 2 } \\bigl ( \\pi _ { \\theta } ( \\cdot \\mid s ) , \\mu ( \\cdot \\mid s ) \\bigr ) \\bigr ] \\ \\to \\ 0$ . Consequently, averagevelocity learning regularizes $\\pi _ { \\boldsymbol { \\theta } } ( \\cdot \\mid s )$ toward the behavior distribution $\\mu ( \\cdot \\mid s )$ , while still allowing complex, multimodal action distributions via the nonlinear endpoint map induced by flow-matching dynamics. ",
+        "bbox": [
+            169,
+            300,
+            826,
+            386
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "I GRADIENT ANALYSIS OF OFQL ACTOR LOSS ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            405,
+            581,
+            422
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "The OFQL actor minimizes ",
+        "bbox": [
+            171,
+            436,
+            356,
+            450
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\arg \\min _ {\\theta} \\mathcal {L} (\\theta) = \\arg \\min _ {\\theta} \\left(\\mathcal {L} _ {\\mathrm{FBC}} (\\theta) - \\alpha \\mathcal {L} _ {\\mathrm{Q}} (\\theta)\\right), \\tag {38}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            334,
+            452,
+            825,
+            474
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathcal {L} _ {\\mathrm{Q}} (\\theta) \\triangleq \\mathbb {E} _ {s \\sim \\mathcal {D}, a \\sim \\pi_ {\\theta}} \\big [ Q _ {\\phi} (s, a) \\big ]. \\tag {39}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            380,
+            476,
+            825,
+            496
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "The OFQL actor loss jointly (i) maximizes the critic value (i.e., return) and (ii) keeps the policy close to the behavior distribution via FBC (see formal justification in H ) ",
+        "bbox": [
+            169,
+            503,
+            823,
+            532
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "We now expand the gradient of each term. ",
+        "bbox": [
+            171,
+            539,
+            450,
+            553
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "Gradient of the Q-term. Recall that actions are sampled in one step: ",
+        "bbox": [
+            169,
+            566,
+            642,
+            582
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "equation",
+        "text": "$$\na = \\epsilon - u _ {\\theta} (\\epsilon , 0, 1; s), \\quad \\epsilon \\sim \\mathcal {N} (0, I), \\tag {40}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            362,
+            584,
+            825,
+            599
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "The Q-term becomes ",
+        "bbox": [
+            171,
+            608,
+            313,
+            623
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathcal {L} _ {\\mathrm{Q}} (\\theta) = \\mathbb {E} _ {s, \\epsilon} \\left[ Q _ {\\phi} (s, \\epsilon - u _ {\\theta} (\\epsilon , 0, 1; s)) \\right]. \\tag {41}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            357,
+            645,
+            825,
+            664
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "Applying the chain rule: ",
+        "bbox": [
+            171,
+            671,
+            334,
+            686
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\nabla_ {\\theta} \\mathcal {L} _ {\\mathrm{Q}} (\\theta) = \\mathbb {E} _ {s, \\epsilon} \\left[ \\nabla_ {a} Q _ {\\phi} (s, a) \\cdot \\nabla_ {\\theta} a \\right] \\tag {42}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            320,
+            686,
+            825,
+            704
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "equation",
+        "text": "$$\n= \\mathbb {E} _ {s, \\epsilon} \\left[ \\nabla_ {a} Q _ {\\phi} (s, a) \\cdot (- \\nabla_ {\\theta} u _ {\\theta} (\\epsilon , 0, 1; s)) \\right]. \\tag {43}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            390,
+            705,
+            825,
+            722
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "Unlike diffusion-based policy parameterizations that require backpropagating through many iterative denoising steps (BPTT), the one-step mapping $a = \\epsilon - u _ { \\theta } ( \\epsilon , 0 , 1 ; s )$ is a single differentiable transformation. Thus, $\\nabla _ { \\theta } a$ is computed in one step without temporal unrolling, making the actor update significantly faster, more training-friendly. ",
+        "bbox": [
+            169,
+            729,
+            823,
+            787
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "Gradient of the FBC term. The FBC objective is ",
+        "bbox": [
+            171,
+            800,
+            517,
+            814
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathcal {L} _ {\\mathrm{FBC}} (\\theta) = \\mathbb {E} _ {s, a, t, r, \\epsilon} \\left[ \\| u _ {\\theta} (a _ {t}, r, t; s) - \\mathrm{sg} (u _ {\\mathrm{tgt}}) \\| _ {2} ^ {2} \\right], \\tag {44}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            321,
+            816,
+            825,
+            842
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "where $u _ { t g t }$ is stop-gradient $\\operatorname { s g } ( \\cdot )$ : ",
+        "bbox": [
+            171,
+            851,
+            393,
+            867
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "equation",
+        "text": "$$\nu _ {\\mathrm{tgt}} = v _ {t} - (t - r) \\left(v _ {t} \\cdot \\partial_ {a _ {t}} u _ {\\theta} + \\partial_ {t} u _ {\\theta}\\right), \\quad a _ {t} = (1 - t) a + t \\epsilon , \\quad v _ {t} = \\epsilon - a \\tag {45}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            227,
+            868,
+            825,
+            883
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "Because of sg(.), the target is treated as constant when differentiating. Thus ",
+        "bbox": [
+            171,
+            892,
+            669,
+            906
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\nabla_ {\\theta} \\mathcal {L} _ {\\mathrm{FBC}} (\\theta) = 2 \\mathbb {E} _ {s, a, t, r, \\epsilon} \\left[ \\left(u _ {\\theta} (a _ {t}, r, t; s) - u _ {\\mathrm{tgt}}\\right) \\cdot \\nabla_ {\\theta} u _ {\\theta} (a _ {t}, r, t; s) \\right]. \\tag {46}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            269,
+            907,
+            825,
+            926
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "page_number",
+        "text": "21 ",
+        "bbox": [
+            488,
+            946,
+            506,
+            959
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "Full OFQL actor gradient. Combining Eqs. 42–46: ",
+        "bbox": [
+            169,
+            103,
+            535,
+            119
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\nabla_ {\\theta} \\mathcal {L} (\\theta) = \\nabla_ {\\theta} \\mathcal {L} _ {\\mathrm{FBC}} (\\theta) - \\alpha \\nabla_ {\\theta} \\mathcal {L} _ {\\mathrm{Q}} (\\theta) \\tag {47}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            287,
+            126,
+            825,
+            142
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "equation",
+        "text": "$$\n= 2 \\mathbb {E} _ {s, a, t, r, \\epsilon} \\left[ \\left(u _ {\\theta} \\left(a _ {t}, r, t; s\\right) - u _ {\\mathrm{tgt}}\\right) \\cdot \\nabla_ {\\theta} u _ {\\theta} \\left(a _ {t}, r, t; s\\right) \\right] \\tag {48}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            346,
+            143,
+            825,
+            160
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "equation",
+        "text": "$$\n+ \\alpha \\mathbb {E} _ {s, \\epsilon} [ \\nabla_ {a} Q _ {\\phi} (s, a) \\cdot \\nabla_ {\\theta} u _ {\\theta} (\\epsilon , 0, 1; s) ]. \\tag {49}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            361,
+            162,
+            825,
+            178
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "Interpretation. The first term regularizes the policy toward the behavior distribution by matching average velocities, while the second term regularizes the policy to maximize the critic value through the differentiable one-step action mapping. Thus, OFQL simultaneously achieves behavior regularization and return maximization. ",
+        "bbox": [
+            169,
+            193,
+            826,
+            250
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "J EVALUATING OFQL IN HIGH-DIMENSIONAL ACTION ROBOTIC MANIPULATION ",
+        "text_level": 1,
+        "bbox": [
+            169,
+            270,
+            730,
+            303
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "To further evaluate OFQL in high-dimensional action spaces, we conducted additional experiments on the D4RL Adroit benchmark, which features 24-dimensional control using a dexterous robotic hand. We evaluated two standard tasks—adroit-pen-human and adroit-pen-cloned—where the objective is to manipulate a pen to match a target orientation using a 24-DoF hand. This domain is particularly challenging due to noisy human demonstrations, sparse rewards, and the high-dimensional action manifold. Normalized returns, following the evaluation protocol of Fu et al. (2020), are reported below: ",
+        "bbox": [
+            169,
+            320,
+            823,
+            417
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "table",
+        "img_path": "images/622f5486b21651eec3f31d7f10a54ee0dee6f976c3b37fa5fdf5e17dbf43759b.jpg",
+        "table_caption": [],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Task</td><td>BC</td><td>DQL</td><td>OFQL (ours)</td></tr><tr><td>adroit-pen-human</td><td>71.0</td><td> $75.7 \\pm 9.0$ </td><td> $79.5 \\pm 9.5$ </td></tr><tr><td>adroit-pen-cloned</td><td>52.0</td><td> $60.8 \\pm 11.8$ </td><td> $62.3 \\pm 10.3$ </td></tr></table>",
+        "bbox": [
+            303,
+            428,
+            694,
+            487
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "The results show that OFQL consistently outperforms both BC and DQL in high-dimensional manipulation tasks, demonstrating strong robustness and effectiveness in complex dexterous control settings. ",
+        "bbox": [
+            169,
+            503,
+            823,
+            547
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "K FEASIBILITY ON VISUAL OBSERVATION SETTING ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            566,
+            620,
+            583
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "To demonstrate the feasibility of OFQL in the visual-observation setting, we evaluate it on two OGBench (Park et al., 2024) visual manipulation tasks that require reasoning over high-dimensional image observations (64×64×3): visual-scene-singletask-task1-v0 (moderate difficulty) and visual-cube-double-play-singletask-task1-v0 (hard). We adopt the small IMPALA encoder (following FQL (Park et al., 2025)) for embedding the image observation to the latent state and use simple concatenation for state conditioning. Task success rates are reported below: ",
+        "bbox": [
+            169,
+            599,
+            826,
+            696
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "table",
+        "img_path": "images/70ffc86ecf71155a79aa74478f2f724a7844ee854d90c439cd1463e217c33b3c.jpg",
+        "table_caption": [],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Task</td><td>FBRAC</td><td>FQL</td><td>OFQL (ours)</td></tr><tr><td>visual-scene-singletask-task1-v0</td><td>46.0±4.0</td><td>98.0±3.0</td><td>54.0±9.0</td></tr><tr><td>visual-cube-double-play-singletask-task1-v0</td><td>6.0±2.0</td><td>21.0±11.0</td><td>8.0±3.0</td></tr></table>",
+        "bbox": [
+            200,
+            708,
+            797,
+            767
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "These results show that OFQL remains functional in visual settings, but its performance lags behind stronger visual baselines, indicating that additional architectural and algorithmic considerations are necessary for competitive results in high-dimensional pixel-based domains. ",
+        "bbox": [
+            169,
+            784,
+            823,
+            827
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "There are several key challenges when extending OFQL to high-dimensional input scenarios such as image-based observations. ",
+        "bbox": [
+            169,
+            833,
+            823,
+            861
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "First, the learning objectives become tightly coupled. Unlike low-dimensional state spaces, visual tasks require the policy to jointly learn (i) accurate Q-values, (ii) flow-based behavior regularization, and (iii) a stable and expressive visual representation. These components are deeply interdependent: noise or instability in the visual encoder propagates into Q-value estimation and flow predictions, while inaccuracies in the critic or policy can, in turn, misguide the encoder. This tight coupling makes the overall optimization process considerably more fragile compared to low-dimensional settings. ",
+        "bbox": [
+            169,
+            868,
+            826,
+            925
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "page_number",
+        "text": "",
+        "bbox": [
+            488,
+            948,
+            508,
+            959
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            169,
+            103,
+            823,
+            133
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "Second, conditioning high-dimensional latent features into the flow network is non-trivial. Simple concatenation of visual latents with the noise vector may be insufficient. High-dimensional representations often require more structured fusion strategies—e.g., FiLM layers, cross-attention,..—to ensure the visual features meaningfully influence the learned flow direction. Without proper conditioning, the policy may ignore or underutilize visual information. ",
+        "bbox": [
+            169,
+            138,
+            826,
+            209
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "Third, representation quality may becomes a bottleneck. Lightweight or general-purpose encoders may fail to capture task-relevant spatial and semantic cues required for precise action prediction. Stronger or task-specific visual backbones, domain augmentations, or auxiliary representationlearning losses (e.g., predictive coding (Nguyen et al., 2021b), contrastive learning (Luu et al., 2022; Chen et al., 2020; Nguyen et al., 2023),...) may be necessary to maintain stable training. ",
+        "bbox": [
+            169,
+            215,
+            826,
+            287
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "Overall, extending OFQL to visual domains will likely require more robust encoders, improved conditioning strategies, and additional guidance signals to ensure that visual features effectively support flow-based policy learning which is an interesting direction for future work. ",
+        "bbox": [
+            169,
+            292,
+            825,
+            335
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "L HANDLING OUT-OF-DISTRIBUTION STATES: OFQL VS. DQL ",
+        "text_level": 1,
+        "bbox": [
+            169,
+            357,
+            718,
+            373
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "Across all benchmarks, OFQL consistently attains higher average returns than DQL. This suggests improved robustness to out-of-distribution (OOD) states, since the average return is determined by the policy’s interaction with the real environment, where trajectories often drift outside the trained distribution. A policy that performs better in these interactions is implicitly better at handling such OOD states. ",
+        "bbox": [
+            169,
+            388,
+            823,
+            459
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "To further support this, we compute the mean squared error between the actions produced by the trained policy (trained on medium / medium-replay datasets) and the expert actions on the expert dataset. Let’s denotes this MSE as OOD-MSE. This metric measures how well the learned policy aligns with the expert policy under the expert state distribution, which is largely out-of-distribution relative to the training data. A lower OOD-MSE therefore indicates stronger generalization to unseen or OOD states. we provide OOD-MSE on the HalfCheetah dataset as below. ",
+        "bbox": [
+            169,
+            465,
+            825,
+            551
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "table",
+        "img_path": "images/97dd16d470c71614abf43bec32e580a91d2019915f013154b952df37641ed84a.jpg",
+        "table_caption": [],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Metric (Dataset)</td><td>OOD-MSE (Medium)</td><td>OOD-MSE (Medium-Replay)</td></tr><tr><td>OFQL</td><td>0.458</td><td>0.560</td></tr><tr><td>DQL</td><td>0.462</td><td>0.582</td></tr></table>",
+        "bbox": [
+            230,
+            565,
+            767,
+            623
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "The results presented in the table above show that OFQL consistently achieves lower OOD-MSE than its DQL counterpart, demonstrating that OFQL generalizes more effectively to unseen or out-of-distribution states. ",
+        "bbox": [
+            169,
+            638,
+            823,
+            681
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "M ABLATION ON TIME-SAMPLING DISTRIBUTION ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            704,
+            607,
+            719
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "We evaluate the effect of the time-sampling distribution in OFQL by comparing uniform sampling against a logit-normal distribution. An ablation on HalfCheetah is summarized below: ",
+        "bbox": [
+            169,
+            736,
+            823,
+            766
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "table",
+        "img_path": "images/bbc4cdcbfbe15eab4676740c98d10df3cba60f4e6fd2bb5bae852f2e35454ccb.jpg",
+        "table_caption": [],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Time-Sampling</td><td>Uniform</td><td>Logit-Normal</td></tr><tr><td>Medium-Expert</td><td>94.5±0.5</td><td>95.2±0.4</td></tr><tr><td>Medium</td><td>61.1±0.1</td><td>63.8±0.1</td></tr><tr><td>Medium-Replay</td><td>51.7±0.2</td><td>51.2±0.1</td></tr></table>",
+        "bbox": [
+            334,
+            779,
+            663,
+            852
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "Overall performance is similar across the two strategies, though the logit-normal distribution yields a slight improvement on some datasets. These results show that OFQL remains robust under different time-sampling strategies, and performance is not highly sensitive to the precise tuning of this hyperparameter. In practice, we use logit-normal parameters $( \\mu = - 0 . 4 , \\sigma = \\overset { \\cdot } { 1 . 0 } )$ as the default. ",
+        "bbox": [
+            169,
+            867,
+            823,
+            925
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "page_number",
+        "text": "23 ",
+        "bbox": [
+            488,
+            946,
+            508,
+            959
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "N BASELINES REPRODUCIBILITY ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            102,
+            467,
+            118
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "Baseline Result. For DQL and FQL on AntMaze, we directly report the results from the original papers. For other baselines—including BC, TD3-BC, IQL, Diffuser, DD, EDP, and IDQL—we use results from the broadly accepted and standardized reimplementation CleanDiffuser (Dong et al., 2024). For details on training and evaluation procedures, we refer readers to the corresponding papers. ",
+        "bbox": [
+            169,
+            132,
+            826,
+            205
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "For the FQL on Locomotion and Kitchen, the official FQL implementation does not support the D4RL Locomotion or Kitchen domains. To ensure fair comparison, we extend the official JAX codebase to support these environments and additionally implement a PyTorch version of FQL within the OFQL framework (our implementation is based on PyTorch). We follow the recommendations from the official FQL repository and paper: we use the normalized-Q setting and perform a hyperparameter search over $\\alpha \\overset { \\cdot } { \\in } \\{ 0 . 0 \\overset { . } { 3 } , 0 . 1 , 0 . \\overset { . } { 3 } , 1 , 3 , 1 0 \\}$ , as described in Appendix C of Park et al. (2025). For network architecture, we search over MLP sizes [512, 512, 512, 512] and [256, 256, 256, 256]. We run both our extended JAX version and our PyTorch implementation and report the best-performing results. For speed measurements, we use the PyTorch version to avoid framework-level differences (JAX vs. PyTorch). ",
+        "bbox": [
+            169,
+            209,
+            826,
+            349
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "Diffusion Steps. We follow the standard diffusion-step settings recommended by each baseline: DQL (5 steps), IDQL (5 steps), EDP (15 steps), and the Flow Model used in FQL (10 steps). These configurations align with the settings reported in the respective papers or official repositories. ",
+        "bbox": [
+            169,
+            364,
+            826,
+            407
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "O ON THE MEANFLOW IDENTITY ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            426,
+            473,
+            441
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "For completeness, the derivation from (Geng et al., 2025) is revisited to provide a clear understanding of how MeanFlow Identity can be used to calculate the target average velocity. ",
+        "bbox": [
+            169,
+            457,
+            823,
+            487
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "Let’s consider the no-condition generation case (no state condition) for simplicity. The average velocity is defined as the displacement between two timesteps t and r divided by the time interval: ",
+        "bbox": [
+            169,
+            492,
+            823,
+            522
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "equation",
+        "text": "$$\nu (a _ {t}, r, t) \\triangleq \\frac {1}{t - r} \\int_ {r} ^ {t} v (a _ {\\tau}, \\tau) d \\tau . \\tag {50}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            382,
+            526,
+            825,
+            560
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "Here, u denotes the average velocity, v the instantaneous velocity (i.e., marginal velocity), and a is the noise action. $\\mathbf { A s } r  t ,$ u converges to v. ",
+        "bbox": [
+            169,
+            565,
+            823,
+            594
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "Our purpose is to approximate u using a neural network, enabling single-step generation (i.e., $r = 0 , t = 1 )$ , unlike methods based on marginal velocity (a.k.a instantaneous velocity), which require time integration at inference. Direct training with u is impractical due to the integral; instead, the definition of u is manipulated to derive a tractable optimization target. ",
+        "bbox": [
+            169,
+            599,
+            826,
+            657
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "The MeanFlow Identity. To facilitate training, the equation for u is rewritten as: ",
+        "bbox": [
+            171,
+            662,
+            705,
+            678
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "equation",
+        "text": "$$\n(t - r) u (a _ {t}, r, t) = \\int_ {r} ^ {t} v (a _ {\\tau}, \\tau) d \\tau . \\tag {51}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            380,
+            683,
+            825,
+            718
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "Differentiating both sides with respect to t gives: ",
+        "bbox": [
+            171,
+            722,
+            495,
+            736
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\frac {d}{d t} (t - r) u (a _ {t}, r, t) = \\frac {d}{d t} \\int_ {r} ^ {t} v (a _ {\\tau}, \\tau) d \\tau \\Longrightarrow u (a _ {t}, r, t) + (t - r) \\frac {d}{d t} u (a _ {t}, r, t) = v (a _ {t}, t) \\tag {52}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            191,
+            742,
+            825,
+            776
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "Rearranging, the MeanFlow Identity is achieved: ",
+        "bbox": [
+            171,
+            787,
+            493,
+            803
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "equation",
+        "text": "$$\nu (a _ {t}, r, t) = v (a _ {t}, t) - (t - r) \\frac {d}{d t} u (a _ {t}, r, t) \\tag {53}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            352,
+            808,
+            825,
+            838
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "This identity links u and v, providing a target for training a neural network. The next step is to compute the time derivative of u. ",
+        "bbox": [
+            169,
+            840,
+            823,
+            871
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "Computing the Time Derivative. To compute $\\frac { d } { d t }$ u, we expand the total derivative: ",
+        "bbox": [
+            169,
+            876,
+            718,
+            893
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\frac {d}{d t} u (a _ {t}, r, t) = \\frac {d a _ {t}}{d t} \\partial_ {a _ {t}} u + \\frac {d r}{d t} \\partial_ {r} u + \\frac {d t}{d t} \\partial_ {t} u \\tag {54}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            351,
+            898,
+            825,
+            929
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "page_number",
+        "text": "24 ",
+        "bbox": [
+            488,
+            946,
+            508,
+            959
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "Using dat $\\begin{array} { r } { \\frac { d a _ { t } } { d t } = v ( a _ { t } , t ) , \\frac { d r } { d t } = 0 } \\end{array}$ , and $\\begin{array} { r } { \\frac { d t } { d t } = 1 } \\end{array}$ , we obtain: ",
+        "bbox": [
+            171,
+            101,
+            527,
+            122
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\frac {d}{d t} u (a _ {t}, r, t) = v (a _ {t}, t) \\partial_ {z} u + \\partial_ {t} u\n$$",
+        "text_format": "latex",
+        "bbox": [
+            385,
+            135,
+            612,
+            165
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "text",
+        "text": "This shows that the total derivative of u is computed as the Jacobian-vector product (JVP) of the network’s Jacobian and the tangent vector [v, 0, 1]. ",
+        "bbox": [
+            169,
+            174,
+            823,
+            204
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "text",
+        "text": "Notably, the MeanFlow Identity (Eq. 53) is mathematical equivalent to Eq. 51 (Geng et al., 2025). ",
+        "bbox": [
+            169,
+            209,
+            815,
+            224
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "text",
+        "text": "We train the policy network by conditioning on the state s, parameterizing $u _ { \\theta } ( a _ { t } , r , t ; s )$ , and applying the MeanFlow Identity to define the optimization target. ",
+        "bbox": [
+            169,
+            231,
+            823,
+            260
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "text",
+        "text": "P LLM USAGE ",
+        "text_level": 1,
+        "bbox": [
+            171,
+            279,
+            316,
+            295
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "text",
+        "text": "In preparing this paper, we used Large Language Models (LLMs) solely as an assistive tool for grammar checking and polishing text. The LLMs were not involved in research ideation, experimental design, data analysis, or substantive content generation. All research ideas, methods, analyses, and conclusions are the authors’ own. ",
+        "bbox": [
+            169,
+            311,
+            825,
+            367
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "header",
+        "text": "Published as a conference paper at ICLR 2026 ",
+        "bbox": [
+            171,
+            32,
+            478,
+            47
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "page_number",
+        "text": "25 ",
+        "bbox": [
+            488,
+            946,
+            508,
+            959
+        ],
+        "page_idx": 24
+    }
+]

@@ -1,9 +1,9 @@
 ﻿---
 type: concept
 tags: [VLA, 具身智能, 多模态, Foundation Model, 机器人策略, Pi系列, GR00T]
-sources: [π₀.₆ 论文, LeRobot README, StarVLA README, RLinf README, Embodied-AI-Guide, wiki/sources/vla/2026-04-23 VLASH]
+sources: [π₀.₆ 论文, LeRobot README, StarVLA README, RLinf README, Embodied-AI-Guide, wiki/sources/vla/2026-04-23 VLASH, Agentic Robot 论文 (来源 52), Sci-VLA 论文 (来源 53)]
 created: 2026-04-19
-updated: 2026-04-23
+updated: 2026-06-02
 ---
 
 # Vision-Language-Action 模型（VLA）
@@ -50,6 +50,8 @@ updated: 2026-04-23
 | [[wiki/sources/frameworks/2026-04-19 StarVLA]] | **框架侧**：乐高式 VLA 开发框架；FAST/OFT/PI/GR00T 四变体；WM4A 世界模型融合 |
 | [[wiki/sources/frameworks/2026-04-19 RLinf]] | **基础设施侧**：支持 π₀、GR00T、OpenVLA、[[wiki/entities/frameworks/StarVLA\|StarVLA]] 等多模型 RL 训练 |
 | [[wiki/sources/guides-tools/2026-04-19 Embodied-AI-Guide]] | **知识体系侧**：VLA 在具身智能技术栈中的综述定位 |
+| [[wiki/sources/agent-systems/2026-06-02 Agentic Robot (Yang 2025)]] | **agentic 编排侧**：OpenVLA 作 Executor，外加 LRM Planner + VLM Verifier 闭环，推理期提升长程可靠性（LIBERO 79.6%） |
+| [[wiki/sources/agent-systems/2026-06-02 Sci-VLA (Pang 2026)]] | **推理插件侧**：$\pi_0$/$\pi_{0.5}$/$\pi_0$-FAST 作 base，LLM agent 在原子任务间插过渡动作弥合 State Gap（训练无关，+42%） |
 
 ---
 

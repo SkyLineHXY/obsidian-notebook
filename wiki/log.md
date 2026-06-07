@@ -743,3 +743,19 @@ aw/sources/papers/Lab Automation/（新建目录）
 ## [2026-05-28] update | RLT 源页补充 Fig.2 架构图与 Appendix B 实现细节
 - 在 [[wiki/sources/vla-rl/2026-05-28 RLT RL Token VLA Online RL (Xu 2026)]] 「方法」标题下嵌入 Fig.2 RL Token 抽取示意图（wiki-link 形式，无复制）
 - 新增「实现细节（Appendix B）」小节，覆盖：RL token 训练步数、actor/critic MLP 规模（256/512）、TD3 双 Q ensemble、动作维度 140-D、控制频率 50 Hz、reference dropout 50
+## [2026-06-02] ingest | Agentic Robot (Yang 2025) + Sci-VLA (Pang 2026)
+- mineru 解析两篇 PDF（VLM 引擎）→ raw/sources/papers/VLA/<stem>/<stem>.md + images/（无加密问题，直解成功）
+- 新建 agent-systems 源页 ×2：
+  - [[wiki/sources/agent-systems/2026-06-02 Agentic Robot (Yang 2025)]]：SAP 三组件闭环（LRM Planner + OpenVLA Executor + Qwen2.5-VL Verifier），LIBERO 79.6% SOTA；嵌入 Fig.1 总览 + Fig.3 恢复对比图
+  - [[wiki/sources/agent-systems/2026-06-02 Sci-VLA (Pang 2026)]]：训练无关推理插件，LLM agent 在原子任务间插过渡动作弥合 State Gap，+42%；嵌入 Fig.2 State Gap + Fig.3 pipeline 图
+- 新建 [[wiki/comparisons/Agentic VLA 系统对比]]（≥2 来源达阈值）：闭环验证-恢复 vs 过渡动作插桩，失效模式正交互补
+- 更新 [[wiki/concepts/benchmarks/LIBERO]]（新增来源 52 小节 + 联系表 + frontmatter）、[[wiki/concepts/vla/Vision-Language-Action 模型]]（新增 2 行 + frontmatter）
+- index：Stats Sources 51→53、Comparisons 2→3；Agent Systems (1)→(3)；Knowledge Gaps 追加 SAP / Temporal Verifier / State Gap / Transition Action 等单来源概念块
+
+## [2026-06-07] ingest | GPS-Denied LiDAR SLAM Survey (Jiang 2025) + Active SLAM Survey (Placed 2023)
+- mineru 解析两篇 SLAM 综述 PDF（VLM 引擎，3.7 min）→ raw/sources/papers/其他/<stem>/<stem>.md + images/
+- 新建 slam 源页 ×2：
+  - [[wiki/sources/slam/2026-06-07 GPS-Denied LiDAR-Based SLAM Survey (Jiang 2025)]]：被动 LiDAR 多传感器融合 SLAM（前向/后向传播、关键帧/数据结构/回环/渲染、Faster-LIO 实验最优）；嵌入 Fig.1 总体框架图
+  - [[wiki/sources/slam/2026-06-07 Active SLAM Survey (Placed 2023)]]：T-RO 主动 SLAM 权威综述（POMDP 统一表述 + 三阶段模块化 + BSP/DRL/多机器人 + 7 大开放挑战）；Placed PDF 仅抽出作者头像，无内容图可嵌
+- 新建 [[wiki/concepts/slam/SLAM (Simultaneous Localization and Mapping)]]（≥2 来源达阈值）：含强制「严谨数学推导」节——(A) 概率 SLAM 后验贝叶斯分解、(B) EKF-SLAM 预测-更新递归、(C) 主动 SLAM POMDP + Kiefer 最优性准则（T/D/A/E-opt）与单调性定理，全 LaTeX
+- index：Stats Sources 53→55、Concepts 17→18；新增 Sources「SLAM (2)」与 Concepts「SLAM (1)」分节

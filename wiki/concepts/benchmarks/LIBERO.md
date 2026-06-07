@@ -1,9 +1,9 @@
 ---
 type: concept
 tags: [Benchmark, Robot Manipulation, Simulation, Imitation Learning, VLA, Evaluation]
-sources: [LeRobot GitHub README (来源 9), VLASH 论文 (来源 18), RLinf 官方文档 (来源 19)]
+sources: [LeRobot GitHub README (来源 9), VLASH 论文 (来源 18), RLinf 官方文档 (来源 19), Agentic Robot 论文 (来源 52)]
 created: 2026-04-24
-updated: 2026-04-24
+updated: 2026-06-02
 ---
 
 # LIBERO
@@ -69,6 +69,17 @@ lerobot-eval \
 ### 来源 19：RLinf 官方文档
 [[wiki/sources/frameworks/2026-04-24 RLinf文档]] 将 LIBERO 列为 RLinf 内置支持的仿真评估环境之一（与 ManiSkill3、IsaacLab 并列），可通过 RLinf 框架直接运行 VLA 的在线 RL 微调实验。
 
+### 来源 52：Agentic Robot
+[[wiki/sources/agent-systems/2026-06-02 Agentic Robot (Yang 2025)]] 以 LIBERO 为主基准，4 子集 3 种子 500 试次，**平均成功率 79.6%（SOTA）**。其优势集中在 **LIBERO-Long**（61.6%）——通过子目标级闭环验证 + 恢复抑制误差累积，超 SpatialVLA **+6.1%**、超 base executor OpenVLA **+7.4%**：
+
+| 方法 | Spatial | Object | Goal | Long | 平均 |
+|------|---------|--------|------|------|------|
+| OpenVLA (FT) | 84.7 | 88.4 | 79.2 | 53.7 | 76.5 |
+| SpatialVLA (FT) | **88.2** | 89.9 | 78.6 | 55.5 | 78.1 |
+| **Agentic Robot** | 85.8 | 89.0 | 81.8 | **61.6** | **79.6** |
+
+LIBERO-Long 还被用于验证频率分析（50 帧间隔掉 6 个百分点，20 帧最优），印证**长程子集对验证稀疏度最敏感**——这是 LIBERO-Long 作为长程能力试金石的价值体现。
+
 ---
 
 ## 与知识库中其他方法的联系
@@ -80,6 +91,7 @@ lerobot-eval \
 | [[wiki/entities/models/π₀.₅]] | VLASH 实验以 LIBERO 为主基准，96.8% 同步基线 |
 | [[wiki/entities/models/SmolVLA]] | LeRobot 中 SmolVLA 可用 LIBERO 场景做快速验证 |
 | [[wiki/entities/frameworks/RLinf]] | LIBERO 作为 RL 微调的在线仿真环境 |
+| [[wiki/sources/agent-systems/2026-06-02 Agentic Robot (Yang 2025)]] | LIBERO 主基准，agentic 编排 OpenVLA 达 79.6% SOTA，长程子集为核心战场 |
 
 ---
 

@@ -6,17 +6,19 @@
 ---
 
 ## Stats
-- **Sources**: 51 | **Entities**: 12 | **Concepts**: 17 | **Comparisons**: 2 | **Analyses**: 9
-- **Last updated**: 2026-05-28 (Ingest Q-Chunking Li 2026 / RL-100 Lei 2026 / RLT Xu 2026；新建 Action Chunking Q-Learning + Iterative Offline RL + Representation Regularization in Visuomotor RL Concept 页)
+- **Sources**: 55 | **Entities**: 12 | **Concepts**: 18 | **Comparisons**: 3 | **Analyses**: 9
+- **Last updated**: 2026-06-07 (Ingest GPS-Denied LiDAR SLAM Survey Jiang 2025 + Active SLAM Survey Placed 2023；新建 slam 源页 ×2 + SLAM 概念页含严谨数学推导)
 
 ---
 
 ## Sources by Theme
 
-### Agent Systems (1)
+### Agent Systems (3)
 | # | Page | Original Source | Date |
 |---|------|----------------|------|
 | 26 | [[wiki/sources/agent-systems/2026-05-16 ARIS]] | raw/sources/github/wanshuiyin...ARIS...md | 2026-05-16 |
+| 52 | [[wiki/sources/agent-systems/2026-06-02 Agentic Robot (Yang 2025)]] | raw/assets/papers/VLA/Yang 等 - 2025 - Agentic Robot...pdf | 2026-06-02 |
+| 53 | [[wiki/sources/agent-systems/2026-06-02 Sci-VLA (Pang 2026)]] | raw/assets/papers/VLA/Pang 等 - 2026 - Sci-VLA...pdf | 2026-06-02 |
 
 ### VLA + RL (10)
 > 策略骨干为携带 LLM/VLM 的 VLA 模型，RL 作用于大模型级别的策略后训练。
@@ -114,6 +116,12 @@
 | 41 | [[wiki/sources/lab-automation/2026-05-17 Intelligent Science Laboratory Position (Zhang 2025)]] | raw/assets/papers/Lab Automation/Zhang - 2025 - Intelligent Science Laboratory.pdf | 2026-05-17 |
 | 42 | [[wiki/sources/lab-automation/2026-05-17 Scaling Laws Scientific Discovery (Zhang 2025)]] | raw/assets/papers/Lab Automation/Zhang - 2025 - Scaling Laws Scientific Discovery.pdf | 2026-05-17 |
 
+### SLAM (2)
+| # | Page | Original Source | Date |
+|---|------|----------------|------|
+| 54 | [[wiki/sources/slam/2026-06-07 GPS-Denied LiDAR-Based SLAM Survey (Jiang 2025)]] | raw/assets/papers/其他/Jiang 等 - 2025 - GPS-Denied LiDAR-Based SLAM—A Survey.pdf | 2026-06-07 |
+| 55 | [[wiki/sources/slam/2026-06-07 Active SLAM Survey (Placed 2023)]] | raw/assets/papers/其他/Placed 等 - 2023 - A Survey on Active SLAM.pdf | 2026-06-07 |
+
 ---
 
 ## Entities by Category
@@ -199,6 +207,11 @@
 |------|---------|---------|
 | [[wiki/concepts/infrastructure/PREEMPT_RT实时内核]] | Linux 实时内核补丁，机器人实时控制必备 | 来源 2, 3 |
 
+### SLAM (1)
+| Page | Summary | Sources |
+|------|---------|---------|
+| [[wiki/concepts/slam/SLAM (Simultaneous Localization and Mapping)]] | 同步定位与建图：前端/后端、滤波 vs 优化、被动 vs 主动；含严谨数学推导（概率后验分解 + EKF-SLAM 递归 + 主动 SLAM POMDP/最优性准则） | 来源 54, 55 |
+
 ---
 
 ## Comparisons
@@ -208,6 +221,7 @@
 |------|---------|
 | [[wiki/comparisons/RL 微调表达性策略方法对比]] | 9 方法全景（DPPO/ReinFlow/FQL/HIL-SERL/FlowRL/FPO/WarmPrior/OFQL/FAN）：三条 log-prob 解法路线 × On-policy PG vs Offline Q-learning 深度对比 |
 | [[wiki/comparisons/VLA RL 微调方法对比]] | 7 种 VLA RL 后训练方法对比：AR-VLA vs Flow-VLA 两路线，RECAP/πRL/VLA-RL/GR-RL/SA-VLA/VLA-OPD/iRe-VLA 四维解法矩阵 |
+| [[wiki/comparisons/Agentic VLA 系统对比]] | Agentic Robot vs Sci-VLA：两种推理期 agentic VLA 长程操作方案——SAP 闭环验证-恢复 vs 原子任务间过渡动作插桩，失效模式正交互补 |
 
 ---
 
@@ -397,3 +411,16 @@
 - **Reference Action Conditioning（参考动作条件化）**：RL actor 以 VLA 参考动作块为条件并正则化，将 RL 转化为局部精修；仅来源 51
 - **Reference Action Dropout**：随机清零参考块防止 actor 退化为复制；仅来源 51
 - **Critical Phase Fine-tuning**：仅对任务最精密关键阶段做 RL 微调；仅来源 51
+
+**来自 Agentic Robot (Yang 2025，来源 52)**：
+- **SAP（Standardized Action Procedure）**：感知-规划-执行-验证的结构化协调协议，受 SOP/脑科学启发的 agentic 闭环；仅来源 52
+- **Temporal Verifier / Introspective Assessment**：两阶段（子目标完成判定 + 卡死诊断）VLM 内省验证器，触发 continue/retry/recover；仅来源 52
+- **Large Reasoning Model 子目标分解**：用 GPT-4o 类 LRM 将指令拆为 Atomic Skill Library 子目标；仅来源 52
+- **Atomic Skill Library**：标准化动作模板库，约束 Planner 输出与 VLA Executor 兼容；仅来源 52
+- **OpenVLA / SpatialVLA**：来源 52 的 base executor 与对比对象，尚无独立来源页
+
+**来自 Sci-VLA (Pang 2026，来源 53)**：
+- **State Gap（VLA 长程现象）**：原子任务独立采集导致任务间缺过渡、机械臂进入 OOD 卡死抖动；仅来源 53
+- **Transition Action Insertion（过渡动作插桩）**：断开-插入-重连 VLA 推理的动作开关机制；仅来源 53
+- **LLM-generated Transitional Action Code**：用 GPT-5.2 检索目标关节位姿 + 生成带安全约束（避障、释爪）的过渡动作代码；仅来源 53
+- **Autobio 数字孪生**：基于 MuJoCo 的生物实验室仿真环境，UR5e + 科学仪器 3D 资产；仅来源 53

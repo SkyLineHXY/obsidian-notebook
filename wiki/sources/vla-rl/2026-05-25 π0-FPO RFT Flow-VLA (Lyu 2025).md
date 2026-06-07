@@ -50,12 +50,12 @@ $$
 
 ### 四个稳定化组件
 
-| 组件 | 作用 |
-|---|---|
-| **Structure-Aware Credit Assignment** | 以 CFM latent 空间中的每样本改进量作为信号，提升梯度效率 |
-| **Clipped PPO Surrogate** | $\operatorname{clip}(\rho, 1\pm\varepsilon)$ 稳定 trust region |
-| **Multi-step Latent (Euler) Exploration** | 在 latent 空间做 Euler 步扰动，生成时序相关的平滑 latent 序列，扩大探索多样性 |
-| **Q-Ensemble Critic** | 多 critic 聚合提供鲁棒 value 估计，抑制 Q-overestimation |
+| 组件                                        | 作用                                                           |
+| ----------------------------------------- | ------------------------------------------------------------ |
+| **Structure-Aware Credit Assignment**     | 以 CFM latent 空间中的每样本改进量作为信号，提升梯度效率                           |
+| **Clipped PPO Surrogate**                 | $\operatorname{clip}(\rho, 1\pm\varepsilon)$ 稳定 trust region |
+| **Multi-step Latent (Euler) Exploration** | 在 latent 空间做 Euler 步扰动，生成时序相关的平滑 latent 序列，扩大探索多样性           |
+| **Q-Ensemble Critic**                     | 多 critic 聚合提供鲁棒 value 估计，抑制 Q-overestimation                 |
 
 ### 训练循环
 
