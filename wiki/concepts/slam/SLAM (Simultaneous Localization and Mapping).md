@@ -1,7 +1,7 @@
 ---
 type: concept
 tags: [SLAM, StateEstimation, KalmanFilter, POMDP, InformationTheory, Robotics, ActiveSLAM]
-sources: [raw/sources/papers/其他/Jiang 等 - 2025 - GPS-Denied LiDAR-Based SLAM—A Survey/Jiang 等 - 2025 - GPS-Denied LiDAR-Based SLAM—A Survey.md, raw/sources/papers/其他/Placed 等 - 2023 - A Survey on Active Simultaneous Localization and Mapping State of the Art and New Frontiers/Placed 等 - 2023 - A Survey on Active Simultaneous Localization and Mapping State of the Art and New Frontiers.md]
+sources: [raw/sources/papers/其他/Jiang 等 - 2025 - GPS-Denied LiDAR-Based SLAM—A Survey/Jiang 等 - 2025 - GPS-Denied LiDAR-Based SLAM—A Survey.md, raw/sources/papers/其他/Placed 等 - 2023 - A Survey on Active Simultaneous Localization and Mapping State of the Art and New Frontiers/Placed 等 - 2023 - A Survey on Active Simultaneous Localization and Mapping State of the Art and New Frontiers.md, raw/assets/papers/其他/Tuna 等 - 2024 - X-ICP Localizability-Aware LiDAR Registration for Robust Localization in Extreme Environments.pdf]
 created: 2026-06-07
 updated: 2026-06-07
 ---
@@ -30,14 +30,14 @@ updated: 2026-06-07
 
 ## 2. 关键模块
 
-| 模块 | 核心内容 | 代表方法 |
-|---|---|---|
-| 前向传播 | IMU 高频递推位姿（帧间预测） | FAST-LIO 预积分 |
-| 后向传播 | LiDAR 残差修正漂移 | ICP / scan-to-model + EKF |
-| 关键帧选择 | 平衡存储与精度 | 信息增益（Fisher 信息）/ 阈值 / 运动 |
-| 数据结构 | 点云高效组织 | KD-tree → IKD-tree → Octree → voxel |
-| 回环检测 | 修正累积误差 | 图优化 / BoW3D / 深度描述子 |
-| 渲染 | 地图可视化 | 点云 / 彩色点云 / NeRF / 3DGS |
+| 模块    | 核心内容             | 代表方法                                |
+| ----- | ---------------- | ----------------------------------- |
+| 前向传播  | IMU 高频递推位姿（帧间预测） | FAST-LIO 预积分                        |
+| 后向传播  | LiDAR 残差修正漂移     | ICP / scan-to-model + EKF           |
+| 关键帧选择 | 平衡存储与精度          | 信息增益（Fisher 信息）/ 阈值 / 运动            |
+| 数据结构  | 点云高效组织           | KD-tree → IKD-tree → Octree → voxel |
+| 回环检测  | 修正累积误差           | 图优化 / BoW3D / 深度描述子                 |
+| 渲染    | 地图可视化            | 点云 / 彩色点云 / NeRF / 3DGS             |
 
 ## 3. 严谨数学推导
 

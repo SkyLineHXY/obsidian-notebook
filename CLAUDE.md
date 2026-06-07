@@ -55,10 +55,10 @@ updated: YYYY-MM-DD
 
 行内 `$...$`，块级 `$$...$$`（独占段落）。**禁止**：代码块包裹公式、Unicode 数学符号、纯文本 `theta'`/`N(0,I)`。
 
-| ❌ 错误 | ✅ 正确 |
-|---|---|
-| `` `ε_θ`、`ᾱ_t`、`N(0,I)` `` | `$\varepsilon_\theta$`、`$\bar\alpha_t$`、`$\mathcal{N}(0, I)$` |
-| 算法伪代码 fenced block 内含 Unicode 公式 | 改写为 Markdown 列表 + 行内 LaTeX |
+| ❌ 错误                             | ✅ 正确                                                          |
+| -------------------------------- | ------------------------------------------------------------- |
+| `` `ε_θ`、`ᾱ_t`、`N(0,I)` ``       | `$\varepsilon_\theta$`、`$\bar\alpha_t$`、`$\mathcal{N}(0, I)$` |
+| 算法伪代码 fenced block 内含 Unicode 公式 | 改写为 Markdown 列表 + 行内 LaTeX                                    |
 
 Ingest 时若原文用伪代码/Unicode/纯文本写数学，**必须**主动转为规范 LaTeX。
 

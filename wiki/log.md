@@ -752,6 +752,27 @@ aw/sources/papers/Lab Automation/（新建目录）
 - 更新 [[wiki/concepts/benchmarks/LIBERO]]（新增来源 52 小节 + 联系表 + frontmatter）、[[wiki/concepts/vla/Vision-Language-Action 模型]]（新增 2 行 + frontmatter）
 - index：Stats Sources 51→53、Comparisons 2→3；Agent Systems (1)→(3)；Knowledge Gaps 追加 SAP / Temporal Verifier / State Gap / Transition Action 等单来源概念块
 
+## [2026-06-07] ingest | X-ICP Localizability-Aware LiDAR Registration (Tuna 2024)
+
+**触发原因**: 用户上传新 SLAM 论文 PDF，要求更新 wiki
+**检索来源**: 用户上传 → `raw/assets/papers/其他/`
+**PDF 路径**: `raw/assets/papers/其他/Tuna 等 - 2024 - X-ICP Localizability-Aware LiDAR Registration for Robust Localization in Extreme Environments.pdf`
+**MinerU 转换**: ✅ 成功 1 个文件，耗时 1.9 分钟
+
+**新建 Source 页（1 个）**:
+- [[wiki/sources/slam/2026-06-07 X-ICP Localizability-Aware LiDAR Registration (Tuna 2024)]]（来源 #56）：ETH Zürich X-ICP 框架——三级可定位性检测 + Lagrangian 约束 ICP，Seemühle 末端误差 0.27m vs. Zhang 6.37m vs. Hinduja 24.17m；嵌入 Fig.1 路径/误差热图 + Fig.2 框架总览
+
+**新增 Knowledge Gaps（3 条）**:
+- **LiDAR 可定位性（Localizability）**：三级（none/partial/full）细粒度检测（来源 56）
+- **Localizability-Aware Constrained ICP**：可定位性检测与 Lagrangian 约束优化联合框架（来源 56）
+- **Partial Localizability**：稀疏但有效的中间约束态，对应点重采样实现受控位姿更新（来源 56）
+
+**更新**:
+- index.md：Stats Sources 55→56；SLAM (2)→(3)；Concepts SLAM 来源列表追加 56；Knowledge Gaps 新增 X-ICP 块
+- [[wiki/concepts/slam/SLAM (Simultaneous Localization and Mapping)]]：frontmatter sources 追加 X-ICP PDF 路径；来源引用 54,55→54,55,56
+
+---
+
 ## [2026-06-07] ingest | GPS-Denied LiDAR SLAM Survey (Jiang 2025) + Active SLAM Survey (Placed 2023)
 - mineru 解析两篇 SLAM 综述 PDF（VLM 引擎，3.7 min）→ raw/sources/papers/其他/<stem>/<stem>.md + images/
 - 新建 slam 源页 ×2：

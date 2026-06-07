@@ -6,8 +6,8 @@
 ---
 
 ## Stats
-- **Sources**: 55 | **Entities**: 12 | **Concepts**: 18 | **Comparisons**: 3 | **Analyses**: 9
-- **Last updated**: 2026-06-07 (Ingest GPS-Denied LiDAR SLAM Survey Jiang 2025 + Active SLAM Survey Placed 2023；新建 slam 源页 ×2 + SLAM 概念页含严谨数学推导)
+- **Sources**: 56 | **Entities**: 12 | **Concepts**: 18 | **Comparisons**: 3 | **Analyses**: 9
+- **Last updated**: 2026-06-07 (Ingest X-ICP Tuna 2024；新建 slam 源页 ×1，含严谨数学推导与 LiDAR 可定位性三级分类框架)
 
 ---
 
@@ -116,11 +116,12 @@
 | 41 | [[wiki/sources/lab-automation/2026-05-17 Intelligent Science Laboratory Position (Zhang 2025)]] | raw/assets/papers/Lab Automation/Zhang - 2025 - Intelligent Science Laboratory.pdf | 2026-05-17 |
 | 42 | [[wiki/sources/lab-automation/2026-05-17 Scaling Laws Scientific Discovery (Zhang 2025)]] | raw/assets/papers/Lab Automation/Zhang - 2025 - Scaling Laws Scientific Discovery.pdf | 2026-05-17 |
 
-### SLAM (2)
+### SLAM (3)
 | # | Page | Original Source | Date |
 |---|------|----------------|------|
 | 54 | [[wiki/sources/slam/2026-06-07 GPS-Denied LiDAR-Based SLAM Survey (Jiang 2025)]] | raw/assets/papers/其他/Jiang 等 - 2025 - GPS-Denied LiDAR-Based SLAM—A Survey.pdf | 2026-06-07 |
 | 55 | [[wiki/sources/slam/2026-06-07 Active SLAM Survey (Placed 2023)]] | raw/assets/papers/其他/Placed 等 - 2023 - A Survey on Active SLAM.pdf | 2026-06-07 |
+| 56 | [[wiki/sources/slam/2026-06-07 X-ICP Localizability-Aware LiDAR Registration (Tuna 2024)]] | raw/assets/papers/其他/Tuna 等 - 2024 - X-ICP Localizability-Aware LiDAR Registration for Robust Localization in Extreme Environments.pdf | 2026-06-07 |
 
 ---
 
@@ -210,7 +211,7 @@
 ### SLAM (1)
 | Page | Summary | Sources |
 |------|---------|---------|
-| [[wiki/concepts/slam/SLAM (Simultaneous Localization and Mapping)]] | 同步定位与建图：前端/后端、滤波 vs 优化、被动 vs 主动；含严谨数学推导（概率后验分解 + EKF-SLAM 递归 + 主动 SLAM POMDP/最优性准则） | 来源 54, 55 |
+| [[wiki/concepts/slam/SLAM (Simultaneous Localization and Mapping)]] | 同步定位与建图：前端/后端、滤波 vs 优化、被动 vs 主动；含严谨数学推导（概率后验分解 + EKF-SLAM 递归 + 主动 SLAM POMDP/最优性准则） | 来源 54, 55, 56 |
 
 ---
 
@@ -424,3 +425,8 @@
 - **Transition Action Insertion（过渡动作插桩）**：断开-插入-重连 VLA 推理的动作开关机制；仅来源 53
 - **LLM-generated Transitional Action Code**：用 GPT-5.2 检索目标关节位姿 + 生成带安全约束（避障、释爪）的过渡动作代码；仅来源 53
 - **Autobio 数字孪生**：基于 MuJoCo 的生物实验室仿真环境，UR5e + 科学仪器 3D 资产；仅来源 53
+
+**来自 X-ICP (Tuna 2024，来源 56)**：
+- **LiDAR 可定位性（LiDAR Localizability）**：ICP 优化 Hessian 各特征向量方向的几何约束充分性，X-ICP 提出三级（none/partial/full）细粒度分类；仅来源 56
+- **Localizability-Aware Constrained ICP**：可定位性三级分类与 Lagrangian 等式约束 ICP 联合框架；仅来源 56
+- **Partial Localizability**：稀疏但有效的中间约束态，通过对应点重采样提取有效约束，提供受控位姿更新；仅来源 56
