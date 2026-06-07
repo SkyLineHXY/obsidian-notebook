@@ -6,8 +6,8 @@
 ---
 
 ## Stats
-- **Sources**: 58 | **Entities**: 12 | **Concepts**: 19 | **Comparisons**: 3 | **Analyses**: 9
-- **Last updated**: 2026-06-07 (Ingest FAST-LIO (Xu 2021) + FAST-LIO2 (Xu 2022)；新建 slam 源页 ×2 + LiDAR-Inertial Odometry 概念页 ×1，含完整 iEKF 数学推导与高效 Kalman 增益证明)
+- **Sources**: 58 | **Entities**: 12 | **Concepts**: 19 | **Comparisons**: 3 | **Analyses**: 10
+- **Last updated**: 2026-06-07 (新建 analysis 页：地下退化环境具身主动感知与自适应导航研究设计——融合 FAST-LIO2 + X-ICP + Active SLAM + FQL，含 ρ-POMDP / 退化判据 η / FQL 无 BPTT 严谨数学推导)
 
 ---
 
@@ -243,6 +243,7 @@
 | [[wiki/analyses/π₀.₇ 详细解析]] | VLA / World Model / High-Level Policy 三模型训练目标、推理时 Prompt 组装与 CFG 完整解析 | 2026-04-29 |
 | [[wiki/analyses/π₀.₆ 与 RECAP 原理解析]] | π₀.₆ 架构（Gemma 3 4B + 860M flow expert + KI）、RECAP 完整数学推导（贝叶斯反向消除 + delta 二值化 + flow log-likelihood 下界）、三阶段管线与定向失败模式消除 | 2026-05-17 |
 | [[wiki/analyses/RL微调生成模型的技术挑战与解决方案]] | BPTT 三重代价 + log-prob 不可解析等根本障碍；三条解法路线（Markov 化 PG / CFM loss ratio / 离线 Q-learning）+ WarmPrior 正交优化轴；含完整数学推导 | 2026-05-18 |
+| [[wiki/analyses/地下退化环境具身主动感知与自适应导航研究设计]] | 融合 FAST-LIO2 + X-ICP + Active SLAM + FQL 的研究设计；含严谨数学推导（ρ-POMDP 信息论效用 + D-opt 单调性、Hessian 特征空间退化判据 η、退化感知奖励、FQL 无 BPTT 行为正则 actor-critic） | 2026-06-07 |
 
 ---
 

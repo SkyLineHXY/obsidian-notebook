@@ -791,3 +791,13 @@ aw/sources/papers/Lab Automation/（新建目录）
   - [[wiki/sources/slam/2026-06-07 FAST-LIO2 (Xu 2022)]]：直接点云配准（无特征提取）；ikd-Tree 增量 k-d 树；在线 LiDAR-IMU 外参标定；19 数据集 SOTA、100 Hz
 - 新建 [[wiki/concepts/slam/LiDAR-Inertial Odometry]]（FAST-LIO + FAST-LIO2 ≥2 来源达阈值）：含「严谨数学推导」节——流形 $\boxplus/\boxminus$ 运算定义、连续运动模型、离散化误差传递矩阵 $\mathbf{F}_{\widetilde{\mathbf{x}}}$、后向传播畸变补偿推导、点到平面测量模型、iEKF MAP 优化、高效 Kalman 增益等价性证明（矩阵求逆引理），全 LaTeX
 - index：Stats Sources 56→58、Concepts 18→19；SLAM 源页分节 3→5、SLAM 概念 1→2
+
+## [2026-06-07] analysis | 地下退化环境具身主动感知与自适应导航研究设计
+
+- 应用户请求，将基金本子"研究内容三"撰写 + 框架图绘制全过程沉淀为 analysis 页（query/研究设计型深度专题）
+- 新建 [[wiki/analyses/地下退化环境具身主动感知与自适应导航研究设计]]（≥2 来源达阈值，融合 4 篇来源）：
+  - 综合 [[wiki/sources/slam/2026-06-07 FAST-LIO2 (Xu 2022)]]（建图底座）+ [[wiki/sources/slam/2026-06-07 X-ICP Localizability-Aware LiDAR Registration (Tuna 2024)]]（退化判据）+ [[wiki/sources/slam/2026-06-07 Active SLAM Survey (Placed 2023)]]（决策框架）+ [[wiki/sources/rl-finetuning/2026-04-19 Flow Q-Learning]]（决策算法）
+  - 含强制「严谨数学推导」节：(4.1) ρ-POMDP 信念递归 + 信息论效用（熵=ln det Σ）+ D-opt 单调性（Minkowski 行列式不等式）；(4.2) 点到平面 ICP Hessian 特征空间退化判据 → 6-DoF 三级 η；(4.3) 退化感知奖励 r=信息增益−λ₁可定位性风险−λ₂代价；(4.4) FQL 行为正则 actor-critic + 一步蒸馏 + "无 BPTT" 关键步骤证明，全 LaTeX
+  - 核心机理：以 6-DoF 可定位性 η 为枢纽，将感知退化升格为在线可微决策状态量
+- 配套产物（库外）：`draft/研究内容三_…_初稿.md`、`temp/研究内容三_总体框架图.pptx`、`temp/研究内容二_FQL细节框架图.pptx`
+- index：Stats Analyses 9→10；Analyses 表新增 1 行
