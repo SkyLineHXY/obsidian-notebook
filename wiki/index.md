@@ -244,7 +244,7 @@
 | [[wiki/analyses/π₀.₇ 详细解析]] | VLA / World Model / High-Level Policy 三模型训练目标、推理时 Prompt 组装与 CFG 完整解析 | 2026-04-29 |
 | [[wiki/analyses/π₀.₆ 与 RECAP 原理解析]] | π₀.₆ 架构（Gemma 3 4B + 860M flow expert + KI）、RECAP 完整数学推导（贝叶斯反向消除 + delta 二值化 + flow log-likelihood 下界）、三阶段管线与定向失败模式消除 | 2026-05-17 |
 | [[wiki/analyses/RL微调生成模型的技术挑战与解决方案]] | BPTT 三重代价 + log-prob 不可解析等根本障碍；三条解法路线（Markov 化 PG / CFM loss ratio / 离线 Q-learning）+ WarmPrior 正交优化轴；含完整数学推导 | 2026-05-18 |
-| [[wiki/analyses/地下退化环境具身主动感知与自适应导航研究设计]] | 融合 FAST-LIO2 + X-ICP + Active SLAM + **EARE 稀疏信息图** + FQL 的研究设计（v2）；确立"地图 M→稀疏信息图 Gˢ→RL 探索点"流水线，η 注入图节点；含严谨数学推导（ρ-POMDP/D-opt、Hessian 退化判据 η、稀疏图构建+双向A\*、退化感知奖励、FQL 图状态无 BPTT actor-critic） | 2026-06-08 |
+| [[wiki/analyses/地下退化环境具身主动感知与自适应导航研究设计]] | 融合 FAST-LIO2 + X-ICP + Active SLAM + **EARE 稀疏信息图** + FQL 的研究设计（v2.1）；确立"被动 LIO 前端→地图 M+位姿 x→稀疏信息图 Gˢ→RL 探索点"全链路，η 注入图节点；含严谨数学推导（FAST-LIO2 iEKF/去畸变/高效增益/ikd-Tree、ρ-POMDP/D-opt、Hessian 退化判据 η、稀疏图+双向A\*、退化感知奖励、FQL 图状态无 BPTT actor-critic） | 2026-06-08 |
 
 ---
 

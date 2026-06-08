@@ -824,3 +824,12 @@ aw/sources/papers/Lab Automation/（新建目录）
 - frontmatter：sources 4→5（新增张驰洲博士论文），updated 2026-06-08，tags 增 InformationGraph/GraphAttention
 - 嵌入 EARE 图 3-1（图引用 raw 路径）
 - index：analysis 行描述更新为 v2；Last updated 更新
+
+## [2026-06-08] update | analysis v2.1：补入被动 SLAM 前端（FAST-LIO2 LIO）原理与数学
+
+- 应用户请求，在「地下退化环境具身主动感知与自适应导航研究设计」中补入流水线**上游**——被动紧耦合 LIO 如何产出点云地图 M 与位姿 x
+- 新增 §4.1「被动 SLAM 前端：点云地图 M 与位姿 x 的获取（FAST-LIO2 紧耦合 LIO）」，7 小节：状态流形(24维含在线外参)、IMU 前向传播、后向传播去畸变、直接点-面测量模型、iEKF MAP + 高效 Kalman 增益(O(n²))、ikd-Tree 增量地图、输出三元组 (x, P̄, M) 与下游接口
+- **机理衔接**：明确前端的 H⊤R⁻¹H（→§4.3 退化判据）与后验 P̄（→§4.2 信息论效用）把"建图"与"决策"数学连通，论证"被动估计→主动决策"的合理底座
+- 全章节重编号：原 §4.1–4.5 顺延为 §4.2–4.6；同步修正全部 §4.x 交叉引用（已校验一致）
+- §2 流水线图与机理列表更新（四大环节 ⓪被动建图底座 + ①退化感知 + ②状态构造 + ③主动决策）；frontmatter tags 增 LiDAR-Inertial Odometry，新增 v2.1 修订说明
+- index：analysis 行描述更新为 v2.1
