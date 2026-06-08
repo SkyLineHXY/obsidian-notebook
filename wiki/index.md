@@ -6,8 +6,8 @@
 ---
 
 ## Stats
-- **Sources**: 58 | **Entities**: 12 | **Concepts**: 19 | **Comparisons**: 3 | **Analyses**: 10
-- **Last updated**: 2026-06-07 (新建 analysis 页：地下退化环境具身主动感知与自适应导航研究设计——融合 FAST-LIO2 + X-ICP + Active SLAM + FQL，含 ρ-POMDP / 退化判据 η / FQL 无 BPTT 严谨数学推导)
+- **Sources**: 59 | **Entities**: 12 | **Concepts**: 19 | **Comparisons**: 3 | **Analyses**: 10
+- **Last updated**: 2026-06-08 (ingest 张驰洲 2025 博士论文《面向高效探索的轮式机器人多约束下主动激光 SLAM 方法研究》——LIWOM-GD 地面约束 LIO + EARE 孔洞稀疏化/多约束奖励 SAC 探索决策 + E-Planner 几何/时间约束运动规划；整体效率 +6.43%)
 
 ---
 
@@ -116,9 +116,10 @@
 | 41 | [[wiki/sources/lab-automation/2026-05-17 Intelligent Science Laboratory Position (Zhang 2025)]] | raw/assets/papers/Lab Automation/Zhang - 2025 - Intelligent Science Laboratory.pdf | 2026-05-17 |
 | 42 | [[wiki/sources/lab-automation/2026-05-17 Scaling Laws Scientific Discovery (Zhang 2025)]] | raw/assets/papers/Lab Automation/Zhang - 2025 - Scaling Laws Scientific Discovery.pdf | 2026-05-17 |
 
-### SLAM (5)
+### SLAM (6)
 | # | Page | Original Source | Date |
 |---|------|----------------|------|
+| 59 | [[wiki/sources/slam/2026-06-08 主动激光SLAM 高效探索博士论文 (张驰洲 2025)]] | raw/assets/papers/其他/面向高效探索的轮式机器人多约束下主动激光SLAM方法研究_张驰洲.pdf | 2026-06-08 |
 | 54 | [[wiki/sources/slam/2026-06-07 GPS-Denied LiDAR-Based SLAM Survey (Jiang 2025)]] | raw/assets/papers/其他/Jiang 等 - 2025 - GPS-Denied LiDAR-Based SLAM—A Survey.pdf | 2026-06-07 |
 | 55 | [[wiki/sources/slam/2026-06-07 Active SLAM Survey (Placed 2023)]] | raw/assets/papers/其他/Placed 等 - 2023 - A Survey on Active SLAM.pdf | 2026-06-07 |
 | 56 | [[wiki/sources/slam/2026-06-07 X-ICP Localizability-Aware LiDAR Registration (Tuna 2024)]] | raw/assets/papers/其他/Tuna 等 - 2024 - X-ICP Localizability-Aware LiDAR Registration for Robust Localization in Extreme Environments.pdf | 2026-06-07 |

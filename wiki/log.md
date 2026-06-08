@@ -801,3 +801,15 @@ aw/sources/papers/Lab Automation/（新建目录）
   - 核心机理：以 6-DoF 可定位性 η 为枢纽，将感知退化升格为在线可微决策状态量
 - 配套产物（库外）：`draft/研究内容三_…_初稿.md`、`temp/研究内容三_总体框架图.pptx`、`temp/研究内容二_FQL细节框架图.pptx`
 - index：Stats Analyses 9→10；Analyses 表新增 1 行
+
+## [2026-06-08] ingest | 张驰洲 2025 博士论文《面向高效探索的轮式机器人多约束下主动激光 SLAM 方法研究》
+
+- MinerU(vlm, ch) 解析 137 页 PDF → `raw/sources/papers/其他/面向高效探索的轮式机器人多约束下主动激光SLAM方法研究_张驰洲/`（5379 行 MD + 407 图）
+- 新建 source 页 [[wiki/sources/slam/2026-06-08 主动激光SLAM 高效探索博士论文 (张驰洲 2025)]]，含 3 张框架图（LIWOM-GD 图 2-4 / EARE 图 3-1 / E-Planner 图 4-3）+ 干净 raw 回链
+- 三大贡献：
+  - **LIWOM-GD**：FAST-LIO2 前端 + 地面约束因子 + 时空法向量动态点去除 + 加权编码器预积分单因子图；vs LIW-OAM 垂直平移误差显著降低，vs EKF-LOAM 隧道位姿误差 −1.28%
+  - **EARE**：互补孔洞稀疏化（双向 A\*，节点 210→93）+ GA-SAC（4×GA 编码器 + LSTM + Pointer，特权学习）+ 多约束奖励（距离/角度/边界/好奇心/完成）；室内外效率达人工 92.96%/89.52%，决策 ~0.64s
+  - **E-Planner**：FAR Planner 基础上几何特征轮廓优化 + 时间约束优先搜索 + 离线轨迹库局部规划/动态视距跟踪（阿克曼底盘）；vs FAR Planner 室外导航时间/轨迹 −41.40%/−43.54%
+  - 系统集成：模拟工厂验证，整体效率 vs 先进 DRL +6.43%
+- 链接关联：Active SLAM Survey（三段式落地）、FAST-LIO2（前端底座）、X-ICP/GPS-Denied Survey（退化）、analyses/地下退化环境具身主动感知（研究设计互证）
+- index：Stats Sources 58→59；SLAM 源 5→6（新增 #59）；Last updated 更新
