@@ -7,7 +7,7 @@
 
 ## Stats
 - **Sources**: 59 | **Entities**: 12 | **Concepts**: 19 | **Comparisons**: 3 | **Analyses**: 10
-- **Last updated**: 2026-06-08 (ingest 张驰洲 2025 博士论文《面向高效探索的轮式机器人多约束下主动激光 SLAM 方法研究》——LIWOM-GD 地面约束 LIO + EARE 孔洞稀疏化/多约束奖励 SAC 探索决策 + E-Planner 几何/时间约束运动规划；整体效率 +6.43%)
+- **Last updated**: 2026-06-08 (ingest 张驰洲 2025 博士论文；并据其 EARE 范式 v2 重构 analysis 页：补入"地图→稀疏信息图→RL 决策"桥梁，η 注入图节点特征)
 
 ---
 
@@ -244,7 +244,7 @@
 | [[wiki/analyses/π₀.₇ 详细解析]] | VLA / World Model / High-Level Policy 三模型训练目标、推理时 Prompt 组装与 CFG 完整解析 | 2026-04-29 |
 | [[wiki/analyses/π₀.₆ 与 RECAP 原理解析]] | π₀.₆ 架构（Gemma 3 4B + 860M flow expert + KI）、RECAP 完整数学推导（贝叶斯反向消除 + delta 二值化 + flow log-likelihood 下界）、三阶段管线与定向失败模式消除 | 2026-05-17 |
 | [[wiki/analyses/RL微调生成模型的技术挑战与解决方案]] | BPTT 三重代价 + log-prob 不可解析等根本障碍；三条解法路线（Markov 化 PG / CFM loss ratio / 离线 Q-learning）+ WarmPrior 正交优化轴；含完整数学推导 | 2026-05-18 |
-| [[wiki/analyses/地下退化环境具身主动感知与自适应导航研究设计]] | 融合 FAST-LIO2 + X-ICP + Active SLAM + FQL 的研究设计；含严谨数学推导（ρ-POMDP 信息论效用 + D-opt 单调性、Hessian 特征空间退化判据 η、退化感知奖励、FQL 无 BPTT 行为正则 actor-critic） | 2026-06-07 |
+| [[wiki/analyses/地下退化环境具身主动感知与自适应导航研究设计]] | 融合 FAST-LIO2 + X-ICP + Active SLAM + **EARE 稀疏信息图** + FQL 的研究设计（v2）；确立"地图 M→稀疏信息图 Gˢ→RL 探索点"流水线，η 注入图节点；含严谨数学推导（ρ-POMDP/D-opt、Hessian 退化判据 η、稀疏图构建+双向A\*、退化感知奖励、FQL 图状态无 BPTT actor-critic） | 2026-06-08 |
 
 ---
 

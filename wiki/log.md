@@ -813,3 +813,14 @@ aw/sources/papers/Lab Automation/（新建目录）
   - 系统集成：模拟工厂验证，整体效率 vs 先进 DRL +6.43%
 - 链接关联：Active SLAM Survey（三段式落地）、FAST-LIO2（前端底座）、X-ICP/GPS-Denied Survey（退化）、analyses/地下退化环境具身主动感知（研究设计互证）
 - index：Stats Sources 58→59；SLAM 源 5→6（新增 #59）；Last updated 更新
+
+## [2026-06-08] update | 据 EARE 范式 v2 重构「地下退化环境具身主动感知与自适应导航研究设计」
+
+- 应用户请求，采纳张驰洲 2025 博士论文 EARE 思想重构 analysis 页（query/研究设计型）
+- 核心改动：在"建图—决策"之间补入 **稀疏信息图构建** 中间环节，确立 `点云地图 M + 位姿 x → 稀疏信息图 Gˢ → RL 探索点决策 → 运动规划` 流水线
+- 新增 §4.3「稀疏信息图构建：从稠密地图到决策状态」：互补孔洞栅格增量更新 + 信息图 𝒢\* 提取 + **退化感知节点增广** ν†=(ν,u,g,η,ρ)（把 X-ICP 的 η 注入图节点）+ 双向 A\* 稀疏化（210→93）+ 图作为决策状态的三重意义（候选识别/动作降维/非短视）
+- §4.4 退化感知奖励改写为**图上转移**奖励（融合 EARE 多约束奖励 + 可定位性风险项）
+- §4.5 FQL 状态改为**图注意力编码** z_t=Enc_GA+LSTM(𝒢ˢ)（沿用 EARE 编码器作 FQL 状态编码器），保留"无 BPTT"关键步骤证明；论证选 FQL 而非 SAC 的三点理由（多峰/offline→online/单步实时）
+- frontmatter：sources 4→5（新增张驰洲博士论文），updated 2026-06-08，tags 增 InformationGraph/GraphAttention
+- 嵌入 EARE 图 3-1（图引用 raw 路径）
+- index：analysis 行描述更新为 v2；Last updated 更新
