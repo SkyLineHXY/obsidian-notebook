@@ -4,21 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "55f5ff79dcc9fc7e",
+        "id": "23fc32a874fcbb07",
         "type": "tabs",
         "children": [
           {
-            "id": "84ea56ae061eed92",
+            "id": "96fa6d6c64843ca6",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "wiki/sources/lab-automation/2026-05-17 Touch in the Wild (Zhu 2025).md",
+                "file": "draft/研究内容一_面向地下退化环境的具身主动感知与自适应导航机理_初稿.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "2026-05-17 Touch in the Wild (Zhu 2025)"
+              "title": "研究内容一_面向地下退化环境的具身主动感知与自适应导航机理_初稿"
             }
           }
         ]
@@ -54,7 +54,7 @@
               "type": "search",
               "state": {
                 "query": "",
-                "matchingCase": false,
+                "matchingCase": true,
                 "explainSearch": false,
                 "collapseAll": false,
                 "extraContext": false,
@@ -78,7 +78,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 342.5
+    "width": 495.5
   },
   "right": {
     "id": "8a64cfcd60ad2ff9",
@@ -108,13 +108,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "wiki/sources/lab-automation/2026-05-17 Touch in the Wild (Zhu 2025).md",
+                "file": "wiki/analyses/π₀.₆ 与 RECAP 训练原理全景解析.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "2026-05-17 Touch in the Wild (Zhu 2025) 的大纲"
+              "title": "π₀.₆ 与 RECAP 训练原理全景解析 的大纲"
             }
           },
           {
@@ -133,7 +133,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "raw/assets/papers/VLA+RL/Chen 等 - 2026 - LaST-R1 Reinforcing Robotic Manipulation via Adaptive Physical Latent Reasoning.pdf",
+                "file": "wiki/analyses/π₀.₆ 与 RECAP 训练原理全景解析.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -143,7 +143,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Chen 等 - 2026 - LaST-R1 Reinforcing Robotic Manipulation via Adaptive Physical Latent Reasoning 的反向链接列表"
+              "title": "π₀.₆ 与 RECAP 训练原理全景解析 的反向链接列表"
             }
           },
           {
@@ -213,8 +213,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200,
-    "collapsed": true
+    "width": 634.5
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -230,56 +229,59 @@
       "translate:Open translation view": false,
       "table-editor-obsidian:Advanced Tables Toolbar": true,
       "terminal:Open terminal": true,
-      "omnisearch:Omnisearch": false
+      "omnisearch:Omnisearch": false,
+      "pdf-plus:PDF++: Toggle auto-copy": false,
+      "pdf-plus:PDF++: Toggle auto-focus": false,
+      "pdf-plus:PDF++: Toggle auto-paste": false
     }
   },
-  "active": "84ea56ae061eed92",
+  "active": "5205dbcbbe86327b",
   "lastOpenFiles": [
-    "raw/assets/papers/Lab Automation/2503.22444.pdf",
-    "raw/assets/papers/Lab Automation/2507.15062.pdf",
-    "wiki/index.md.tmp.24032.62df070945e4",
-    "wiki/sources/lab-automation/2026-05-17 Scaling Laws Scientific Discovery (Zhang 2025).md.tmp.24032.0037e5c4134e",
-    "wiki/sources/lab-automation/2026-05-17 Intelligent Science Laboratory Position (Zhang 2025).md.tmp.24032.31f7d0373277",
-    "wiki/sources/lab-automation/2026-05-17 Touch in the Wild (Zhu 2025).md.tmp.24032.f6836b70dab0",
-    "wiki/sources/lab-automation/2026-05-17 BioMARS (Qiu 2025).md.tmp.24032.8768253611fc",
-    "wiki/sources/lab-automation/2026-05-17 ChemBot (Huang 2026).md.tmp.24032.965a47e44f74",
-    "wiki/sources/lab-automation/2026-05-17 Scaling Laws Scientific Discovery (Zhang 2025).md.tmp.24032.e8ce2b1ec8a6",
-    "wiki/sources/lab-automation/2026-05-17 Intelligent Science Laboratory Position (Zhang 2025).md.tmp.24032.4e130fc61777",
-    "wiki/sources/lab-automation/2026-05-17 Touch in the Wild (Zhu 2025).md.tmp.24032.90b7de993cea",
-    "raw/sources/papers/VLA+RL/Chen 等 - 2026 - LaST-R1 Reinforcing Robotic Manipulation via Adaptive Physical Latent Reasoning/images/f9ad783249de94a2cd28a07d3258864f6f051b1c86736d1855da476daa478724.jpg",
-    "raw/sources/papers/VLA+RL/Chen 等 - 2026 - LaST-R1 Reinforcing Robotic Manipulation via Adaptive Physical Latent Reasoning/images/f7aa566d966e6b825a2fc4c1f45831f9c63414754d6bb24fd45d516dadd30c5c.jpg",
-    "raw/sources/papers/VLA+RL/Chen 等 - 2026 - LaST-R1 Reinforcing Robotic Manipulation via Adaptive Physical Latent Reasoning/images/f73ed74172f49d3b96873c68481877e858b3830c200613399291b9c5d7b14756.jpg",
-    "raw/sources/papers/VLA+RL/Chen 等 - 2026 - LaST-R1 Reinforcing Robotic Manipulation via Adaptive Physical Latent Reasoning/images/eed7b2d6ae220cd9d9eba5cae344351e0ea4a2a48d41e0ecfb946769174031c5.jpg",
-    "raw/sources/papers/VLA+RL/Chen 等 - 2026 - LaST-R1 Reinforcing Robotic Manipulation via Adaptive Physical Latent Reasoning/images/eb7f98aaa86b3679c0822e6785b28383ded8070edd202323e23c159f3603a710.jpg",
-    "raw/sources/papers/VLA+RL/Chen 等 - 2026 - LaST-R1 Reinforcing Robotic Manipulation via Adaptive Physical Latent Reasoning/images/e436f8255c09e389a5e060d5540478d07afc976c09375c7e866fb65dece4cfe4.jpg",
-    "raw/sources/papers/VLA+RL/Chen 等 - 2026 - LaST-R1 Reinforcing Robotic Manipulation via Adaptive Physical Latent Reasoning/images/e3f9ad047c9951061ec2607187db9c7f77dc57ddc4de9778ebbcfd57e6186a76.jpg",
-    "raw/sources/papers/VLA+RL/Chen 等 - 2026 - LaST-R1 Reinforcing Robotic Manipulation via Adaptive Physical Latent Reasoning/images/e36d81ea3073ad8492142aad60ba16caa378fcc1de53ceeb8bf0b12660270375.jpg",
-    "raw/sources/papers/VLA+RL/Chen 等 - 2026 - LaST-R1 Reinforcing Robotic Manipulation via Adaptive Physical Latent Reasoning/images/d3ed3ff364752eedaa3ef177dcd07985bcdfd1f89e88252527a3cf68910ff25a.jpg",
-    "raw/sources/papers/VLA+RL/Chen 等 - 2026 - LaST-R1 Reinforcing Robotic Manipulation via Adaptive Physical Latent Reasoning/images/cd7e05ef6c35c8f81f3f792bf7ff496a93cc2ab75fddfe835efb94a509efca16.jpg",
-    "raw/sources/papers/Lab Automation/Zhu - 2025 - Touch in the Wild/full.md",
-    "raw/sources/papers/Lab Automation/Qiu - 2025 - BioMARS/Qiu - 2025 - BioMARS.md",
-    "raw/sources/papers/Lab Automation/Qiu - 2025 - BioMARS/full.md",
-    "raw/sources/papers/Lab Automation/Zhang - 2025 - Intelligent Science Laboratory/Zhang - 2025 - Intelligent Science Laboratory.md",
-    "raw/sources/papers/Lab Automation/Zhang - 2025 - Scaling Laws Scientific Discovery/Zhang - 2025 - Scaling Laws Scientific Discovery.md",
-    "raw/sources/papers/Lab Automation/Zhang - 2025 - Scaling Laws Scientific Discovery/full.md",
-    "wiki/sources/lab-automation/2026-05-17 Touch in the Wild (Zhu 2025).md",
-    "raw/sources/papers/Lab Automation/Huang - 2026 - ChemBot/Huang - 2026 - ChemBot.md",
-    "raw/sources/papers/Lab Automation/Huang - 2026 - ChemBot/full.md",
-    "wiki/sources/rl-finetuning/2026-05-17 FPO Flow Matching Policy Gradients (McAllister 2025).md",
-    "wiki/sources/vla-rl/2026-05-17 iRe-VLA (Guo 2025).md",
-    "wiki/sources/vla-rl/2026-05-17 GR-RL (Li 2025).md",
-    "wiki/sources/vla-rl/2026-04-24 πRL.md",
-    "wiki/sources/vla-rl/2026-04-19 π0.6 RECAP.md",
-    "wiki/comparisons/VLA RL 微调方法对比.md",
-    "wiki/comparisons/RL 微调表达性策略方法对比.md",
-    "CLAUDE.md",
-    "wiki/sources/lab-automation/2026-05-17 Scaling Laws Scientific Discovery (Zhang 2025).md",
-    "wiki/sources/lab-automation/2026-05-17 Intelligent Science Laboratory Position (Zhang 2025).md",
-    "wiki/analyses/π₀.₇ 训练逻辑全景解析.md",
-    "wiki/sources/lab-automation/2026-05-17 ChemBot (Huang 2026).md",
-    "wiki/sources/lab-automation/2026-05-17 BioMARS (Qiu 2025).md",
+    "draft/研究内容一_面向地下退化环境的具身主动感知与自适应导航机理_NSFC申请书版.md",
+    "raw/sources/papers/其他/Xu 等 - 2022 - FAST-LIO2 Fast Direct LiDAR-Inertial Odometry/Xu 等 - 2022 - FAST-LIO2 Fast Direct LiDAR-Inertial Odometry.md",
+    "draft/研究内容一_面向地下退化环境的具身主动感知与自适应导航机理_正式稿.md",
+    "draft/研究内容一_面向地下退化环境的具身主动感知与自适应导航机理_初稿.md",
+    "wiki/index.md",
+    "raw/sources/papers/其他/Jiang 等 - 2025 - GPS-Denied LiDAR-Based SLAM—A Survey/Jiang 等 - 2025 - GPS-Denied LiDAR-Based SLAM—A Survey.md",
+    "raw/sources/papers/其他/Jiang 等 - 2025 - GPS-Denied LiDAR-Based SLAM—A Survey/layout.json",
+    "raw/sources/papers/其他/面向高效探索的轮式机器人多约束下主动激光SLAM方法研究_张驰洲/面向高效探索的轮式机器人多约束下主动激光SLAM方法研究_张驰洲.md",
+    "AGENTS.md",
+    "draft/研究内容一_面向地下退化环境的具身主动感知与自适应导航机理_正式稿.md.tmp.36964.aa2da9c350df",
     "wiki/log.md",
-    "wiki/sources/vla-rl/2026-05-17 VLA-OPD (Zhong 2026).md",
-    "wiki/sources/vla-rl/2026-05-17 SA-VLA (Pan 2026).md"
+    "CLAUDE.md",
+    "temp/build_noloop.js",
+    "temp/~$研究内容三_总体框架图_嵌套版.pptx",
+    "temp/build_toponly.js",
+    "temp/sed5rcvJN",
+    "temp/build_noimg.js",
+    "temp/sedmoMsqS",
+    "temp/build_rc1_fix.js.tmp.54524.f87287dff809",
+    "temp/imu_s.png",
+    "temp/robot_s.png",
+    "temp/min_astral.pptx",
+    "draft/研究内容三_面向地下退化环境的具身主动感知与自适应导航机理_初稿.md",
+    "wiki/analyses/地下退化环境具身主动感知与自适应导航研究设计.md",
+    "temp/outline_unpacked/word/media/image1.png",
+    "wiki/sources/slam/2026-06-08 主动激光SLAM 高效探索博士论文 (张驰洲 2025).md",
+    "raw/sources/papers/其他/面向高效探索的轮式机器人多约束下主动激光SLAM方法研究_张驰洲/images/ff013c1cfbd67f94c380775aff43aa691eb192b57c77618b8ea3ca351804acfc.jpg",
+    "raw/sources/papers/其他/面向高效探索的轮式机器人多约束下主动激光SLAM方法研究_张驰洲/images/fdcc07edbff4a0ce3a9f18965e6ac259cb19546c62cb89045215981b0d4cf2b8.jpg",
+    "raw/sources/papers/其他/面向高效探索的轮式机器人多约束下主动激光SLAM方法研究_张驰洲/images/fd0a8321c8f0e54865c067f1f700f0a6f991a09e5d51a6c2c402b3364aaae5b0.jpg",
+    "raw/sources/papers/其他/面向高效探索的轮式机器人多约束下主动激光SLAM方法研究_张驰洲/images/fadad0a649eaefde4c77433d8fe725723648b0360f089f6f4c782664d93bfa60.jpg",
+    "raw/sources/papers/其他/面向高效探索的轮式机器人多约束下主动激光SLAM方法研究_张驰洲/images/fa9e5d1afb6a9d47e0297c35f99a40bf5efec89e8090ff5bdd3058a1483baccf.jpg",
+    "raw/sources/papers/其他/面向高效探索的轮式机器人多约束下主动激光SLAM方法研究_张驰洲/images/fa8794aa9800d78e61ed6df10b7907f8787f56798c9a1996074f7c97eacd4d6c.jpg",
+    "raw/sources/papers/其他/面向高效探索的轮式机器人多约束下主动激光SLAM方法研究_张驰洲/images/fa080cd8a8f99b4ed62412ee9b2d0400d47c3f824247f5fb67b272459c239eb8.jpg",
+    "raw/sources/papers/其他/面向高效探索的轮式机器人多约束下主动激光SLAM方法研究_张驰洲/full.md",
+    "wiki/sources/slam/2026-06-07 FAST-LIO2 (Xu 2022).md",
+    "wiki/sources/slam/2026-06-07 X-ICP Localizability-Aware LiDAR Registration (Tuna 2024).md",
+    "wiki/sources/slam/2026-06-07 GPS-Denied LiDAR-Based SLAM Survey (Jiang 2025).md",
+    "wiki/sources/slam/2026-06-07 FAST-LIO (Xu 2021).md",
+    "wiki/sources/slam/2026-06-07 Active SLAM Survey (Placed 2023).md",
+    "wiki/sources/rl-finetuning/2026-04-19 Flow Q-Learning.md",
+    "wiki/sources/rl-finetuning/2026-05-17 OFQL (Nguyen 2025).md",
+    "wiki/concepts/slam/SLAM (Simultaneous Localization and Mapping).md",
+    "wiki/concepts/slam/LiDAR-Inertial Odometry.md",
+    "raw/sources/papers/其他/Xu 等 - 2022 - FAST-LIO2 Fast Direct LiDAR-Inertial Odometry/full.md",
+    "raw/sources/papers/其他/Xu和Zhang - 2021 - FAST-LIO A Fast, Robust LiDAR-inertial Odometry Package by Tightly-Coupled Iterated Kalman Filter/Xu和Zhang - 2021 - FAST-LIO A Fast, Robust LiDAR-inertial Odometry Package by Tightly-Coupled Iterated Kalman Filter.md",
+    "raw/sources/papers/其他/Xu和Zhang - 2021 - FAST-LIO A Fast, Robust LiDAR-inertial Odometry Package by Tightly-Coupled Iterated Kalman Filter/full.md"
   ]
 }

@@ -1,0 +1,996 @@
+<?xml version="1.0" encoding="UTF-8"?><w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex" xmlns:cx1="http://schemas.microsoft.com/office/drawing/2015/9/8/chartex" xmlns:cx2="http://schemas.microsoft.com/office/drawing/2015/10/21/chartex" xmlns:cx3="http://schemas.microsoft.com/office/drawing/2016/5/9/chartex" xmlns:cx4="http://schemas.microsoft.com/office/drawing/2016/5/10/chartex" xmlns:cx5="http://schemas.microsoft.com/office/drawing/2016/5/11/chartex" xmlns:cx6="http://schemas.microsoft.com/office/drawing/2016/5/12/chartex" xmlns:cx7="http://schemas.microsoft.com/office/drawing/2016/5/13/chartex" xmlns:cx8="http://schemas.microsoft.com/office/drawing/2016/5/14/chartex" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:aink="http://schemas.microsoft.com/office/drawing/2016/ink" xmlns:am3d="http://schemas.microsoft.com/office/drawing/2017/model3d" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:oel="http://schemas.microsoft.com/office/2019/extlst" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml" xmlns:w16cex="http://schemas.microsoft.com/office/word/2018/wordml/cex" xmlns:w16cid="http://schemas.microsoft.com/office/word/2016/wordml/cid" xmlns:w16="http://schemas.microsoft.com/office/word/2018/wordml" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" xmlns:w16sdtdh="http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash" xmlns:w16sdtfl="http://schemas.microsoft.com/office/word/2024/wordml/sdtformatlock" xmlns:w16se="http://schemas.microsoft.com/office/word/2015/wordml/symex" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" mc:Ignorable="w14 w15 w16se w16cid w16 w16cex w16sdtdh w16sdtfl w16du wp14">
+  <w:body>
+    <w:p w14:paraId="17398B49" w14:textId="3A543493" w:rsidR="00C912F7" w:rsidRPr="00C912F7" w:rsidRDefault="00C912F7" w:rsidP="00C912F7">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:jc w:val="center"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="000000" w:themeColor="text1"/>
+          <w:sz w:val="28"/>
+          <w:szCs w:val="28"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="000000" w:themeColor="text1"/>
+          <w:sz w:val="28"/>
+          <w:szCs w:val="28"/>
+        </w:rPr>
+        <w:t>研究内容提纲</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="63CDCB07" w14:textId="77777777" w:rsidR="00C912F7" w:rsidRDefault="00C912F7" w:rsidP="00F45852">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+    </w:p>
+    <w:p w14:paraId="7A5508EF" w14:textId="15A1307C" w:rsidR="00495577" w:rsidRDefault="00F45852" w:rsidP="00F45852">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>一、面向地下退化环境的具身主动感知与自适应导航机理</w:t>
+      </w:r>
+      
+    </w:p>
+    <w:p w14:paraId="152EB55D" w14:textId="67BE006A" w:rsidR="00FF676D" w:rsidRDefault="000C67E8" w:rsidP="00F45852">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>（</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>侧重：单机</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>感知及</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>导航基础理论与算法</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>）</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="1188D12A" w14:textId="6169183F" w:rsidR="000D1188" w:rsidRDefault="000D52FA" w:rsidP="00AD5177">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:jc w:val="both"/>
+        <w:rPr>
+          <w:rFonts w:eastAsia="宋体" w:hint="eastAsia"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:eastAsia="宋体"/>
+        </w:rPr>
+        <w:tab/>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:noProof/>
+        </w:rPr>
+        <w:drawing>
+          <wp:inline distT="0" distB="0" distL="0" distR="0" wp14:anchorId="5D904ED5" wp14:editId="2893D6BD">
+            <wp:extent cx="5287068" cy="2345635"/>
+            <wp:effectExtent l="0" t="0" r="0" b="0"/>
+            <wp:docPr id="1178151099" name="图片 1"/>
+            <wp:cNvGraphicFramePr>
+              <a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/>
+            </wp:cNvGraphicFramePr>
+            <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+              <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                  <pic:nvPicPr>
+                    <pic:cNvPr id="0" name="Picture 1"/>
+                    <pic:cNvPicPr>
+                      <a:picLocks noChangeAspect="1" noChangeArrowheads="1"/>
+                    </pic:cNvPicPr>
+                  </pic:nvPicPr>
+                  <pic:blipFill>
+                    <a:blip r:embed="rId7" cstate="print">
+                      <a:extLst>
+                        <a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}">
+                          <a14:useLocalDpi xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main" val="0"/>
+                        </a:ext>
+                      </a:extLst>
+                    </a:blip>
+                    <a:srcRect/>
+                    <a:stretch>
+                      <a:fillRect/>
+                    </a:stretch>
+                  </pic:blipFill>
+                  <pic:spPr bwMode="auto">
+                    <a:xfrm>
+                      <a:off x="0" y="0"/>
+                      <a:ext cx="5312517" cy="2356926"/>
+                    </a:xfrm>
+                    <a:prstGeom prst="rect">
+                      <a:avLst/>
+                    </a:prstGeom>
+                    <a:noFill/>
+                    <a:ln>
+                      <a:noFill/>
+                    </a:ln>
+                  </pic:spPr>
+                </pic:pic>
+              </a:graphicData>
+            </a:graphic>
+          </wp:inline>
+        </w:drawing>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="78B5DA61" w14:textId="77777777" w:rsidR="000D1188" w:rsidRPr="005D02B0" w:rsidRDefault="000D1188" w:rsidP="00AD5177">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:jc w:val="both"/>
+        <w:rPr>
+          <w:rFonts w:eastAsia="宋体" w:hint="eastAsia"/>
+        </w:rPr>
+      </w:pPr>
+    </w:p>
+    <w:p w14:paraId="195F9427" w14:textId="5BE98BC5" w:rsidR="00884EB5" w:rsidRPr="00AD5177" w:rsidRDefault="00884EB5" w:rsidP="00AD5177">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:jc w:val="both"/>
+        <w:rPr>
+          <w:rFonts w:eastAsia="宋体" w:hint="eastAsia"/>
+        </w:rPr>
+      </w:pPr>
+    </w:p>
+    <w:p w14:paraId="40A1C75A" w14:textId="02C34EF9" w:rsidR="00FB3687" w:rsidRPr="00C75B1C" w:rsidRDefault="00FB3687" w:rsidP="00FB3687">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:rPr>
+          <w:rFonts w:eastAsia="宋体" w:hint="eastAsia"/>
+        </w:rPr>
+      </w:pPr>
+    </w:p>
+    <w:p w14:paraId="3BB3753F" w14:textId="196995B3" w:rsidR="00FB3687" w:rsidRPr="00FB3687" w:rsidRDefault="00FB3687" w:rsidP="00F45852">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:rPr>
+          <w:rFonts w:eastAsia="宋体" w:hint="eastAsia"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+        </w:rPr>
+      </w:pPr>
+    </w:p>
+    <w:p w14:paraId="4DF09AF2" w14:textId="77777777" w:rsidR="007A12EA" w:rsidRDefault="007A12EA" w:rsidP="007A12EA">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>1、感知退化约束下的&#x201C;定位-导航&#x201D;联合演化</w:t>
+      </w:r>
+      
+      
+      
+      
+    </w:p>
+    <w:p w14:paraId="0F33A3E0" w14:textId="22751E24" w:rsidR="007A12EA" w:rsidRDefault="007A12EA" w:rsidP="007A12EA">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>针对地下无GPS、缺乏纹理导致的SLAM定位严重漂移难题，研究将&#x201C;维持自身定位精度&#x201D;作为硬性约束的具身主动感知机制，构建主动探索的自适应导航规划算法。</w:t>
+      </w:r>
+      
+      
+      
+      
+    </w:p>
+    <w:p w14:paraId="6AA39D4E" w14:textId="77777777" w:rsidR="0073520D" w:rsidRPr="007A12EA" w:rsidRDefault="0073520D" w:rsidP="007A12EA">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+    </w:p>
+    <w:p w14:paraId="21905ABD" w14:textId="77777777" w:rsidR="007A12EA" w:rsidRDefault="007A12EA" w:rsidP="007A12EA">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>2、低功耗主动寻优轨迹生成</w:t>
+      </w:r>
+      
+      
+    </w:p>
+    <w:p w14:paraId="704A5A49" w14:textId="419F9127" w:rsidR="00F45852" w:rsidRPr="007A12EA" w:rsidRDefault="007A12EA" w:rsidP="007A12EA">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>在有限边缘算力约束下，研究基于信息增益（如不确定性度量、互信息最大化）的在线轨迹快速生成算法，驱动无人系统动态调整行驶姿态，主动寻找地形&#x201C;锚点&#x201D;进行自校准。</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="69EA856F" w14:textId="77777777" w:rsidR="00C87F52" w:rsidRDefault="00C87F52" w:rsidP="00F45852">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+    </w:p>
+    <w:p w14:paraId="06B5B797" w14:textId="34E590B3" w:rsidR="003711C8" w:rsidRDefault="003711C8" w:rsidP="003711C8">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>二、弱通信链路下异构集群的分布式一致性理解与协同表征</w:t>
+      </w:r>
+      
+      
+    </w:p>
+    <w:p w14:paraId="55E320D9" w14:textId="6EF12BE4" w:rsidR="00871AD4" w:rsidRPr="00C87F52" w:rsidRDefault="00871AD4" w:rsidP="003711C8">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>（</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>侧重：轻量化分布式协同算法</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>）</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="692BF3E4" w14:textId="3C49CD99" w:rsidR="003711C8" w:rsidRDefault="003711C8" w:rsidP="003711C8">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:lastRenderedPageBreak/>
+        <w:t>1、断续/弱通信下的轻量化分布式共识</w:t>
+      </w:r>
+      
+      
+      
+      
+      
+      
+      
+    </w:p>
+    <w:p w14:paraId="58D9C05D" w14:textId="7208DFF2" w:rsidR="003711C8" w:rsidRPr="003711C8" w:rsidRDefault="000C67E8" w:rsidP="003711C8">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>针对地下深部电磁波高衰减与多径效应，研究带宽高度受限、拓扑动态分裂条件下的分布式共识算法，大幅降低节点间的数据交互量。</w:t>
+      </w:r>
+      
+    </w:p>
+    <w:p w14:paraId="22ED3C24" w14:textId="77777777" w:rsidR="000C67E8" w:rsidRDefault="003711C8" w:rsidP="000C67E8">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>2、跨平台语义表征与拓扑对齐</w:t>
+      </w:r>
+      
+      
+    </w:p>
+    <w:p w14:paraId="5D9A8B8E" w14:textId="4F58F649" w:rsidR="003711C8" w:rsidRDefault="000C67E8" w:rsidP="000C67E8">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>研究空中无人机（UAV）与地面机器人（UGV）异构集群之间的空间语义鲁棒对齐方法，提出基于图论的轻量化空间拓扑地图共享与边界拓展机制。</w:t>
+      </w:r>
+      
+      
+      
+      
+    </w:p>
+    <w:p w14:paraId="5DF4B0E2" w14:textId="77777777" w:rsidR="00C87F52" w:rsidRDefault="00C87F52" w:rsidP="003711C8">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+    </w:p>
+    <w:p w14:paraId="7C688C5C" w14:textId="655053E4" w:rsidR="003711C8" w:rsidRDefault="003711C8" w:rsidP="003711C8">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>三、</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>地下</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>空间</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>多模态退化信息的深度融合机理与跨模态补全</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="3E27D9E7" w14:textId="25FB4BC4" w:rsidR="00871AD4" w:rsidRPr="00C87F52" w:rsidRDefault="00871AD4" w:rsidP="003711C8">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>（</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>侧重：深度学习模型与融合机理</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>）</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="303863A6" w14:textId="0CAB36CF" w:rsidR="003711C8" w:rsidRDefault="003711C8" w:rsidP="003711C8">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>1、多模态流形退化机理与时空异步补偿</w:t>
+      </w:r>
+      
+      
+      
+    </w:p>
+    <w:p w14:paraId="5985F677" w14:textId="51076C1E" w:rsidR="003711C8" w:rsidRPr="003711C8" w:rsidRDefault="00871AD4" w:rsidP="003711C8">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>揭示红外、可见光、毫米波雷达、三维激光等空间几何与物理属性在地下烟雾、强噪、突变光照下的退化规律与时空异步补偿机制。</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="7D566157" w14:textId="6C3A105D" w:rsidR="003711C8" w:rsidRDefault="003711C8" w:rsidP="003711C8">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>2、基于生成式架构的缺失信息跨模态预测</w:t>
+      </w:r>
+      
+      
+    </w:p>
+    <w:p w14:paraId="64892ADD" w14:textId="49E19041" w:rsidR="003711C8" w:rsidRDefault="00871AD4" w:rsidP="003711C8">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>利用未退化模态（如惯导、触觉、红外）或先验知识，对严重受损/缺失的单模态（如视觉丢失、激光散射）进行跨模态关联与预测补全，实现&#x201C;全盲&#x201D;环境下的强鲁棒性目标辨识。</w:t>
+      </w:r>
+      
+      
+    </w:p>
+    <w:p w14:paraId="31EDEE3D" w14:textId="77777777" w:rsidR="00C87F52" w:rsidRDefault="00C87F52" w:rsidP="00C87F52">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+    </w:p>
+    <w:p w14:paraId="24C54FDB" w14:textId="23175C90" w:rsidR="00C87F52" w:rsidRDefault="00C87F52" w:rsidP="00C87F52">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>四、</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>多维物理属性耦合的地下空间时空动态演化表征与重建</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="4607803C" w14:textId="5B0B578E" w:rsidR="00871AD4" w:rsidRPr="00C87F52" w:rsidRDefault="00871AD4" w:rsidP="00C87F52">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>（</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>侧重：高维时空建模与表征</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>）</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="11BD28FB" w14:textId="77777777" w:rsidR="00C87F52" w:rsidRDefault="00C87F52" w:rsidP="00C87F52">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>1、几何-物理多维属性耦合表征</w:t>
+      </w:r>
+      
+      
+      
+      
+    </w:p>
+    <w:p w14:paraId="438AB03A" w14:textId="561B1BAC" w:rsidR="00C87F52" w:rsidRPr="00C87F52" w:rsidRDefault="00C912F7" w:rsidP="00C87F52">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>突破传统仅关注三维几何拓扑的重建局限，将地下空间的温度场、湿度、有毒气体浓度、应力形变等物理属性与几何三维网格进行深度特征融合（如轻量化3D高斯泼溅技术的物理属性泛化）。</w:t>
+      </w:r>
+      
+      
+    </w:p>
+    <w:p w14:paraId="40B6A6F1" w14:textId="77777777" w:rsidR="00C912F7" w:rsidRDefault="00C87F52" w:rsidP="00C912F7">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>2、四维（3D+Time）动态演化趋势预测</w:t>
+      </w:r>
+      
+      
+      
+      
+    </w:p>
+    <w:p w14:paraId="6C60BE91" w14:textId="37367F19" w:rsidR="00C87F52" w:rsidRDefault="00C912F7" w:rsidP="00C912F7">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>构建具备演化预测能力的地下高动态时空重建模型，揭示地下空间结构动态受损、危险源扩散的时空动态演化机理。</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="52848DF8" w14:textId="77777777" w:rsidR="00C87F52" w:rsidRDefault="00C87F52" w:rsidP="00C87F52">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+    </w:p>
+    <w:p w14:paraId="4374DD6D" w14:textId="0640FE4E" w:rsidR="00C87F52" w:rsidRDefault="00C87F52" w:rsidP="00C87F52">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>五、通用地下空间具身智能导航与多维重建一体化验证系统</w:t>
+      </w:r>
+      
+    </w:p>
+    <w:p w14:paraId="0A95F8BB" w14:textId="01F04A92" w:rsidR="00C912F7" w:rsidRPr="00C87F52" w:rsidRDefault="00C912F7" w:rsidP="00C87F52">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>（</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>侧重：算法固化、低成本半物理仿真与系统集成</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="FF0000"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>）</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="5EFB092C" w14:textId="77777777" w:rsidR="00C912F7" w:rsidRDefault="00C912F7" w:rsidP="00C912F7">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:lastRenderedPageBreak/>
+        <w:t>1、</w:t>
+      </w:r>
+      
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>算法边缘化部署与轻量化固化</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="6F9DD21F" w14:textId="0859255D" w:rsidR="00C912F7" w:rsidRPr="00C912F7" w:rsidRDefault="00C912F7" w:rsidP="00C912F7">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>将课题一至课题四的理论成果进行轻量化剪枝与算子优化，固化于商用、低成本的边缘算力芯片（SOC）中，重构紧凑型异构无人平台物理载荷。</w:t>
+      </w:r>
+      
+      
+    </w:p>
+    <w:p w14:paraId="48039AE6" w14:textId="77777777" w:rsidR="00C912F7" w:rsidRDefault="00C912F7" w:rsidP="00C912F7">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman" w:hint="eastAsia"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>2、</w:t>
+      </w:r>
+      
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t xml:space="preserve"> &#x201C;算法-半物理-实物&#x201D;级军民通用集成验证</w:t>
+      </w:r>
+      
+      
+      
+      
+      
+      
+      
+    </w:p>
+    <w:p w14:paraId="3FCC5FC8" w14:textId="1C1A3CE2" w:rsidR="00C87F52" w:rsidRPr="00C912F7" w:rsidRDefault="00C912F7" w:rsidP="00C912F7">
+      <w:pPr>
+        <w:spacing w:after="0" w:line="360" w:lineRule="auto"/>
+        <w:ind w:firstLine="420"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hAnsi="Times New Roman"/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+        <w:t>构建低成本的地下模拟盲区环境，开展&#x201C;空地一体&#x201D;异构集群的低带宽分布式协同导航与四维态势一体化集成闭环验证，形成军民通用的地下空间多维动态态势指挥系统。</w:t>
+      </w:r>
+      
+      
+      
+      
+    </w:p>
+    <w:sectPr w:rsidR="00C87F52" w:rsidRPr="00C912F7">
+      <w:pgSz w:w="11906" w:h="16838"/>
+      <w:pgMar w:top="1440" w:right="1800" w:bottom="1440" w:left="1800" w:header="851" w:footer="992" w:gutter="0"/>
+      <w:cols w:space="425"/>
+      <w:docGrid w:type="lines" w:linePitch="312"/>
+    </w:sectPr>
+  </w:body>
+</w:document>
