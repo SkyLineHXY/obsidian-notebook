@@ -1,9 +1,9 @@
 ---
 type: analysis
-tags: [UMI, Pose Transformation, SE3, Coordinate Frames, Imitation Learning, Inference, Robot Control, Calibration, Franka]
+tags: [UMI, Pose Transformation, SE3, Coordinate Frames, Imitation Learning, Inference, Robot Control, Calibration, Franka, Bimanual Manipulation, GoPro VIO, Hand-Eye Calibration]
 sources: [Chi 等 - 2024 - Universal Manipulation Interface, Zhaxizhuoma 等 - 2025 - FastUMI]
 created: 2026-04-25
-updated: 2026-05-06 (修正 §1/§2：明确 SLAM 世界系 W 以 t₀ 相机位姿为原点，非任意帧)
+updated: 2026-08-08 (新增 §10：双臂 GoPro VIO 的共同地图、Camera→TCP、双基座与 policy TCP 变换链)
 ---
 
 # UMI ee6d 位姿变换：EE（法兰）-at-$t_0$ 推理完整推导
@@ -41,6 +41,9 @@ updated: 2026-05-06 (修正 §1/§2：明确 SLAM 世界系 W 以 t₀ 相机位
 ## 2. 采集阶段：SLAM 输出与法兰轨迹
 
 SLAM 跟踪相机运动，轨迹以 $t_0$ 帧为参考（每段演示数据归一化使 ${}^W T_C(t_0) = I$，即 $\{W\} \equiv \{C(t_0)\}$），输出每帧相机位姿：
+
+> [!warning] 双臂例外
+> 上述“每段轨迹以各自 $t_0$ 归一化”的写法只适合单臂。双臂 UMI 不能分别把两路相机的初始位姿都设成单位阵，否则会丢失两只 gripper 的初始空间关系。双臂原始 UMI 必须先把两路 GoPro 轨迹 relocalize 到同一个 SLAM map，并转换成同一个场景锚点坐标系，再计算跨 gripper 相对位姿；完整链路见 §10。
 
 $${}^W T_C(t) \in SE(3)$$
 
@@ -137,13 +140,13 @@ $$\mathbf{R}_F^{(k)} = \mathbf{R}_{BF_0} \cdot \mathbf{R}_{\Delta k}$$
 ├─ [传感器] 获取腕部相机图像 I(t_0)
 │
 ├─ [机器人 FK] 读取当前法兰位姿
-│   ᴮT_F(t₀) ← robot.get_ee_pose()     ← 唯一需要的机器人状态，无需外参
+│   ᴮT_F(t₀) ← robot.get_ee_pose()     ← 单臂只需这一项；双臂还需左右基座外参
 │
 ├─ [策略推理] policy(I(t_0), ...) → {Δ₁, Δ₂, ..., Δ_H}
 │   其中 Δ_k = ᶠ⁽ᵗ⁰⁾T_F(t_k)，初始值 Δ₀ = I
 │
 ├─ [坐标变换] 对每个预测步 k = 1..H：
-│   ᴮT_F(t_k) = ᴮT_F(t₀) · Δ_k        ← 不需要外参 ᶜT_F
+│   ᴮT_F(t_k) = ᴮT_F(t₀) · Δ_k        ← 单臂动作解码无需再次使用 ᶜT_F
 │
 ├─ [延迟匹配] 根据 UMI PD1，选取对应执行时刻的 Δ_{k*}
 │   k* = ⌈Δt_total / Δt⌉
@@ -333,3 +336,325 @@ def inference_step(policy, camera) -> None:
     q_target = ik_solver.solve(T_BF_exec)
     robot.send_joint_command(q_target)
 ```
+
+---
+
+## 10. 原始 GoPro VIO UMI 的双臂坐标系统一
+
+> **核心结论**：相对位姿只消除了共同的世界/地图坐标系，不会消除 Camera→TCP 外参、左右机器人基座外参，也不会消除 TCP 坐标轴定义差异。
+
+本节使用 ${}^A T_B$ 表示“坐标系 $B$ 在坐标系 $A$ 中的位姿”，即把 $B$ 系坐标变换到 $A$ 系。
+
+**来源**：
+- [[wiki/sources/2026-04-24 UMI (Chi 2024)]]（map-then-localize、inter-gripper proprioception、相对轨迹）
+- [UMI `06_generate_dataset_plan.py`](https://github.com/real-stanford/universal_manipulation_interface/blob/main/scripts_slam_pipeline/06_generate_dataset_plan.py)（`tx_tag_cam`、`tx_cam_tcp`、`tx_tag_tcp`）
+- [UMI `real_inference_util.py`](https://github.com/real-stanford/universal_manipulation_interface/blob/main/umi/real_world/real_inference_util.py)（`tx_robot1_robot0` 与推理时跨基座变换）
+
+### 10.1 局部符号定义
+
+为避免与前文 Franka 法兰系 $\{F\}$ 混淆，本节将用于策略学习和动作解码的标准工具坐标系记为 $\{P_i\}$。
+
+| 符号                | 含义                 | 获得方式             |
+| ----------------- | ------------------ | ---------------- |
+| $\{M\}$           | 所有双臂演示共享的 SLAM map | mapping video 构建 |
+| $\{A\}$           | 桌面 ArUco/tag 场景锚点系 | mapping 阶段标定     |
+| $\{C_0\},\{C_1\}$ | 右、左 GoPro 相机系      | VIO 输出           |
+| $\{P_0\},\{P_1\}$ | 右、左 policy TCP     | UMI 几何定义/外参标定    |
+| $\{B_0\},\{B_1\}$ | 右、左机器人基座系          | 机器人模型与双基座标定      |
+| $\{E_0\},\{E_1\}$ | 机器人控制器实际 TCP       | FK 输出            |
+
+原始仓库约定 `robot0/camera0` 为右侧，`robot1/camera1` 为左侧。自定义系统必须固定这一索引约定，不能在不同 episode 或推理时交换。
+
+### 10.2 采集端：两路 VIO 必须定位到同一个 map
+
+双臂采集时，两路 GoPro VIO 应得到：
+
+$$
+{}^M T_{C_0}(t),\qquad {}^M T_{C_1}(t)
+$$
+
+这里的两个 $M$ 必须是同一个地图坐标系。正确流程是：
+
+1. 在当前场景录制一次 mapping video 并构建地图 $M$；
+2. mapping 时观测场景 tag，求出 ${}^M T_A$；
+3. 两只 gripper 的 demonstration video 分别 relocalize 到该地图，而不是各自新建 VIO 原点；
+4. 通过统一时间戳对齐两路视频，再在同一时刻计算双手几何关系。
+
+定义：
+
+$$
+{}^A T_M = \left({}^M T_A\right)^{-1}
+$$
+
+则两路相机在场景锚点系下为：
+
+$$
+{}^A T_{C_i}(t) = {}^A T_M\,{}^M T_{C_i}(t)
+$$
+原始代码对应：
+
+```python
+T_A_M = np.linalg.inv(T_M_A)       # tx_tag_slam
+T_A_Ci = T_A_M @ T_M_Ci            # tx_tag_cam
+```
+
+tag 不要求在每个演示帧中可见；它主要在 mapping 阶段定义稳定的场景锚点。真正使两个 gripper 可比较的是“所有视频都重定位到同一个 map”。
+
+> [!danger] 两个独立 VIO 原点无法直接合并
+> 如果分别启动两套没有共享地图的 VIO，得到 ${}^{M_0}T_{C_0}$ 和 ${}^{M_1}T_{C_1}$，其中存在未知的 ${}^{M_0}T_{M_1}$。仅凭两条独立轨迹无法恢复该变换，必须额外引入共同 tag、地图合并/回环、运动捕捉或已知机械夹具约束。
+
+### 10.3 每个 UMI gripper 都需要完整的 Camera→Policy-TCP 外参
+
+为左右两个 UMI 分别定义：
+
+$$
+{}^{C_0}T_{P_0},\qquad {}^{C_1}T_{P_1}
+$$
+
+则公共场景坐标系中的 policy TCP 轨迹为：
+
+$$
+\boxed{{}^A T_{P_i}(t)
+= {}^A T_M\,{}^M T_{C_i}(t)\,{}^{C_i}T_{P_i}}
+$$
+
+原始标准 UMI 根据 CAD/安装尺寸使用固定 `tx_cam_tcp`，代码中近似为纯平移：
+
+```python
+T_Ci_Pi = pose_to_mat([
+    0,
+    cam_to_center_height,
+    cam_to_tip_offset,
+    0, 0, 0,
+])
+T_A_Pi = T_A_Ci @ T_Ci_Pi          # tx_tag_tcp
+```
+
+这只适用于完全复现官方 GoPro 型号、安装方向和坐标轴约定的情况。自定义硬件应为两只 gripper 分别标定完整 $SE(3)$ 外参，而不是只估计平移，也不应默认两套外参完全相同。
+
+手持 UMI 没有机器人 FK，因此这里不一定采用传统 $AX=XB$ 手眼标定。可使用已知 Target→TCP 几何关系的标定治具：GoPro 通过 PnP 求 Camera→Target，再与治具的 Target→TCP 组合，并用多姿态数据做 $SE(3)$ 最小二乘优化。
+
+> [!warning] 检查 VIO 输出帧定义
+> `camera_trajectory.csv` 的相机姿态不一定等价于 ROS optical frame；VIO/ORB-SLAM 导出脚本可能已经做过轴变换。应使用轴可视化和已知刚体运动验证 $+X,+Y,+Z$，不能仅凭变量名拼接外参。
+
+### 10.4 训练端：inter-gripper pose 的完整变换
+
+统一到 $A$ 系以后，右手看左手的相对位姿为：
+
+$$
+\boxed{{}^{P_0}T_{P_1}(t)
+= \left({}^A T_{P_0}(t)\right)^{-1}
+{}^A T_{P_1}(t)}
+$$
+
+展开为：
+
+$$
+{}^{P_0}T_{P_1}
+= \left({}^{C_0}T_{P_0}\right)^{-1}
+\left({}^M T_{C_0}\right)^{-1}
+{}^M T_{C_1}
+{}^{C_1}T_{P_1}
+$$
+
+可以看出，共同的 $A$ 系和 $M$ 系被消掉，但左右两套 Camera→TCP 外参不会被消掉。
+
+同理，左手看右手为：
+
+$$
+{}^{P_1}T_{P_0} = \left({}^{P_0}T_{P_1}\right)^{-1}
+$$
+
+每只手自己的 EE-at-$t_0$ 动作仍为：
+
+$$
+\Delta_i(t_k)
+= \left({}^A T_{P_i}(t_0)\right)^{-1}
+{}^A T_{P_i}(t_k)
+$$
+
+注意，动作是“同一只手跨时间”的相对变换，inter-gripper pose 是“同一时刻跨两只手”的相对变换，两者不能混用。
+
+### 10.5 推理端：使用双机器人基座外参重建相同观测
+
+机器人 FK 分别给出：
+
+$$
+{}^{B_0}T_{E_0}(t),\qquad
+{}^{B_1}T_{E_1}(t)
+$$
+
+若控制器 TCP $E_i$ 与训练使用的 policy TCP $P_i$ 不同，需要固定工具变换：
+
+$$
+{}^{B_i}T_{P_i}(t)
+= {}^{B_i}T_{E_i}(t)\,{}^{E_i}T_{P_i}
+$$
+
+再标定双臂基座外参 ${}^{B_0}T_{B_1}$。推理时右手看左手的位姿为：
+
+$$
+\boxed{{}^{P_0}T_{P_1}(t)
+= \left({}^{B_0}T_{P_0}(t)\right)^{-1}
+{}^{B_0}T_{B_1}
+{}^{B_1}T_{P_1}(t)}
+$$
+
+这与采集端计算的特征具有同一坐标意义，因此可以直接作为 `robot0_eef_*_wrt1` 的推理输入。
+
+原始 UMI 的 `tx_left_right` 按“robot0=右、robot1=左”的约定表示：
+
+$$
+{}^{B_\text{left}}T_{B_\text{right}}
+$$
+
+推理代码在计算右臂坐标系中的左臂时会对它取逆。实现时建议将变量明确命名为 `T_Bleft_Bright`，避免 `left_right` 或 `robot1_robot0` 导致方向误用。
+
+### 10.6 为什么不需要 Demo-map→Robot-base 标定
+
+双臂策略若只使用：
+
+- 每只手的 EE-at-$t_0$ 相对轨迹；
+- 两只 policy TCP 间的相对位姿；
+- 腕部 RGB 和夹爪宽度；
+
+则不需要求：
+
+$$
+{}^{B_\text{robot}}T_{A_\text{demo}}
+$$
+
+因为采集端和推理端都在各自内部先构造相同物理含义的相对量，公共世界系会在矩阵乘法中消掉。
+
+但若策略输入或输出包含场景锚点系中的绝对末端位姿、物体绝对位姿或固定世界方向，那么仍然需要做场景注册或 Demo→Robot 世界坐标对齐。
+
+### 10.7 机器人腕部 Camera→TCP 标定的真正作用
+
+固定基座机械臂推理时，inter-gripper pose 通常直接由 FK 和双基座外参计算，不需要运行腕部相机 VIO。但腕部 Camera→TCP 关系仍然决定视觉—动作几何是否与训练一致。
+
+应尽量满足：
+
+$$
+{}^{P_i}T_{C_i}^{\text{robot}}
+\approx
+{}^{P_i}T_{C_i}^{\text{UMI}}
+$$
+
+手眼标定只能告诉系统数值外参，不能自动把一个明显不同视点的 RGB 图像变成训练时视点。因此优先级为：
+
+1. 用机械安装复现 UMI Camera→Policy-TCP 几何关系；
+2. 分别标定两只机器人腕部相机外参；
+3. 小视角差异可配合图像增强；
+4. 大视角差异需要机器人微调数据或重新训练视觉编码器。
+
+### 10.8 Policy TCP 与控制器 TCP 不一致时的动作解码
+
+相对动作并不对工具坐标系变化保持不变。令：
+
+$$
+X_i = {}^{E_i}T_{P_i}
+$$
+
+若策略输出 $P_i$ 系下的相对动作 $\Delta T_{P_i}$，控制器要求 $E_i$ 系下的相对动作，则：
+
+$$
+\boxed{\Delta T_{E_i}
+= X_i\,\Delta T_{P_i}\,X_i^{-1}}
+$$
+
+更不容易写错的实现方式是先重建 policy TCP 的绝对目标，再转换回控制器 TCP：
+
+$$
+{}^{B_i}T_{P_i}^{des}
+= {}^{B_i}T_{P_i}^{cur}\,\Delta T_{P_i}
+$$
+
+$$
+{}^{B_i}T_{E_i}^{des}
+= {}^{B_i}T_{P_i}^{des}\,X_i^{-1}
+$$
+
+```python
+T_Bi_Pi_cur = T_Bi_Ei_cur @ T_Ei_Pi
+T_Bi_Pi_des = T_Bi_Pi_cur @ Delta_Pi
+T_Bi_Ei_des = T_Bi_Pi_des @ np.linalg.inv(T_Ei_Pi)
+```
+
+因此，不能通过“给相对位置加一个 TCP 偏移量”完成工具帧转换，必须使用完整的 $SE(3)$ 共轭或绝对位姿链。
+
+### 10.9 如何标定左右机器人基座外参
+
+推荐让两只腕部相机观测同一个固定标定板 $Q$。对第 $i$ 只机械臂：
+
+$$
+{}^{B_i}T_Q
+= {}^{B_i}T_{E_i}
+{}^{E_i}T_{C_i}
+{}^{C_i}T_Q
+$$
+
+于是：
+
+$$
+\boxed{{}^{B_0}T_{B_1}
+= {}^{B_0}T_Q
+\left({}^{B_1}T_Q\right)^{-1}}
+$$
+
+应采集多组覆盖不同位置和姿态的观测，联合优化一个固定的 ${}^{B_0}T_{B_1}$，而不是只测量两个底座之间的平移距离。
+
+### 10.10 必做一致性检查
+
+| 检查项    | 判据/目的                                         |
+| ------ | --------------------------------------------- |
+| VIO 共图 | 两路轨迹使用同一 map id 和同一个 `tx_slam_tag`            |
+| 时间同步   | inter-gripper pose 使用同一物理时刻的数据                |
+| 外参方向   | ${}^{C_i}T_{P_i}\,{}^{P_i}T_{C_i}\approx I$   |
+| 跨手互逆   | ${}^{P_0}T_{P_1}\,{}^{P_1}T_{P_0}\approx I$   |
+| 基座互逆   | ${}^{B_0}T_{B_1}\,{}^{B_1}T_{B_0}\approx I$   |
+| 已知夹具验证 | 两个 TCP 固定在已知距离/姿态的治具中，采集端与机器人端结果应一致           |
+| 坐标轴可视化 | 分别沿 policy TCP 的 $+X,+Y,+Z$ 移动，确认训练与机器人端符号相同  |
+| 旋转合法性  | 所有旋转矩阵满足 $R^TR\approx I$ 且 $\det(R)\approx 1$ |
+
+> [!note] 左右镜像不是坐标变换
+> 即使左右硬件采用镜像结构，policy TCP 仍必须使用右手坐标系。不要使用 $\det(R)=-1$ 的反射矩阵充当外参；应通过合法旋转和统一 TCP 定义处理左右轴方向。
+
+### 10.11 双臂变换链速查
+
+采集端：
+
+$$
+\boxed{
+{}^A T_{P_i}
+= {}^A T_M
+{}^M T_{C_i}
+{}^{C_i}T_{P_i}}
+$$
+
+$$
+\boxed{
+{}^{P_0}T_{P_1}
+= \left({}^A T_{P_0}\right)^{-1}
+{}^A T_{P_1}}
+$$
+
+推理端：
+
+$$
+\boxed{
+{}^{P_0}T_{P_1}
+= \left({}^{B_0}T_{E_0}{}^{E_0}T_{P_0}\right)^{-1}
+{}^{B_0}T_{B_1}
+{}^{B_1}T_{E_1}
+{}^{E_1}T_{P_1}}
+$$
+
+最终需要标定或确定的固定量包括：
+
+- 采集端：${}^{C_0}T_{P_0}$、${}^{C_1}T_{P_1}$；
+- 推理端：${}^{B_0}T_{B_1}$、${}^{E_0}T_{P_0}$、${}^{E_1}T_{P_1}$；
+- 若使用机器人腕部相机：${}^{E_0}T_{C_0}^{robot}$、${}^{E_1}T_{C_1}^{robot}$。
+
+一句话概括：
+
+> 采集时依靠“共同 SLAM map + 两套 Camera→UMI-policy-TCP 外参”；推理时依靠“左右机器人基座外参 + 两套 Controller-TCP→Policy-TCP 外参”。相对位姿只使采集 map 与机器人 base 不必直接对齐，并没有免除这些内部外参标定。
